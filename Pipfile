@@ -9,6 +9,9 @@ verify_ssl = true
 djangorestframework = "*"
 markdown = "*"
 django-filter = "*"
+gunicorn = "*"
+django = "*"
+django-heroku = "*"
 
 [requires]
 python_version = "3.6"
