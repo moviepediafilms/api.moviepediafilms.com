@@ -11,7 +11,8 @@ markdown = "*"
 django-filter = "*"
 gunicorn = "*"
 django = "*"
-django-heroku = "*"
+python-dotenv = "*"
+psycopg2-binary = "*"
 
 [requires]
 python_version = "3.6"
