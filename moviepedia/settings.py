@@ -164,13 +164,14 @@ REST_FRAMEWORK = {
 
 CORS_ALLOW_CREDENTIALS = True
 CORS_ORIGIN_WHITELIST = [
-    "uat.moviepediafilms.com",
     "http://localhost:8080",
     "https://moviepediafilms.com",
     "https://www.moviepediafilms.com",
     "https://uat.moviepediafilms.com",
 ]
-STATIC_ROOT = os.path.join(BASE_DIR, "static")
+
+STATIC_URL = "/static/"
+STATIC_ROOT = "static"
 
 if PRODUCTION:
     SECURE_SSL_REDIRECT = True
