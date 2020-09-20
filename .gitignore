@@ -1,0 +1,6 @@
+*.py[co]
+.env
+db.sqlite3
+static/**
+testdb
+moviepedia.log
