@@ -1,24 +1,65 @@
-from rest_framework import serializers
-from api.models import Profile, BadgeClaim
-from api.constants import CLAIM_STATE
+from logging import getLogger
+from rest_framework import serializers, validators
+from django.contrib.auth.models import User
 from django.db.models import Sum
+from django.db import transaction
+
+from api.models import Profile, BadgeClaim, Role
+from api.constants import CLAIM_STATE
+
+
+logger = getLogger("app.serializer")
+
+
+class UserSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(source="get_full_name", read_only=True)
+    first_name = serializers.CharField(write_only=True)
+    last_name = serializers.CharField(write_only=True)
+    password = serializers.CharField(write_only=True)
+    username = serializers.CharField(
+        validators=[
+            validators.UniqueValidator(
+                queryset=User.objects.all(), message="This email is already in use.",
+            )
+        ],
+        write_only=True,
+    )
+    email = serializers.CharField(
+        validators=[
+            validators.UniqueValidator(
+                queryset=User.objects.all(), message="This email is already in use.",
+            )
+        ],
+        write_only=True,
+    )
+    password = serializers.CharField(min_length=6, write_only=True)
+
+    class Meta:
+        model = User
+        fields = ["first_name", "last_name", "email", "username", "name", "password"]
+
+
+class RoleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Role
+        fields = ["name", "id"]
 
 
 class ProfileSerializer(serializers.ModelSerializer):
-    name = serializers.SerializerMethodField()
-    email = serializers.SerializerMethodField()
-    amount_earned = serializers.SerializerMethodField()
-    type = serializers.SerializerMethodField()
+    user = UserSerializer()
+    roles = RoleSerializer(many=True)
 
     class Meta:
         model = Profile
         fields = [
             "id",
-            "name",
-            "type",
+            "user",
+            "city",
+            "dob",
+            "gender",
+            "mobile",
+            "roles",
             "image",
-            "email",
-            "amount_earned",
             "level",
             "rank",
             "score",
@@ -26,17 +67,23 @@ class ProfileSerializer(serializers.ModelSerializer):
             "pop_score",
         ]
 
-    def get_type(self, profile: Profile):
-        return profile.type.name
+    def create(self, validated_data: dict):
+        logger.debug(validated_data)
+        user_data = validated_data.pop("user")
+        roles_data = validated_data.pop("roles")
+        roles = Role.objects.filter(name__in=[rd.get("name") for rd in roles_data])
 
-    def get_amount_earned(self, profile: Profile):
-        return BadgeClaim.objects.filter(
-            user=profile.user, state=CLAIM_STATE.SUCCESS
-        ).aggregate(Sum("amount"))["amount__sum"]
+        with transaction.atomic():
+            user = UserSerializer().create(validated_data=user_data)
+            user.set_password(user_data.pop("password"))
+            user.save()
 
-    def get_email(self, profile: Profile):
-        return profile.user.email
+            profile = Profile.objects.create(user=user, **validated_data)
+            profile.roles.set(roles)
+        logger.debug("Profile created successfully")
+        return profile
 
-    def get_name(self, profile: Profile):
-        return profile.user.get_fullname()
-
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation.update(representation.pop("user"))
+        return representation

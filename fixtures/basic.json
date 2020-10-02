@@ -1,0 +1,62 @@
+[
+    {
+        "model": "auth.user",
+        "pk": 2,
+        "fields": {
+            "password": "pbkdf2_sha256$216000$jW5swHrr6OhM$G75IHK/TthAaro0gU0OsXG7dc+fig2SArHKjna8OL5I=",
+            "last_login": null,
+            "is_superuser": true,
+            "username": "admin",
+            "first_name": "Zeeshan",
+            "last_name": "Khan",
+            "email": "zkhan1093@gmail.com",
+            "is_staff": true,
+            "is_active": true,
+            "date_joined": "2020-10-01T13:04:44.652Z",
+            "groups": [],
+            "user_permissions": []
+        }
+    },
+    {
+        "model": "api.role",
+        "pk": 1,
+        "fields": {
+            "name": "Actor"
+        }
+    },
+    {
+        "model": "api.role",
+        "pk": 2,
+        "fields": {
+            "name": "Director"
+        }
+    },
+    {
+        "model": "api.role",
+        "pk": 3,
+        "fields": {
+            "name": "Producer"
+        }
+    },
+    {
+        "model": "api.role",
+        "pk": 4,
+        "fields": {
+            "name": "Singer"
+        }
+    },
+    {
+        "model": "api.role",
+        "pk": 5,
+        "fields": {
+            "name": "Musician"
+        }
+    },
+    {
+        "model": "api.role",
+        "pk": 6,
+        "fields": {
+            "name": "Cameraman"
+        }
+    }
+]

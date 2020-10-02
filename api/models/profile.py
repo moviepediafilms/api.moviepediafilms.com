@@ -9,8 +9,11 @@ GENDER_CHOICES = (
 )
 
 
-class ProfileType(models.Model):
+class Role(models.Model):
     name = models.CharField(max_length=20)
+
+    def __str__(self):
+        return self.name
 
 
 class Profile(models.Model):
@@ -19,19 +22,20 @@ class Profile(models.Model):
     mobile = models.CharField(max_length=20)
     gender = models.CharField(max_length=1, choices=GENDER_CHOICES)
     dob = models.DateField()
-    type = models.ForeignKey(ProfileType, on_delete=models.CASCADE)
-    image = models.URLField()
+    roles = models.ManyToManyField(Role, blank=True)
+    image = models.URLField(null=True, blank=True)
     follows = models.ManyToManyField("Profile", blank=True)
 
     # content consumers attributes
-    mcoins = models.FloatField()
+    mcoins = models.FloatField(default=0)
     # will get updated after a defined interval of time
-    rank = models.IntegerField()
+    rank = models.IntegerField(default=-1)
     # score as per current level
-    score = models.FloatField()
-    level = models.IntegerField()
+    score = models.FloatField(default=0)
+    level = models.IntegerField(default=1)
     # insert a badge here after the attempt, so that user can claim it
-    badges = models.ManyToManyField("Badge")
+    badges = models.ManyToManyField("Badge", blank=True)
 
     # content creators attributes
-    pop_score = models.FloatField()
+    pop_score = models.FloatField(default=0)
+    # fund readiness meter can be derived from pop_score and movie ratings

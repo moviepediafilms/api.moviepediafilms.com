@@ -1,4 +1,4 @@
-from .profile import ProfileType, Profile
+from .profile import Role, Profile
 from .others import (
     BadgeClaim,
     Judge,
@@ -27,7 +27,7 @@ __all__ = [
     Movie,
     MovieUserRating,
     MovieReview,
-    ProfileType,
+    Role,
     Profile,
     BadgeClaim,
     Judge,
@@ -36,4 +36,3 @@ __all__ = [
     GameAttempt,
     Notification,
 ]
-
