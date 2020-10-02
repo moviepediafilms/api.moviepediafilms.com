@@ -1,10 +1,10 @@
 #! /bin/bash
 echo "changing directory" | systemd-cat
-cd /home/zeeshan/moviepedia
-echo `pwd` | systemd-cat
+cd /home/zeeshan/api.moviepediafilms.com
+echo $(pwd) | systemd-cat
 
 echo "git pull" | systemd-cat
-sudo /usr/bin/git pull
+/usr/bin/git pull
 echo "ok" | systemd-cat
 
 echo "pipenv sync" | systemd-cat
@@ -24,11 +24,10 @@ echo "pipenv run python manage.py collectstatic --noinput -c" | systemd-cat
 /home/zeeshan/.local/bin/pipenv run python manage.py collectstatic --noinput -c
 echo "ok" | systemd-cat
 
-
 echo "pipenv run python manage.py migrate --noinput" | systemd-cat
 /home/zeeshan/.local/bin/pipenv run python manage.py migrate --noinput
 echo "ok" | systemd-cat
 
-echo "sudo service gunicorn restart" | systemd-cat
-sudo /usr/sbin/service gunicorn restart
+echo "sudo service api.moviepediafilms restart" | systemd-cat
+sudo /usr/sbin/service api.moviepediafilms restart
 echo "ok" | systemd-cat
