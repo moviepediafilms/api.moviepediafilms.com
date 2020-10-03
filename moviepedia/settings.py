@@ -168,6 +168,8 @@ CORS_ORIGIN_WHITELIST = [
     "https://moviepediafilms.com",
     "https://www.moviepediafilms.com",
     "https://uat.moviepediafilms.com",
+    "https://mdff.moviepediafilms.com",
+    "https://api.moviepediafilms.com",
 ]
 
 STATIC_URL = "/static/"
@@ -178,3 +180,25 @@ if PRODUCTION:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
+
+
+GOOGLE_ANALYTICS = os.getenv("GOOGLE_ANALYTICS")
+
+FIXTURE_DIRS = (os.path.join(BASE_DIR, "fixtures/",),)
+
+
+RECAPTCHA_SECRET_KEY = os.getenv("RECAPTCHA_SECRET_KEY")
+
+RAZORPAY_API_KEY = os.getenv("RAZORPAY_API_KEY")
+RAZORPAY_API_SECRET = os.getenv("RAZORPAY_API_SECRET")
+
+
+# sendgrid API
+SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
+SENDGRID_EMAIL = "info@moviepediafilms.com"
+SENDGRID_NAME = "Moviepedia Films"
+SENDGRID_REPLY_TO = "moviepedia14@gmail.com"
+
+SENDGRID_TEMPLATE_WELCOME = "d-a7a0fd0e3fe84e13bae1625541d2db35"
+SENDGRID_TEMPLATE_FILM_REG = "d-8867252c6af04c39827cbdb35a3320f3"
+SENDGRID_TEMPLATE_PASSWORD_RESET = "d-06e58c74df7f43a787511fefff9a06b6"

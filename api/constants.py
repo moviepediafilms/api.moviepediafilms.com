@@ -3,6 +3,7 @@ class MOVIE_STATE:
     PUBLISHED = "P"
     HIDDEN = "H"
     ARCHIVED = "A"
+    REJECTED = "R"
 
 
 class GENDER:

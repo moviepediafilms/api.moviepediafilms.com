@@ -1,5 +1,5 @@
 #!/bin/bash -x
-export WORKSPACE=/home/zeeshan/repos/moviepedia_backend
+export WORKSPACE=/home/zeeshan/repos/api.moviepediafilms.com
 cd $WORKSPACE
 rm $WORKSPACE/api/migrations/0001_initial.py
 pipenv run python manage.py makemigrations
