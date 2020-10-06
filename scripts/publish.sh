@@ -41,7 +41,7 @@ raise_pr() {
        \"body\":\"PR raised by publish.sh\"}"
     echo $DATA >$TMP_REQ
     GITHUB_PR_LINK=https://api.github.com/repos/$GITHUB_REPO/pulls
-    # curl -X POST -H "Content-Type: application/json" -d @$TMP_REQ -u $GITHUB_USER:$GITHUB_TOKEN $GITHUB_PR_LINK -o $TMP_RES &>/dev/null
+    curl -X POST -H "Content-Type: application/json" -d @$TMP_REQ -u $GITHUB_USER:$GITHUB_TOKEN $GITHUB_PR_LINK -o $TMP_RES &>/dev/null
 
     /usr/bin/jshon -e errors -t <$TMP_RES &>/dev/null
     if [ $? -eq 0 ]; then
