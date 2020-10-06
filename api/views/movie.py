@@ -1,6 +1,7 @@
 from logging import getLogger
 from rest_framework.viewsets import ModelViewSet, GenericViewSet
 from rest_framework.generics import CreateAPIView
+from rest_framework.permissions import IsAuthenticated
 from rest_framework import mixins
 from rest_framework import parsers
 from api.serializers.movie import (
@@ -17,6 +18,7 @@ logger = getLogger("app.view")
 class SubmissionView(CreateAPIView):
     parser_classes = (parsers.MultiPartParser, parsers.FormParser)
     serializer_class = SubmissionSerializer
+    permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):
         logger.info(f"[submission] start  {self.request.user.email}")

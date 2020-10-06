@@ -29,8 +29,7 @@ class UserSerializer(serializers.ModelSerializer):
             validators.UniqueValidator(
                 queryset=User.objects.all(), message="This email is already in use.",
             )
-        ],
-        write_only=True,
+        ]
     )
     password = serializers.CharField(min_length=6, write_only=True)
 
