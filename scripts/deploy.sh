@@ -20,8 +20,8 @@ echo "ok" | systemd-cat
 
 # pipenv run python manage.py migrate --noinput
 
-echo "pipenv run python manage.py collectstatic --noinput -c" | systemd-cat
-/home/zeeshan/.local/bin/pipenv run python manage.py collectstatic --noinput -c
+echo "pipenv run python manage.py collectstatic --noinput" | systemd-cat
+/home/zeeshan/.local/bin/pipenv run python manage.py collectstatic --noinput
 echo "ok" | systemd-cat
 
 echo "pipenv run python manage.py migrate --noinput" | systemd-cat
