@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 # Register your models here.
-from api.models import Profile, Role, Order, Movie, MovieGenre, MovieLanguage
+from api.models import Profile, Role, Order, Movie, MovieGenre, MovieLanguage, Package
 
 
 class ProfileAdmin(admin.ModelAdmin):
@@ -28,9 +28,14 @@ class MovieLanguageAdmin(admin.ModelAdmin):
     list_display = ["name"]
 
 
+class PackageAdmin(admin.ModelAdmin):
+    list_display = ["name"]
+
+
 admin.site.register(Profile, ProfileAdmin)
 admin.site.register(Role, RoleAdmin)
 admin.site.register(Order, OrderAdmin)
 admin.site.register(Movie, MovieAdmin)
 admin.site.register(MovieGenre, MovieGenreAdmin)
 admin.site.register(MovieLanguage, MovieLanguageAdmin)
+admin.site.register(Package, PackageAdmin)

@@ -46,7 +46,7 @@ class RoleSerializer(serializers.ModelSerializer):
 
 class ProfileSerializer(serializers.ModelSerializer):
     user = UserSerializer()
-    roles = RoleSerializer(many=True)
+    roles = RoleSerializer(many=True, read_only=True)
 
     class Meta:
         model = Profile
@@ -67,19 +67,14 @@ class ProfileSerializer(serializers.ModelSerializer):
         ]
 
     def create(self, validated_data: dict):
-        logger.debug(validated_data)
+        logger.debug(f"profile::create {validated_data}")
         user_data = validated_data.pop("user")
-        roles_data = validated_data.pop("roles")
-        roles = Role.objects.filter(name__in=[rd.get("name") for rd in roles_data])
-
         with transaction.atomic():
             user = UserSerializer().create(validated_data=user_data)
             user.set_password(user_data.pop("password"))
             user.save()
-
             profile = Profile.objects.create(user=user, **validated_data)
-            profile.roles.set(roles)
-        logger.debug("Profile created successfully")
+        logger.debug(f"profile::create successful {profile.id}")
         return profile
 
     def to_representation(self, instance):

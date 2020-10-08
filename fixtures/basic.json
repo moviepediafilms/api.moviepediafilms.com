@@ -58,5 +58,44 @@
         "fields": {
             "name": "Cameraman"
         }
+    },
+    {
+        "model": "api.package",
+        "pk": 1,
+        "fields": {
+            "name": "standard pack",
+            "amount": 37500.0
+        }
+    },
+    {
+        "model": "api.package",
+        "pk": 2,
+        "fields": {
+            "name": "premium pack",
+            "amount": 47400.0
+        }
+    },
+    {
+        "model": "api.profile",
+        "pk": 1,
+        "fields": {
+            "user": 2,
+            "city": "Lucknow",
+            "mobile": "8932061116",
+            "gender": "M",
+            "dob": "1993-10-07",
+            "image": null,
+            "mcoins": 0.0,
+            "rank": -1,
+            "score": 0.0,
+            "level": 1,
+            "pop_score": 0.0,
+            "roles": [
+                1,
+                3
+            ],
+            "follows": [],
+            "badges": []
+        }
     }
 ]

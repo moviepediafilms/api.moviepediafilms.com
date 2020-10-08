@@ -1,11 +1,27 @@
 from logging import getLogger
 import hashlib
+import os
 
 from django.conf import settings
+from django.core.files.storage import default_storage
 from rest_framework import serializers
 import razorpay
 
-from api.models import Movie, MovieGenre, MovieLanguage, MoviePoster, Order
+from .profile import ProfileSerializer
+
+from api.models import (
+    User,
+    Movie,
+    MovieGenre,
+    MovieLanguage,
+    MoviePoster,
+    Order,
+    Package,
+    Profile,
+    Role,
+    CrewMember,
+)
+
 
 logger = getLogger("app.serializer")
 
@@ -36,41 +52,37 @@ class MovieLanguageSerializer(serializers.ModelSerializer):
         return representation
 
 
-def create_order(user):
-    if not user:
+class RoleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Role
+        fields = ["name"]
+
+
+def create_rzp_order(package, owner):
+    if not all([package, owner]):
         return
-    existing_orders = Order.objects.filter(owner=user).count()
-    receipt_number = hashlib.md5(f"{user.email}:{existing_orders}".encode()).hexdigest()
-    amount = 29900  # in paise
+    existing_orders = Order.objects.filter(owner=owner).count()
+    receipt_number = hashlib.md5(
+        f"{owner.email}:{existing_orders}".encode()
+    ).hexdigest()
     try:
-        rp_order_res = rzp_client.order.create(
+        rzp_client.order.create(
             {
-                "amount": amount,
+                "amount": package.amount,
                 "currency": "INR",
                 "receipt": receipt_number,
                 "payment_capture": 1,
-                "notes": {"email": user.email},
+                "notes": {"email": owner.email},
             }
         )
-    except Exception as ex:
+    except Exception:
         logger.error("Exception in creating Razorpay order")
-        logger.exception(ex)
+        raise
     else:
         if rp_order_res.get("status") != "created":
             logger.error(f"Error response from razorpay: {rp_order_res}")
-        else:
-            try:
-                order = Order.objects.create(
-                    owner=user,
-                    amount=amount,
-                    order_id=rp_order_res.get("id"),
-                    receipt_number=rp_order_res.get("receipt"),
-                )
-            except Exception as ex:
-                logger.error("Error creating Order object in backed")
-                logger.exception(ex)
-                order = None
-            return order
+            raise Exception("Error creating Razorpay order")
+        return rp_order_res
 
 
 class OrderSerializer(serializers.ModelSerializer):
@@ -79,60 +91,254 @@ class OrderSerializer(serializers.ModelSerializer):
         fields = ["owner", "order_id", "amount"]
 
 
+class PackageSerializer(serializers.ModelSerializer):
+    name = serializers.CharField()
+    amount = serializers.FloatField()
+
+    class Meta:
+        model = Package
+        fields = ["name", "amount"]
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation["name"] = representation.get("name", "").title()
+        return representation
+
+
+class DirectorSerializer(serializers.Serializer):
+    first_name = serializers.CharField()
+    last_name = serializers.CharField()
+    email = serializers.EmailField()
+    contact = serializers.CharField(min_length=10)
+
+
+class CrewMemberSerializer(serializers.ModelSerializer):
+    role = RoleSerializer()
+    profile = ProfileSerializer()
+
+    class Meta:
+        model = CrewMember
+        fields = ["id", "role", "profile"]
+
+
 class MovieSerializer(serializers.ModelSerializer):
-    order = OrderSerializer(read_only=True)
+    order = OrderSerializer(required=False)
     lang = MovieLanguageSerializer()
     genres = MovieGenreSerializer(many=True)
+    package = PackageSerializer(required=False)
+    director = DirectorSerializer(write_only=True, required=False)
+    # Roles of the user(Profile) who submitted the movie (Creator roles)
+    roles = RoleSerializer(write_only=True, many=True)
+    crew = CrewMemberSerializer(source="crewmember_set", many=True, read_only=True)
 
     class Meta:
         model = Movie
         fields = [
+            "id",
             "order",
             "title",
             "link",
             "runtime",
             "genres",
             "lang",
+            "poster",
+            "package",
+            "crew",
+            "director",
+            "roles",
         ]
 
+    def validate_package(self, package):
+        logger.debug(f"validate_package::{package}")
+
+        if package and self.instance.package:
+            logger.warn("Cannot update package")
+            raise serializers.ValidationError("Cannot update package")
+
+        package_name = package.get("name")
+        package_name = package_name.strip().lower()
+        if not Package.objects.filter(name=package_name).exists():
+            logger.warn("Invalid package selected")
+            raise serializers.ValidationError("Invalid Package Selected")
+        return package
+
     def create(self, validated_data: dict):
-        logger.debug(validated_data)
-        genre_names = validated_data.pop("genres")
-        genres = MovieGenre.objects.filter(name__in=genre_names)
-        lang_name = validated_data.pop("lang").get("name")
-        try:
-            lang = MovieLanguage.objects.get(name=lang_name)
-        except MovieLanguage.DoesNotExist:
-            logger.debug("Creating new language")
-            lang_name = lang_name.strip().lower()
-            lang = MovieLanguage.objects.create(name=lang_name)
+        logger.debug(f"create::{validated_data}")
         user = validated_data.pop("user")
-        order = create_order(user)
-        movie = Movie.objects.create(**validated_data, lang=lang, order=order)
-        movie.genres.set(genres)
+        genres_data = validated_data.pop("genres")
+        creator_roles = validated_data.pop("roles")
+        lang_data = validated_data.pop("lang")
+        director_data = None
+        if "director" in validated_data:
+            director_data = validated_data.pop("director")
+
+        validated_data["lang"] = self._get_or_create_lang(lang_data)
+        # creating dummy order here so that the movie entry can be tracked
+        # back to the creator using movie.order.owner
+        validated_data["order"] = Order.objects.create(owner=user)
+
+        movie = super().create(validated_data)
+        movie.genres.set(self._get_or_create_genres(genres_data))
+        self._attach_director_role(director_data, user, movie)
+        self._attach_creator_roles(creator_roles, user, movie)
         return movie
+
+    def update(self, movie, validated_data):
+        logger.debug(f"update::{validated_data}")
+        user = validated_data.pop("user")
+        package_data = None
+        if "package" in validated_data:
+            package_data = validated_data.pop("package")
+            # If package was not earlier set
+            package_name = package_data.get("name").strip().lower()
+            movie.package = Package.objects.get(name=package_name)
+            rzp_order = create_rzp_order(movie.package, movie.order.owner)
+            self._update_order_details(movie, rzp_order)
+        if "lang" in validated_data:
+            lang_data = validated_data.pop("lang")
+            validated_data["lang"] = self._get_or_create_lang(lang_data)
+        if "director" in validated_data:
+            director_data = validated_data.pop("director")
+            self._attach_director_role(director_data, user, movie)
+        if "roles" in validated_data:
+            creator_roles = validated_data.pop("roles")
+            self._attach_creator_roles(creator_roles, user, movie)
+        genres_data = None
+        if "genres" in validated_data:
+            genres_data = validated_data.pop("genres")
+
+        movie = super().update(movie, validated_data)
+
+        if genres_data:
+            movie.genres.set(self._get_or_create_genres(genres_data))
+        return movie
+
+    def _attach_director_role(self, director_data: dict, creator: User, movie: Movie):
+        director_role = Role.objects.get(name="Director")
+        if director_data:
+            # creator is not the director
+            contact = director_data.pop("contact")
+            email = director_data.get("email")
+            director_data["username"] = email
+            try:
+                # check if the director is already registered
+                director_profile = Profile.objects.get(user__email=email)
+            except Profile.DoesNotExist:
+                # creating a new profile
+                user = User.objects.create(**director_data)
+                director_profile = Profile.objects.create(user=user, mobile=contact)
+        else:
+            director_profile = Profile.objects.get(user__id=creator.id)
+        # remove existing director relation on movie
+        CrewMember.objects.filter(role=director_role, movie=movie).delete()
+        movie.crew.add(director_profile, through_defaults={"role": director_role})
+
+    def _attach_creator_roles(
+        self, creator_roles_data: list, creator: User, movie: Movie
+    ):
+        creator_role_names = [role.get("name") for role in creator_roles_data]
+        creator_roles = Role.objects.filter(name__in=creator_role_names).all()
+        logger.debug(f"creator_roles:{creator_roles}")
+        creator_profile = Profile.objects.get(user__id=creator.id)
+        # clear all roles of creator
+        CrewMember.objects.filter(movie=movie, profile=creator_profile).delete()
+        # add all roles of creator
+        for creator_role in creator_roles:
+            CrewMember.objects.create(
+                profile=creator_profile, movie=movie, role=creator_role
+            )
+        logger.debug(f"crew::{movie.crewmember_set.all()}")
+
+    def _update_order_details(self, movie, rzp_order):
+        logger.debug(f"_update_order::{rzp_order}")
+        if not movie or not rzp_order:
+            return
+        order = movie.order
+        order.order_id = rzp_order.get("id")
+        order.amount = rzp_order.get("amount")
+        order.receipt_number = rzp_order.get("receipt")
+        order.save()
+
+    def _get_or_create_genres(self, genres_data):
+        names = [name.get("name") for name in genres_data]
+        names = [name.strip().lower() for name in names if name]
+        existing_genres = list(MovieGenre.objects.filter(name__in=names).all())
+        existing_genre_names = [genre.name for genre in existing_genres]
+        for name in names:
+            if name not in existing_genre_names:
+                genre = MovieGenre.objects.create(name=name)
+                logger.debug(f"Creating Genre `{name}`")
+                existing_genres.append(genre)
+        return existing_genres
+
+    def _get_or_create_lang(self, lang_data):
+        if not lang_data:
+            return
+        name = lang_data.get("name")
+        if not name:
+            return
+        name = name.strip().lower()
+        try:
+            lang = MovieLanguage.objects.get(name=name)
+        except MovieLanguage.DoesNotExist:
+            lang = MovieLanguage.objects.create(name=name)
+            logger.debug(f"Created langugae `{name}`")
+        return lang
 
 
 class SubmissionSerializer(serializers.Serializer):
-    poster = serializers.FileField(required=False)
+    poster = serializers.ImageField(required=False)
     payload = serializers.JSONField()
 
     def validate_payload(self, payload):
-        logger.debug(f"validate_payload {payload}")
-        serializer = MovieSerializer(data=payload)
+        logger.debug(f"validate_payload::{payload}")
+        serializer = MovieSerializer(
+            data=payload, partial=self.partial, instance=self.instance
+        )
         serializer.is_valid(raise_exception=True)
-        logger.debug(f"validated data: {serializer.data}")
-        return serializer.data
+        logger.debug("validate_payload::end")
+        return payload
 
     def create(self, validated_data):
-        logger.debug(validated_data)
+        logger.debug(f"create::{validated_data}")
         payload = validated_data["payload"]
-        payload["poster"] = validated_data.get("poster")
         payload["user"] = validated_data["user"]
-        return MovieSerializer().create(payload)
+        movie = MovieSerializer().create(payload)
+        movie.poster = self._save_poster(validated_data, movie.id)
+        logger.debug("create::end")
+        return movie
+
+    def update(self, instance, validated_data):
+        logger.debug(f"update::{validated_data}")
+        payload = validated_data.get("payload")
+        payload["user"] = validated_data["user"]
+        movie = MovieSerializer().update(instance, payload)
+        movie.poster = self._save_poster(validated_data, movie.id)
+        logger.debug("update::end")
+        return movie
 
     def to_representation(self, instance):
         return MovieSerializer().to_representation(instance)
+
+    def _save_poster(self, validated_data, movie_id):
+        if not validated_data:
+            return
+        if "poster" in validated_data:
+            poster_file = validated_data.get("poster")
+            return self._write_poster(poster_file, movie_id)
+
+    def _write_poster(self, poster, movie_id):
+        if not poster:
+            return
+        ext = poster.name.split(".")[-1]
+        poster_filename = f"{movie_id:010d}.{ext}"
+        poster_path = os.path.join(settings.MEDIA_POSTERS, poster_filename)
+        if default_storage.exists(poster_path):
+            default_storage.delete(poster_path)
+        poster_filename = default_storage.save(poster_path, poster)
+        url = default_storage.url(poster_filename)
+        logger.debug(f"poster saved at: {url}")
+        return url
 
 
 class MoviePosterSerializer(serializers.ModelSerializer):
