@@ -19,5 +19,7 @@ echo $pipenv clean; $pipenv clean &&
 echo $pipenv sync; $pipenv sync &&
 echo $pipenv run python manage.py check --deploy; $pipenv run python manage.py check --deploy &&
 echo $pipenv run python manage.py collectstatic --noinput; $pipenv run python manage.py collectstatic --noinput &&
+echo rm db.sqlite3; rm db.sqlite3 &&
 echo $pipenv run python manage.py migrate --noinput; $pipenv run python manage.py migrate --noinput &&
+echo $pipenv run python loaddata fixtures/basic.json; $pipenv run python loaddata fixtures/basic.json &&
 echo sudo $service api.moviepediafilms restart; sudo $service api.moviepediafilms restart"
