@@ -1,5 +1,5 @@
-from .profile import Role, Profile
-from .payment import Order
+from .payment import Order, Package
+from .profile import Role, Profile, User
 from .others import (
     BadgeClaim,
     Judge,
@@ -18,6 +18,7 @@ from .movie import (
     MovieUserRating,
     MovieReview,
     MoviePoster,
+    CrewMember,
 )
 
 __all__ = [
@@ -28,7 +29,9 @@ __all__ = [
     MovieUserRating,
     MovieReview,
     Order,
+    Package,
     Role,
+    User,
     Profile,
     BadgeClaim,
     Judge,
@@ -36,4 +39,8 @@ __all__ = [
     Badge,
     GameAttempt,
     Notification,
+    CrewMember,
+    MoviePoster,
+    Award,
+    AwardType,
 ]

@@ -17,6 +17,7 @@ django-cors-headers = "*"
 sendgrid = "*"
 razorpay = "*"
 mysqlclient = "*"
+pillow = "*"
 
 [requires]
 python_version = "3.8"

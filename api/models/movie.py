@@ -12,7 +12,7 @@ MOVIE_STATE_CHOICES = (
 
 
 class MovieGenre(models.Model):
-    name = models.CharField(max_length=50)
+    name = models.CharField(max_length=50, unique=True)
 
 
 class MovieFrame(models.Model):
@@ -20,7 +20,7 @@ class MovieFrame(models.Model):
 
 
 class MovieLanguage(models.Model):
-    name = models.CharField(max_length=50)
+    name = models.CharField(max_length=50, unique=True)
 
 
 class MoviePoster(models.Model):
@@ -32,8 +32,11 @@ class MoviePoster(models.Model):
 class Movie(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     order = models.ForeignKey("Order", on_delete=models.CASCADE, null=True, blank=True)
-    profiles = models.ManyToManyField("Profile")
-
+    # crew members associated with a movie
+    crew = models.ManyToManyField("Profile", through="CrewMember")
+    package = models.ForeignKey(
+        "Package", on_delete=models.SET_NULL, null=True, blank=True
+    )
     state = models.CharField(max_length=1, choices=MOVIE_STATE_CHOICES)
     title = models.CharField(max_length=100)
     link = models.URLField()
@@ -51,6 +54,14 @@ class Movie(models.Model):
     jury_rating = models.FloatField(null=True, blank=True)
     # cached audience rating to be updated periodically
     audience_rating = models.FloatField(null=True, blank=True)
+
+
+class CrewMember(models.Model):
+    movie = models.ForeignKey("Movie", on_delete=models.CASCADE)
+    profile = models.ForeignKey("Profile", on_delete=models.CASCADE)
+    role = models.ForeignKey("Role", on_delete=models.CASCADE)
+
+    unique_together = [["movie", "profile", "role"]]
 
 
 class MovieUserRating(models.Model):

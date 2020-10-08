@@ -177,6 +177,10 @@ CORS_ORIGIN_WHITELIST = [
 STATIC_URL = "/static/"
 STATIC_ROOT = "static"
 
+MEDIA_URL = "/media/"
+MEDIA_ROOT = os.getenv("MEDIA_ROOT", os.path.join(BASE_DIR, "media"))
+MEDIA_POSTERS = "posters"
+
 if PRODUCTION:
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True

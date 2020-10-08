@@ -18,13 +18,16 @@ class Role(models.Model):
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
+    about = models.TextField(null=True, blank=True)
     city = models.CharField(max_length=100, null=True, blank=True)
     mobile = models.CharField(max_length=20, null=True, blank=True)
     gender = models.CharField(
         max_length=1, choices=GENDER_CHOICES, null=True, blank=True
     )
     dob = models.DateField(null=True, blank=True)
-    roles = models.ManyToManyField(Role, blank=True)
+    # cached roles from movie, profile, roles association
+    # should be updated as batch process
+    roles = models.ManyToManyField("Role", blank=True)
     image = models.URLField(null=True, blank=True)
     follows = models.ManyToManyField("Profile", blank=True)
 
