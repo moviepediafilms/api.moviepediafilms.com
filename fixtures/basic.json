@@ -1,5 +1,4 @@
-[
-    {
+[{
         "model": "auth.user",
         "pk": 2,
         "fields": {
@@ -96,6 +95,41 @@
             ],
             "follows": [],
             "badges": []
+        }
+    },
+    {
+        "model": "api.movielanguage",
+        "pk": 1,
+        "fields": {
+            "name": "English"
+        }
+    },
+    {
+        "model": "api.movielanguage",
+        "pk": 2,
+        "fields": {
+            "name": "Hind"
+        }
+    },
+    {
+        "model": "api.movielanguage",
+        "pk": 3,
+        "fields": {
+            "name": "Tamil"
+        }
+    },
+    {
+        "model": "api.movielanguage",
+        "pk": 4,
+        "fields": {
+            "name": "Malayalam"
+        }
+    },
+    {
+        "model": "api.movielanguage",
+        "pk": 4,
+        "fields": {
+            "name": "Urdu"
         }
     }
 ]
