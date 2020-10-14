@@ -16,7 +16,7 @@ rzp_client = razorpay.Client(
 
 
 class VerifyPayment(APIView):
-    def post(self, request, format=None):
+    def post(self, request, version, format=None):
         error = None
         response = {}
         try:

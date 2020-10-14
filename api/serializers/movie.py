@@ -7,8 +7,7 @@ from django.core.files.storage import default_storage
 from rest_framework import serializers
 import razorpay
 
-from .profile import ProfileSerializer
-
+from api.constants import MOVIE_STATE
 from api.models import (
     User,
     Movie,
@@ -21,7 +20,7 @@ from api.models import (
     Role,
     CrewMember,
 )
-
+from .profile import ProfileSerializer
 
 logger = getLogger("app.serializer")
 
@@ -33,7 +32,7 @@ rzp_client = razorpay.Client(
 class MovieGenreSerializer(serializers.ModelSerializer):
     class Meta:
         model = MovieGenre
-        fields = ["name"]
+        fields = ["id", "name"]
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
@@ -42,9 +41,25 @@ class MovieGenreSerializer(serializers.ModelSerializer):
 
 
 class MovieLanguageSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(max_length=50)
+
     class Meta:
         model = MovieLanguage
-        fields = ["name"]
+        fields = ["id", "name"]
+
+    def validate_name(self, name):
+        name = name.strip().lower()
+        return name
+
+    def create(self, validated_data):
+        name = validated_data.get("name")
+        try:
+            lang = MovieLanguage.objects.get(name=name)
+            logger.debug(f"language `{name}` exists")
+        except MovieLanguage.DoesNotExist:
+            lang = MovieLanguage.objects.create(name=name)
+            logger.debug(f"New language `{name}` added")
+        return lang
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
@@ -172,11 +187,11 @@ class MovieSerializer(serializers.ModelSerializer):
         if "director" in validated_data:
             director_data = validated_data.pop("director")
 
-        validated_data["lang"] = self._get_or_create_lang(lang_data)
+        validated_data["lang"] = MovieLanguageSerializer().create(lang_data)
         # creating dummy order here so that the movie entry can be tracked
         # back to the creator using movie.order.owner
         validated_data["order"] = Order.objects.create(owner=user)
-
+        validated_data["state"] = MOVIE_STATE.SUBMITTED
         movie = super().create(validated_data)
         movie.genres.set(self._get_or_create_genres(genres_data))
         self._attach_director_role(director_data, user, movie)
@@ -196,7 +211,7 @@ class MovieSerializer(serializers.ModelSerializer):
             self._update_order_details(movie, rzp_order)
         if "lang" in validated_data:
             lang_data = validated_data.pop("lang")
-            validated_data["lang"] = self._get_or_create_lang(lang_data)
+            validated_data["lang"] = MovieLanguageSerializer().create(lang_data)
         if "director" in validated_data:
             director_data = validated_data.pop("director")
             self._attach_director_role(director_data, user, movie)
@@ -271,20 +286,6 @@ class MovieSerializer(serializers.ModelSerializer):
                 existing_genres.append(genre)
         return existing_genres
 
-    def _get_or_create_lang(self, lang_data):
-        if not lang_data:
-            return
-        name = lang_data.get("name")
-        if not name:
-            return
-        name = name.strip().lower()
-        try:
-            lang = MovieLanguage.objects.get(name=name)
-        except MovieLanguage.DoesNotExist:
-            lang = MovieLanguage.objects.create(name=name)
-            logger.debug(f"Created langugae `{name}`")
-        return lang
-
 
 class SubmissionSerializer(serializers.Serializer):
     poster = serializers.ImageField(required=False)
@@ -296,7 +297,6 @@ class SubmissionSerializer(serializers.Serializer):
             data=payload, partial=self.partial, instance=self.instance
         )
         serializer.is_valid(raise_exception=True)
-        logger.debug("validate_payload::end")
         return payload
 
     def create(self, validated_data):
