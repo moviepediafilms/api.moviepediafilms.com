@@ -14,7 +14,7 @@ logger = getLogger("app.serializer")
 class UserSerializer(serializers.ModelSerializer):
     name = serializers.CharField(source="get_full_name", read_only=True)
     first_name = serializers.CharField(write_only=True)
-    last_name = serializers.CharField(write_only=True)
+    last_name = serializers.CharField(write_only=True, allow_blank=True)
     password = serializers.CharField(write_only=True)
     username = serializers.CharField(
         validators=[

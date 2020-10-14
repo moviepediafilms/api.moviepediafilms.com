@@ -66,7 +66,7 @@ def create_rzp_order(package, owner):
         f"{owner.email}:{existing_orders}".encode()
     ).hexdigest()
     try:
-        rzp_client.order.create(
+        rp_order_res = rzp_client.order.create(
             {
                 "amount": package.amount,
                 "currency": "INR",
@@ -107,7 +107,7 @@ class PackageSerializer(serializers.ModelSerializer):
 
 class DirectorSerializer(serializers.Serializer):
     first_name = serializers.CharField()
-    last_name = serializers.CharField()
+    last_name = serializers.CharField(allow_blank=True)
     email = serializers.EmailField()
     contact = serializers.CharField(min_length=10)
 
