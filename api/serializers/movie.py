@@ -5,6 +5,7 @@ import os
 from django.conf import settings
 from django.core.files.storage import default_storage
 from rest_framework import serializers
+from collections import defaultdict
 import razorpay
 
 from api.constants import MOVIE_STATE
@@ -19,8 +20,9 @@ from api.models import (
     Profile,
     Role,
     CrewMember,
+    MovieReview,
 )
-from .profile import ProfileSerializer
+from .profile import ProfileSerializer, UserSerializer
 
 logger = getLogger("app.serializer")
 
@@ -127,13 +129,9 @@ class DirectorSerializer(serializers.Serializer):
     contact = serializers.CharField(min_length=10)
 
 
-class CrewMemberSerializer(serializers.ModelSerializer):
-    role = RoleSerializer()
+class CrewMemberSerializer(serializers.Serializer):
+    roles = RoleSerializer(many=True)
     profile = ProfileSerializer()
-
-    class Meta:
-        model = CrewMember
-        fields = ["id", "role", "profile"]
 
 
 class MovieSerializer(serializers.ModelSerializer):
@@ -144,7 +142,7 @@ class MovieSerializer(serializers.ModelSerializer):
     director = DirectorSerializer(write_only=True, required=False)
     # Roles of the user(Profile) who submitted the movie (Creator roles)
     roles = RoleSerializer(write_only=True, many=True)
-    crew = CrewMemberSerializer(source="crewmember_set", many=True, read_only=True)
+    crew = serializers.SerializerMethodField()
 
     class Meta:
         model = Movie
@@ -161,7 +159,20 @@ class MovieSerializer(serializers.ModelSerializer):
             "crew",
             "director",
             "roles",
+            "jury_rating",
+            "audience_rating",
         ]
+
+    def get_crew(self, movie):
+        group_by_user = defaultdict(list)
+        for crewmember in movie.crewmember_set.all():
+            group_by_user[crewmember.profile].append(crewmember.role)
+        data = [
+            {"profile": profile, "roles": roles}
+            for profile, roles in group_by_user.items()
+        ]
+        serializer = CrewMemberSerializer(many=True, instance=data)
+        return serializer.data
 
     def validate_package(self, package):
         logger.debug(f"validate_package::{package}")
@@ -183,9 +194,7 @@ class MovieSerializer(serializers.ModelSerializer):
         genres_data = validated_data.pop("genres")
         creator_roles = validated_data.pop("roles")
         lang_data = validated_data.pop("lang")
-        director_data = None
-        if "director" in validated_data:
-            director_data = validated_data.pop("director")
+        director_data = validated_data.pop("director", None)
 
         validated_data["lang"] = MovieLanguageSerializer().create(lang_data)
         # creating dummy order here so that the movie entry can be tracked
@@ -212,9 +221,9 @@ class MovieSerializer(serializers.ModelSerializer):
         if "lang" in validated_data:
             lang_data = validated_data.pop("lang")
             validated_data["lang"] = MovieLanguageSerializer().create(lang_data)
-        if "director" in validated_data:
-            director_data = validated_data.pop("director")
-            self._attach_director_role(director_data, user, movie)
+
+        director_data = validated_data.pop("director", None)
+        self._attach_director_role(director_data, user, movie)
         if "roles" in validated_data:
             creator_roles = validated_data.pop("roles")
             self._attach_creator_roles(creator_roles, user, movie)
@@ -246,17 +255,22 @@ class MovieSerializer(serializers.ModelSerializer):
             director_profile = Profile.objects.get(user__id=creator.id)
         # remove existing director relation on movie
         CrewMember.objects.filter(role=director_role, movie=movie).delete()
-        movie.crew.add(director_profile, through_defaults={"role": director_role})
+        CrewMember.objects.create(
+            profile=director_profile, movie=movie, role=director_role
+        )
 
     def _attach_creator_roles(
         self, creator_roles_data: list, creator: User, movie: Movie
     ):
+        director_role = Role.objects.get(name="Director")
         creator_role_names = [role.get("name") for role in creator_roles_data]
         creator_roles = Role.objects.filter(name__in=creator_role_names).all()
         logger.debug(f"creator_roles:{creator_roles}")
         creator_profile = Profile.objects.get(user__id=creator.id)
         # clear all roles of creator
-        CrewMember.objects.filter(movie=movie, profile=creator_profile).delete()
+        CrewMember.objects.filter(movie=movie, profile=creator_profile).exclude(
+            role__in=[director_role]
+        ).delete()
         # add all roles of creator
         for creator_role in creator_roles:
             CrewMember.objects.create(
@@ -345,3 +359,15 @@ class MoviePosterSerializer(serializers.ModelSerializer):
     class Meta:
         model = MoviePoster
         fields = ["link", "primary", "movie"]
+
+
+class MovieReviewSerializer(serializers.ModelSerializer):
+    author = UserSerializer()
+    liked = serializers.SerializerMethodField()
+
+    class Meta:
+        model = MovieReview
+        fields = ["author", "content", "liked"]
+
+    def get_liked(self, review):
+        return review.liked_by.count()

@@ -44,6 +44,9 @@ class Profile(models.Model):
     # content creators attributes
     pop_score = models.FloatField(default=0)
     # fund readiness meter can be derived from pop_score and movie ratings
-    recommended_movies = models.ManyToManyField(
+    recommended = models.ManyToManyField(
         "Movie", blank=True, related_name="recommended_by"
+    )
+    watchlist = models.ManyToManyField(
+        "Movie", blank=True, related_name="watchlisted_by"
     )

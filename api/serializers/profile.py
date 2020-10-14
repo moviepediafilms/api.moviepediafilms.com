@@ -46,6 +46,22 @@ class RoleSerializer(serializers.ModelSerializer):
 
 class ProfileSerializer(serializers.ModelSerializer):
     user = UserSerializer()
+
+    class Meta:
+        model = Profile
+        fields = [
+            "id",
+            "user",
+        ]
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation.update(representation.pop("user"))
+        return representation
+
+
+class ProfileDetailSerializer(serializers.ModelSerializer):
+    user = UserSerializer()
     roles = RoleSerializer(many=True, read_only=True)
 
     class Meta:

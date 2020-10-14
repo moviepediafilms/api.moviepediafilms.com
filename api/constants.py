@@ -6,6 +6,11 @@ class MOVIE_STATE:
     REJECTED = "R"
 
 
+class REVIEW_STATE:
+    PUBLISHED = "S"
+    BLOCKED = "H"
+
+
 class GENDER:
     MALE = "M"
     FEMALE = "F"

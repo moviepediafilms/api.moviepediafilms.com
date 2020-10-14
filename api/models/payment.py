@@ -6,6 +6,9 @@ class Package(models.Model):
     name = models.CharField(max_length=50, unique=True)
     amount = models.FloatField()
 
+    def __str__(self):
+        return self.name.title()
+
 
 class Order(models.Model):
     order_id = models.CharField(max_length=100, null=True, blank=True)
@@ -16,4 +19,4 @@ class Order(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.order_id
+        return str(self.id)

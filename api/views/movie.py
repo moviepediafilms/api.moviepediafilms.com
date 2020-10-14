@@ -10,17 +10,15 @@ from api.serializers.movie import (
     MovieLanguageSerializer,
     MovieGenreSerializer,
     MovieSerializer,
+    MovieReviewSerializer,
 )
-from api.models import Movie, MoviePoster, MovieLanguage, MovieGenre
+from api.models import Movie, MoviePoster, MovieLanguage, MovieGenre, MovieReview
 
 logger = getLogger("app.view")
 
 
 class SubmissionView(
-    mixins.RetrieveModelMixin,
-    mixins.CreateModelMixin,
-    mixins.UpdateModelMixin,
-    GenericViewSet,
+    mixins.CreateModelMixin, mixins.UpdateModelMixin, GenericViewSet,
 ):
     parser_classes = (parsers.MultiPartParser, parsers.FormParser)
     permission_classes = [IsAuthenticated]
@@ -45,10 +43,7 @@ class SubmissionView(
 
 
 class MovieView(
-    mixins.RetrieveModelMixin,
-    mixins.UpdateModelMixin,
-    mixins.ListModelMixin,
-    GenericViewSet,
+    mixins.RetrieveModelMixin, mixins.ListModelMixin, GenericViewSet,
 ):
     queryset = Movie.objects.all()
     serializer_class = MovieSerializer
@@ -74,3 +69,17 @@ class MovieLanguageView(GenericViewSet, mixins.ListModelMixin):
 class MovieGenreView(GenericViewSet, mixins.ListModelMixin):
     queryset = MovieGenre.objects.all()
     serializer_class = MovieGenreSerializer
+
+
+from django.core import paginator
+
+
+class MovieReviewPaginator(paginator.Paginator):
+    page_size = 2
+
+
+class MovieReviewView(GenericViewSet, mixins.ListModelMixin):
+    queryset = MovieReview.objects.all()
+    serializer_class = MovieReviewSerializer
+    filterset_fields = ["movie__id", "author__id"]
+    django_paginator_class = MovieReviewPaginator
