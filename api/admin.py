@@ -1,7 +1,16 @@
 from django.contrib import admin
 
 # Register your models here.
-from api.models import Profile, Role, Order, Movie, MovieGenre, MovieLanguage, Package
+from api.models import (
+    Profile,
+    Role,
+    Order,
+    Movie,
+    MovieGenre,
+    MovieLanguage,
+    MovieRateReview,
+    Package,
+)
 
 
 class ProfileAdmin(admin.ModelAdmin):
@@ -28,6 +37,10 @@ class MovieLanguageAdmin(admin.ModelAdmin):
     list_display = ["name"]
 
 
+class MovieRateReviewAdmin(admin.ModelAdmin):
+    list_display = ["id", "author", "content", "movie", "published_at", "rating"]
+
+
 class PackageAdmin(admin.ModelAdmin):
     list_display = ["name"]
 
@@ -38,4 +51,5 @@ admin.site.register(Order, OrderAdmin)
 admin.site.register(Movie, MovieAdmin)
 admin.site.register(MovieGenre, MovieGenreAdmin)
 admin.site.register(MovieLanguage, MovieLanguageAdmin)
+admin.site.register(MovieRateReview, MovieRateReviewAdmin)
 admin.site.register(Package, PackageAdmin)

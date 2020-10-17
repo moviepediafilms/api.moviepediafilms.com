@@ -1,29 +1,26 @@
 from logging import getLogger
-from rest_framework.viewsets import ModelViewSet, GenericViewSet
-from rest_framework.generics import GenericAPIView
-from rest_framework.permissions import IsAuthenticated
-from rest_framework import mixins, exceptions, parsers
 
+from django.db.models import Count
+
+from rest_framework.viewsets import ModelViewSet, GenericViewSet
+from rest_framework import mixins, exceptions, parsers
 from api.serializers.movie import (
     SubmissionSerializer,
     MoviePosterSerializer,
     MovieLanguageSerializer,
     MovieGenreSerializer,
     MovieSerializer,
+    MovieReviewDetailSerializer,
 )
-from api.models import Movie, MoviePoster, MovieLanguage, MovieGenre
+from api.models import Movie, MoviePoster, MovieLanguage, MovieGenre, MovieRateReview
 
 logger = getLogger("app.view")
 
 
 class SubmissionView(
-    mixins.RetrieveModelMixin,
-    mixins.CreateModelMixin,
-    mixins.UpdateModelMixin,
-    GenericViewSet,
+    mixins.CreateModelMixin, mixins.UpdateModelMixin, GenericViewSet,
 ):
     parser_classes = (parsers.MultiPartParser, parsers.FormParser)
-    permission_classes = [IsAuthenticated]
     queryset = Movie.objects.all()
 
     def get_serializer_class(self):
@@ -45,10 +42,7 @@ class SubmissionView(
 
 
 class MovieView(
-    mixins.RetrieveModelMixin,
-    mixins.UpdateModelMixin,
-    mixins.ListModelMixin,
-    GenericViewSet,
+    mixins.RetrieveModelMixin, mixins.ListModelMixin, GenericViewSet,
 ):
     queryset = Movie.objects.all()
     serializer_class = MovieSerializer
@@ -74,3 +68,47 @@ class MovieLanguageView(GenericViewSet, mixins.ListModelMixin):
 class MovieGenreView(GenericViewSet, mixins.ListModelMixin):
     queryset = MovieGenre.objects.all()
     serializer_class = MovieGenreSerializer
+
+
+class MovieReviewView(
+    GenericViewSet,
+    mixins.ListModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.CreateModelMixin,
+):
+    queryset = MovieRateReview.objects.annotate(
+        number_of_likes=Count("liked_by")
+    ).exclude(content__isnull=True)
+    serializer_class = MovieReviewDetailSerializer
+    filterset_fields = ["movie__id", "author__id"]
+    ordering_fields = ["published_at", "number_of_likes"]
+    ordering = [
+        "-number_of_likes",
+        "-published_at",
+    ]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+from rest_framework.response import Response
+
+
+class MovieReviewLikeView(
+    GenericViewSet, mixins.DestroyModelMixin, mixins.UpdateModelMixin
+):
+    queryset = MovieRateReview.objects.all()
+
+    def update(self, request, *args, **kwargs):
+        user = request.user
+        instance = self.get_object()
+        instance.liked_by.add(user)
+        instance.save()
+        return Response(dict(success=True))
+
+    def destroy(self, request, *args, **kwargs):
+        user = request.user
+        instance = self.get_object()
+        instance.liked_by.remove(user)
+        instance.save()
+        return Response(dict(success=True))

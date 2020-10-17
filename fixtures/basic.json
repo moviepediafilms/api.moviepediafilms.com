@@ -153,7 +153,7 @@
     },
     {
         "model": "api.movie",
-        "pk": 23,
+        "pk": 1,
         "fields": {
             "created_at": "2020-10-14T07:42:28.386Z",
             "order": 1,
@@ -167,12 +167,43 @@
             "poster": null,
             "month": null,
             "publish_on": null,
-            "jury_rating": null,
-            "audience_rating": null,
+            "jury_rating": 7.8,
+            "audience_rating": 0,
             "genres": [
                 1
             ],
             "frames": []
+        }
+    },
+    {
+        "model": "api.crewmember",
+        "pk": 1,
+        "fields": {
+            "movie": 1,
+            "profile": 1,
+            "role": 1
+        }
+    },
+    {
+        "model": "api.crewmember",
+        "pk": 2,
+        "fields": {
+            "movie": 1,
+            "profile": 1,
+            "role": 2
+        }
+    },
+    {
+        "model": "api.movieratereview",
+        "pk": 1,
+        "fields": {
+            "state": "S",
+            "published_at": "2020-10-01T17:21:08.672Z",
+            "author": 2,
+            "rating": 5,
+            "movie": 1,
+            "content": "Damn. \r\nThis was both beautiful and haunting, as someone who's been through terrible Depression, I could feel it scene by scene, it was too amazing for words Mann, keep it up ❤️",
+            "liked_by": []
         }
     }
 ]

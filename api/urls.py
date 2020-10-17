@@ -9,6 +9,9 @@ router.register("role", profile.RoleView)
 router.register("lang", movie.MovieLanguageView)
 router.register("genre", movie.MovieGenreView)
 router.register("submit", movie.SubmissionView)
+router.register("movie", movie.MovieView)
+router.register("review", movie.MovieReviewView)
+router.register("review_like", movie.MovieReviewLikeView)
 
 urlpatterns = [
     path("", include(router.urls)),

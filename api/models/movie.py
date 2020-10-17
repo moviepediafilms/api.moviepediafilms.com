@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
-from api.constants import MOVIE_STATE
+from api.constants import MOVIE_STATE, REVIEW_STATE
 
 MOVIE_STATE_CHOICES = (
     (MOVIE_STATE.SUBMITTED, "Submitted"),
@@ -11,8 +11,17 @@ MOVIE_STATE_CHOICES = (
 )
 
 
+REVIEW_STATE_CHOICES = [
+    (REVIEW_STATE.PUBLISHED, "Published"),
+    (REVIEW_STATE.BLOCKED, "Blocked"),
+]
+
+
 class MovieGenre(models.Model):
     name = models.CharField(max_length=50, unique=True)
+
+    def __str__(self):
+        return self.name.title()
 
 
 class MovieFrame(models.Model):
@@ -21,6 +30,9 @@ class MovieFrame(models.Model):
 
 class MovieLanguage(models.Model):
     name = models.CharField(max_length=50, unique=True)
+
+    def __str__(self):
+        return self.name.title()
 
 
 class MoviePoster(models.Model):
@@ -51,9 +63,9 @@ class Movie(models.Model):
     frames = models.ManyToManyField(MovieFrame, blank=True)
     # the time at which the movie's state was changed to published
     publish_on = models.DateTimeField(null=True, blank=True)
-    jury_rating = models.FloatField(null=True, blank=True)
+    jury_rating = models.FloatField(null=True, blank=True, default=0)
     # cached audience rating to be updated periodically
-    audience_rating = models.FloatField(null=True, blank=True)
+    audience_rating = models.FloatField(null=True, blank=True, default=0)
 
 
 class CrewMember(models.Model):
@@ -64,13 +76,15 @@ class CrewMember(models.Model):
     unique_together = [["movie", "profile", "role"]]
 
 
-class MovieUserRating(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    movie = models.ForeignKey(Movie, on_delete=models.CASCADE)
-    rating = models.FloatField()
-
-
-class MovieReview(models.Model):
+class MovieRateReview(models.Model):
+    state = models.CharField(choices=REVIEW_STATE_CHOICES, max_length=1)
     published_at = models.DateTimeField(auto_now_add=True)
-    content = models.TextField()
-    liked_by = models.ManyToManyField(User)
+    author = models.ForeignKey(User, on_delete=models.CASCADE)
+    movie = models.ForeignKey(Movie, on_delete=models.CASCADE)
+    # is nullable since user might only rate and not write the review at all
+    content = models.TextField(null=True, blank=True)
+    # is nullable since user might review the movie first before rating or may choose to not rate at all
+    rating = models.FloatField(null=True, blank=True)
+    liked_by = models.ManyToManyField(User, related_name="liked_reviews", blank=True)
+    # TODO: enable unique constrains before finalizing
+    unique_together = [["movie", "author"]]
