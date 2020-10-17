@@ -76,18 +76,15 @@ class CrewMember(models.Model):
     unique_together = [["movie", "profile", "role"]]
 
 
-class MovieUserRating(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    movie = models.ForeignKey(Movie, on_delete=models.CASCADE)
-    rating = models.FloatField()
-
-
-class MovieReview(models.Model):
+class MovieRateReview(models.Model):
     state = models.CharField(choices=REVIEW_STATE_CHOICES, max_length=1)
     published_at = models.DateTimeField(auto_now_add=True)
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     movie = models.ForeignKey(Movie, on_delete=models.CASCADE)
-    content = models.TextField()
+    # is nullable since user might only rate and not write the review at all
+    content = models.TextField(null=True, blank=True)
+    # is nullable since user might review the movie first before rating or may choose to not rate at all
+    rating = models.FloatField(null=True, blank=True)
     liked_by = models.ManyToManyField(User, related_name="liked_reviews", blank=True)
-
-    # unique_together = [["movie", "author"]]
+    # TODO: enable unique constrains before finalizing
+    unique_together = [["movie", "author"]]

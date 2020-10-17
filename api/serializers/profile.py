@@ -35,7 +35,15 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ["first_name", "last_name", "email", "username", "name", "password"]
+        fields = [
+            "id",
+            "first_name",
+            "last_name",
+            "email",
+            "username",
+            "name",
+            "password",
+        ]
 
 
 class RoleSerializer(serializers.ModelSerializer):
@@ -46,11 +54,12 @@ class RoleSerializer(serializers.ModelSerializer):
 
 class ProfileSerializer(serializers.ModelSerializer):
     user = UserSerializer()
+    profile_id = serializers.IntegerField(source="id")
 
     class Meta:
         model = Profile
         fields = [
-            "id",
+            "profile_id",
             "user",
         ]
 
@@ -61,13 +70,14 @@ class ProfileSerializer(serializers.ModelSerializer):
 
 
 class ProfileDetailSerializer(serializers.ModelSerializer):
+    profile_id = serializers.IntegerField(source="id")
     user = UserSerializer()
     roles = RoleSerializer(many=True, read_only=True)
 
     class Meta:
         model = Profile
         fields = [
-            "id",
+            "profile_id",
             "user",
             "city",
             "dob",

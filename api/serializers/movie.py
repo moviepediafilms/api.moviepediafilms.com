@@ -3,6 +3,7 @@ import hashlib
 import os
 
 from django.conf import settings
+from django.db.models import Avg
 from django.core.files.storage import default_storage
 from rest_framework import serializers
 from collections import defaultdict
@@ -20,7 +21,7 @@ from api.models import (
     Profile,
     Role,
     CrewMember,
-    MovieReview,
+    MovieRateReview,
 )
 from .profile import ProfileSerializer, UserSerializer
 
@@ -143,6 +144,7 @@ class MovieSerializer(serializers.ModelSerializer):
     # Roles of the user(Profile) who submitted the movie (Creator roles)
     roles = RoleSerializer(write_only=True, many=True)
     crew = serializers.SerializerMethodField()
+    requestor_rating = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Movie
@@ -161,7 +163,16 @@ class MovieSerializer(serializers.ModelSerializer):
             "roles",
             "jury_rating",
             "audience_rating",
+            "requestor_rating",
         ]
+
+    def get_requestor_rating(self, movie):
+        request = self.context["request"]
+        if request.user.is_authenticated:
+            review = MovieRateReview.objects.filter(
+                movie=movie, author=request.user
+            ).first()
+            return MovieReviewSerializer(instance=review).data
 
     def get_crew(self, movie):
         group_by_user = defaultdict(list)
@@ -300,6 +311,14 @@ class MovieSerializer(serializers.ModelSerializer):
                 existing_genres.append(genre)
         return existing_genres
 
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        for float_key in ["audience_rating", "jury_rating"]:
+            value = data.get(float_key)
+            if value:
+                data[float_key] = "{:.1f}".format(value)
+        return data
+
 
 class SubmissionSerializer(serializers.Serializer):
     poster = serializers.ImageField(required=False)
@@ -362,12 +381,62 @@ class MoviePosterSerializer(serializers.ModelSerializer):
 
 
 class MovieReviewSerializer(serializers.ModelSerializer):
-    author = UserSerializer()
-    liked = serializers.SerializerMethodField()
+    class Meta:
+        model = MovieRateReview
+        fields = ["id", "content", "rating"]
+
+
+class MinUserSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(source="get_full_name")
 
     class Meta:
-        model = MovieReview
-        fields = ["author", "content", "liked"]
+        model = User
+        fields = ["id", "name"]
 
-    def get_liked(self, review):
-        return review.liked_by.count()
+
+class MovieReviewDetailSerializer(serializers.ModelSerializer):
+    author = UserSerializer(read_only=True)
+    liked_by = MinUserSerializer(read_only=True, many=True)
+    # serializers.IntegerField(source="liked_by.count", read_only=True)
+    published_at = serializers.DateTimeField(read_only=True)
+
+    class Meta:
+        model = MovieRateReview
+        fields = [
+            "id",
+            "author",
+            "content",
+            "liked_by",
+            "published_at",
+            "rating",
+            "movie",
+        ]
+
+    def validate(self, validated_data):
+        if all([key not in validated_data for key in ["content", "rating"]]):
+            raise serializers.ValidationError(
+                "Atleast one of `content` or `rating` should be provided"
+            )
+        return validated_data
+
+    def _update_movie_audience_rating(self, movie):
+        if movie is not None:
+            # FIXME: this average audience rating update might get into concurrency issue
+            # a better way(IMO) will be to cache the average rating of movies via a job periodically
+            movie.audience_rating = (
+                MovieRateReview.objects.filter(movie=movie)
+                .exclude(rating__isnull=True)
+                .aggregate(Avg("rating"))
+            ).get("rating__avg")
+            movie.save()
+
+    def create(self, validated_data):
+        validated_data["author"] = validated_data.pop("user")
+        instance = super().create(validated_data)
+        self._update_movie_audience_rating(instance.movie)
+        return instance
+
+    def update(self, instance, validated_data):
+        instance = super().update(instance, validated_data)
+        self._update_movie_audience_rating(instance.movie)
+        return instance

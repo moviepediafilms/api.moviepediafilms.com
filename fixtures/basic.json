@@ -1,5 +1,4 @@
-[
-    {
+[{
         "model": "auth.user",
         "pk": 2,
         "fields": {
@@ -195,72 +194,13 @@
         }
     },
     {
-        "model": "api.moviereview",
+        "model": "api.movieratereview",
         "pk": 1,
         "fields": {
             "state": "S",
-            "published_at": "2020-10-14T17:21:08.672Z",
+            "published_at": "2020-10-01T17:21:08.672Z",
             "author": 2,
-            "movie": 1,
-            "content": "Damn. \r\nThis was both beautiful and haunting, as someone who's been through terrible Depression, I could feel it scene by scene, it was too amazing for words Mann, keep it up ❤️",
-            "liked_by": []
-        }
-    },
-    {
-        "model": "api.moviereview",
-        "pk": 2,
-        "fields": {
-            "state": "S",
-            "published_at": "2020-10-14T17:21:08.672Z",
-            "author": 2,
-            "movie": 1,
-            "content": "Damn. \r\nThis was both beautiful and haunting, as someone who's been through terrible Depression, I could feel it scene by scene, it was too amazing for words Mann, keep it up ❤️",
-            "liked_by": []
-        }
-    },
-    {
-        "model": "api.moviereview",
-        "pk": 3,
-        "fields": {
-            "state": "S",
-            "published_at": "2020-10-14T17:21:08.672Z",
-            "author": 2,
-            "movie": 1,
-            "content": "Damn. \r\nThis was both beautiful and haunting, as someone who's been through terrible Depression, I could feel it scene by scene, it was too amazing for words Mann, keep it up ❤️",
-            "liked_by": []
-        }
-    },
-    {
-        "model": "api.moviereview",
-        "pk": 4,
-        "fields": {
-            "state": "S",
-            "published_at": "2020-10-14T17:21:08.672Z",
-            "author": 2,
-            "movie": 1,
-            "content": "Damn. \r\nThis was both beautiful and haunting, as someone who's been through terrible Depression, I could feel it scene by scene, it was too amazing for words Mann, keep it up ❤️",
-            "liked_by": []
-        }
-    },
-    {
-        "model": "api.moviereview",
-        "pk": 5,
-        "fields": {
-            "state": "S",
-            "published_at": "2020-10-14T17:21:08.672Z",
-            "author": 2,
-            "movie": 1,
-            "content": "Damn. \r\nThis was both beautiful and haunting, as someone who's been through terrible Depression, I could feel it scene by scene, it was too amazing for words Mann, keep it up ❤️",
-            "liked_by": []
-        }
-    },
-    {
-        "model": "api.moviereview",
-        "pk": 6,
-        "fields": {
-            "state": "S",
-            "published_at": "2020-10-14T17:21:08.672Z",
-            "author": 2,
+            "rating": 5,
             "movie": 1,
             "content": "Damn. \r\nThis was both beautiful and haunting, as someone who's been through terrible Depression, I could feel it scene by scene, it was too amazing for words Mann, keep it up ❤️",
             "liked_by": []
