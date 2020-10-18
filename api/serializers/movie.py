@@ -167,8 +167,8 @@ class MovieSerializer(serializers.ModelSerializer):
         ]
 
     def get_requestor_rating(self, movie):
-        request = self.context["request"]
-        if request.user.is_authenticated:
+        request = self.context.get("request")
+        if request and request.user.is_authenticated:
             review = MovieRateReview.objects.filter(
                 movie=movie, author=request.user
             ).first()
