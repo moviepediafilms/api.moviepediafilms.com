@@ -41,12 +41,12 @@ class Profile(models.Model):
     # insert a badge here after the attempt, so that user can claim it
     badges = models.ManyToManyField("Badge", blank=True)
 
-    # content creators attributes
-    pop_score = models.FloatField(default=0)
-    # fund readiness meter can be derived from pop_score and movie ratings
-    recommended = models.ManyToManyField(
-        "Movie", blank=True, related_name="recommended_by"
-    )
     watchlist = models.ManyToManyField(
         "Movie", blank=True, related_name="watchlisted_by"
     )
+
+    # content creators attributes
+    pop_score = models.FloatField(default=0)
+
+    # content consumers attributes
+    engagement_score = models.FloatField(default=0)

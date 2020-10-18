@@ -12,6 +12,8 @@ router.register("submit", movie.SubmissionView)
 router.register("movie", movie.MovieView)
 router.register("review", movie.MovieReviewView)
 router.register("review_like", movie.MovieReviewLikeView)
+router.register("watchlist", movie.MovieWatchlistView)
+router.register("recommend", movie.MovieRecommendView)
 
 urlpatterns = [
     path("", include(router.urls)),

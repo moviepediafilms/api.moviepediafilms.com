@@ -2,8 +2,7 @@ from logging import getLogger
 
 from django.db.models import Count
 
-from rest_framework.viewsets import ModelViewSet, GenericViewSet
-from rest_framework import mixins, exceptions, parsers
+from rest_framework import mixins, exceptions, parsers, viewsets, response
 from api.serializers.movie import (
     SubmissionSerializer,
     MoviePosterSerializer,
@@ -12,13 +11,21 @@ from api.serializers.movie import (
     MovieSerializer,
     MovieReviewDetailSerializer,
 )
-from api.models import Movie, MoviePoster, MovieLanguage, MovieGenre, MovieRateReview
+from api.models import (
+    Movie,
+    MoviePoster,
+    MovieLanguage,
+    MovieGenre,
+    MovieRateReview,
+    MovieList,
+)
+
 
 logger = getLogger("app.view")
 
 
 class SubmissionView(
-    mixins.CreateModelMixin, mixins.UpdateModelMixin, GenericViewSet,
+    mixins.CreateModelMixin, mixins.UpdateModelMixin, viewsets.GenericViewSet,
 ):
     parser_classes = (parsers.MultiPartParser, parsers.FormParser)
     queryset = Movie.objects.all()
@@ -42,7 +49,7 @@ class SubmissionView(
 
 
 class MovieView(
-    mixins.RetrieveModelMixin, mixins.ListModelMixin, GenericViewSet,
+    mixins.RetrieveModelMixin, mixins.ListModelMixin, viewsets.GenericViewSet,
 ):
     queryset = Movie.objects.all()
     serializer_class = MovieSerializer
@@ -55,23 +62,23 @@ class MovieView(
             raise exceptions.ParseError(dict(error=str(ex)))
 
 
-class MoviePosterView(ModelViewSet):
+class MoviePosterView(viewsets.ModelViewSet):
     queryset = MoviePoster.objects.all()
     serializer_class = MoviePosterSerializer
 
 
-class MovieLanguageView(GenericViewSet, mixins.ListModelMixin):
+class MovieLanguageView(viewsets.GenericViewSet, mixins.ListModelMixin):
     queryset = MovieLanguage.objects.all()
     serializer_class = MovieLanguageSerializer
 
 
-class MovieGenreView(GenericViewSet, mixins.ListModelMixin):
+class MovieGenreView(viewsets.GenericViewSet, mixins.ListModelMixin):
     queryset = MovieGenre.objects.all()
     serializer_class = MovieGenreSerializer
 
 
 class MovieReviewView(
-    GenericViewSet,
+    viewsets.GenericViewSet,
     mixins.ListModelMixin,
     mixins.UpdateModelMixin,
     mixins.CreateModelMixin,
@@ -91,11 +98,8 @@ class MovieReviewView(
         serializer.save(user=self.request.user)
 
 
-from rest_framework.response import Response
-
-
 class MovieReviewLikeView(
-    GenericViewSet, mixins.DestroyModelMixin, mixins.UpdateModelMixin
+    viewsets.GenericViewSet, mixins.DestroyModelMixin, mixins.UpdateModelMixin
 ):
     queryset = MovieRateReview.objects.all()
 
@@ -104,11 +108,57 @@ class MovieReviewLikeView(
         instance = self.get_object()
         instance.liked_by.add(user)
         instance.save()
-        return Response(dict(success=True))
+        return response.Response(dict(success=True))
 
     def destroy(self, request, *args, **kwargs):
         user = request.user
         instance = self.get_object()
         instance.liked_by.remove(user)
         instance.save()
-        return Response(dict(success=True))
+        return response.Response(dict(success=True))
+
+
+class MovieWatchlistView(
+    viewsets.GenericViewSet, mixins.DestroyModelMixin, mixins.UpdateModelMixin
+):
+    queryset = Movie.objects.all()
+
+    def update(self, request, *args, **kwargs):
+        user = request.user
+        movie = self.get_object()
+        user.profile.watchlist.add(movie)
+        user.profile.save()
+        return response.Response(dict(success=True))
+
+    def destroy(self, request, *args, **kwargs):
+        user = request.user
+        movie = self.get_object()
+        user.profile.watchlist.remove(movie)
+        user.profile.save()
+        return response.Response(dict(success=True))
+
+
+class MovieRecommendView(
+    viewsets.GenericViewSet, mixins.DestroyModelMixin, mixins.UpdateModelMixin
+):
+    queryset = Movie.objects.all()
+
+    def update(self, request, *args, **kwargs):
+        user = request.user
+        movie = self.get_object()
+        recommendation_list, _ = MovieList.objects.get_or_create(
+            owner=user, name="Recommendation"
+        )
+        logger.debug(f"{recommendation_list}")
+        recommendation_list.movies.add(movie)
+        recommendation_list.save()
+        return response.Response(dict(success=True))
+
+    def destroy(self, request, *args, **kwargs):
+        user = request.user
+        movie = self.get_object()
+        recommendation_list = MovieList.objects.get(owner=user, name="Recommendation")
+        if recommendation_list:
+            recommendation_list.movies.remove(movie)
+            recommendation_list.save()
+        return response.Response(dict(success=True))

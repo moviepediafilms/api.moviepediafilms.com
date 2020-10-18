@@ -22,6 +22,7 @@ from api.models import (
     Role,
     CrewMember,
     MovieRateReview,
+    MovieList,
 )
 from .profile import ProfileSerializer, UserSerializer
 
@@ -145,6 +146,10 @@ class MovieSerializer(serializers.ModelSerializer):
     roles = RoleSerializer(write_only=True, many=True)
     crew = serializers.SerializerMethodField()
     requestor_rating = serializers.SerializerMethodField(read_only=True)
+    # is watch listed by the requestor if he is authenticated
+    is_watchlisted = serializers.SerializerMethodField(read_only=True)
+    # is recommended by the requestor if he is authenticated
+    is_recommended = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Movie
@@ -164,6 +169,8 @@ class MovieSerializer(serializers.ModelSerializer):
             "jury_rating",
             "audience_rating",
             "requestor_rating",
+            "is_watchlisted",
+            "is_recommended",
         ]
 
     def get_requestor_rating(self, movie):
@@ -173,8 +180,27 @@ class MovieSerializer(serializers.ModelSerializer):
                 movie=movie, author=request.user
             ).first()
             return MovieReviewSerializer(instance=review).data
+        return False
+
+    def get_is_recommended(self, movie):
+        request = self.context.get("request")
+        if request and request.user.is_authenticated:
+            recommendation_list = MovieList.objects.filter(
+                owner=request.user, name="Recommendation"
+            ).first()
+            if recommendation_list:
+                return recommendation_list.movies.filter(id=movie.id).exists()
+        return False
+
+    def get_is_watchlisted(self, movie):
+        request = self.context.get("request")
+        if request and request.user.is_authenticated:
+            return movie.watchlisted_by.filter(user=request.user).exists()
+        return False
 
     def get_crew(self, movie):
+        # since one user can have multiple roles, we can
+        # reduce the number of items returned by grouping the crew relationship by user
         group_by_user = defaultdict(list)
         for crewmember in movie.crewmember_set.all():
             group_by_user[crewmember.profile].append(crewmember.role)
