@@ -167,6 +167,7 @@ class MovieSerializer(serializers.ModelSerializer):
         ]
 
     def get_requestor_rating(self, movie):
+        logger.debug(self.context)
         request = self.context.get("request")
         if request and request.user.is_authenticated:
             review = MovieRateReview.objects.filter(
@@ -175,6 +176,8 @@ class MovieSerializer(serializers.ModelSerializer):
             return MovieReviewSerializer(instance=review).data
 
     def get_crew(self, movie):
+        # since one user can have multiple roles, we can
+        # reduce the number of items returned by grouping the crew relationship by user
         group_by_user = defaultdict(list)
         for crewmember in movie.crewmember_set.all():
             group_by_user[crewmember.profile].append(crewmember.role)

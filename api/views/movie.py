@@ -112,3 +112,23 @@ class MovieReviewLikeView(
         instance.liked_by.remove(user)
         instance.save()
         return Response(dict(success=True))
+
+
+class MovieWatchlistView(
+    GenericViewSet, mixins.DestroyModelMixin, mixins.UpdateModelMixin
+):
+    queryset = Movie.objects.all()
+
+    def update(self, request, *args, **kwargs):
+        user = request.user
+        movie = self.get_object()
+        user.profile.watchlist.add(movie)
+        user.profile.save()
+        return Response(dict(success=True))
+
+    def destroy(self, request, *args, **kwargs):
+        user = request.user
+        movie = self.get_object()
+        user.profile.watchlist.remove(movie)
+        user.profile.save()
+        return Response(dict(success=True))

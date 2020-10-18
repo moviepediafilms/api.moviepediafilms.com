@@ -1,11 +1,9 @@
 from logging import getLogger
 from rest_framework import serializers, validators
 from django.contrib.auth.models import User
-from django.db.models import Sum
 from django.db import transaction
 
-from api.models import Profile, BadgeClaim, Role
-from api.constants import CLAIM_STATE
+from api.models import Profile, Role, Movie
 
 
 logger = getLogger("app.serializer")
@@ -69,10 +67,26 @@ class ProfileSerializer(serializers.ModelSerializer):
         return representation
 
 
+class WatchListMovieSerializer(serializers.ModelSerializer):
+    director = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Movie
+        fields = ["id", "title", "link", "runtime", "director"]
+
+    def get_director(self, movie):
+        logger.debug("getting director")
+        director_role = Role.objects.filter(name="director")
+        logger.debug(f"{director_role}")
+        director = movie.crewmember_set.filter(role=director_role).first()
+        return ProfileSerializer(instance=director).data
+
+
 class ProfileDetailSerializer(serializers.ModelSerializer):
     profile_id = serializers.IntegerField(source="id", read_only=True)
     user = UserSerializer()
     roles = RoleSerializer(many=True, read_only=True)
+    watchlist = WatchListMovieSerializer(many=True)
 
     class Meta:
         model = Profile
@@ -90,6 +104,7 @@ class ProfileDetailSerializer(serializers.ModelSerializer):
             "score",
             "mcoins",
             "pop_score",
+            "watchlist",
         ]
 
     def create(self, validated_data: dict):

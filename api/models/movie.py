@@ -60,7 +60,6 @@ class Movie(models.Model):
     # to be uploaded by user (Poster)
     poster = models.URLField(null=True, blank=True)
     month = models.DateField(null=True, blank=True)
-    frames = models.ManyToManyField(MovieFrame, blank=True)
     # the time at which the movie's state was changed to published
     publish_on = models.DateTimeField(null=True, blank=True)
     jury_rating = models.FloatField(null=True, blank=True, default=0)
@@ -74,6 +73,19 @@ class CrewMember(models.Model):
     role = models.ForeignKey("Role", on_delete=models.CASCADE)
 
     unique_together = [["movie", "profile", "role"]]
+
+
+class MovieList(models.Model):
+    owner = models.ForeignKey(User, on_delete=models.CASCADE)
+    movie = models.ManyToManyField("Movie", blank=True)
+    name = models.CharField(max_length=50)
+    liked_by = models.ManyToManyField(User, related_name="liked_lists", blank=True)
+
+
+class Visits(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    movie = models.ForeignKey(Movie, on_delete=models.CASCADE)
+    source = models.ForeignKey(MovieList, on_delete=models.CASCADE)
 
 
 class MovieRateReview(models.Model):
