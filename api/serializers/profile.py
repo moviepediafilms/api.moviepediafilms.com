@@ -76,17 +76,18 @@ class WatchListMovieSerializer(serializers.ModelSerializer):
 
     def get_director(self, movie):
         logger.debug("getting director")
-        director_role = Role.objects.filter(name="director")
-        logger.debug(f"{director_role}")
-        director = movie.crewmember_set.filter(role=director_role).first()
-        return ProfileSerializer(instance=director).data
+        director_role = Role.objects.get(name="Director")
+        logger.debug(f"Role: {director_role}")
+        director_crew_relation = movie.crewmember_set.filter(role=director_role).first()
+        if director_crew_relation:
+            logger.debug(f"Crew: {director_crew_relation}")
+            return ProfileSerializer(instance=director_crew_relation.profile).data
 
 
 class ProfileDetailSerializer(serializers.ModelSerializer):
     profile_id = serializers.IntegerField(source="id", read_only=True)
     user = UserSerializer()
     roles = RoleSerializer(many=True, read_only=True)
-    watchlist = WatchListMovieSerializer(many=True)
 
     class Meta:
         model = Profile
@@ -104,7 +105,6 @@ class ProfileDetailSerializer(serializers.ModelSerializer):
             "score",
             "mcoins",
             "pop_score",
-            "watchlist",
         ]
 
     def create(self, validated_data: dict):
