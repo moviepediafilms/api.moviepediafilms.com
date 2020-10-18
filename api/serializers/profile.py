@@ -70,7 +70,7 @@ class ProfileSerializer(serializers.ModelSerializer):
 
 
 class ProfileDetailSerializer(serializers.ModelSerializer):
-    profile_id = serializers.IntegerField(source="id")
+    profile_id = serializers.IntegerField(source="id", read_only=True)
     user = UserSerializer()
     roles = RoleSerializer(many=True, read_only=True)
 
