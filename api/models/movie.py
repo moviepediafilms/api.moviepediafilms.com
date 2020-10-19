@@ -72,7 +72,8 @@ class CrewMember(models.Model):
     profile = models.ForeignKey("Profile", on_delete=models.CASCADE)
     role = models.ForeignKey("Role", on_delete=models.CASCADE)
 
-    unique_together = [["movie", "profile", "role"]]
+    class Meta:
+        unique_together = [["movie", "profile", "role"]]
 
 
 class MovieList(models.Model):
