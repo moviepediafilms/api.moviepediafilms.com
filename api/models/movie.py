@@ -81,7 +81,8 @@ class MovieList(models.Model):
     name = models.CharField(max_length=50)
     liked_by = models.ManyToManyField(User, related_name="liked_lists", blank=True)
 
-    unique_together = [["owner", "name"]]
+    class Meta:
+        unique_together = [["owner", "name"]]
 
 
 class Visits(models.Model):
@@ -100,5 +101,6 @@ class MovieRateReview(models.Model):
     # is nullable since user might review the movie first before rating or may choose to not rate at all
     rating = models.FloatField(null=True, blank=True)
     liked_by = models.ManyToManyField(User, related_name="liked_reviews", blank=True)
-    # TODO: enable unique constrains before finalizing
-    unique_together = [["movie", "author"]]
+
+    class Meta:
+        unique_together = [["movie", "author"]]
