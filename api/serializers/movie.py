@@ -300,7 +300,11 @@ class MovieSerializer(serializers.ModelSerializer):
         self, creator_roles_data: list, creator: User, movie: Movie
     ):
         director_role = Role.objects.get(name="Director")
-        creator_role_names = [role.get("name") for role in creator_roles_data]
+        creator_role_names = [
+            role.get("name")
+            for role in creator_roles_data
+            if role.get("name") != "Director"
+        ]
         creator_roles = Role.objects.filter(name__in=creator_role_names).all()
         logger.debug(f"creator_roles:{creator_roles}")
         creator_profile = Profile.objects.get(user__id=creator.id)
@@ -466,3 +470,35 @@ class MovieReviewDetailSerializer(serializers.ModelSerializer):
         instance = super().update(instance, validated_data)
         self._update_movie_audience_rating(instance.movie)
         return instance
+
+
+class MovieListSerializer(serializers.ModelSerializer):
+    like_count = serializers.IntegerField(source="likes", read_only=True)
+    owner = serializers.PrimaryKeyRelatedField(source="owner.id", read_only=True)
+
+    class Meta:
+        model = MovieList
+        fields = ["id", "owner", "name", "movies", "like_count"]
+
+    def validate_owner(self, owner):
+        request = self.context.get("request")
+        if not (
+            request
+            and request.user
+            and request.owner.is_authenticated
+            and owner == request.user.id
+        ):
+            raise serializers.ValidationError("You cannot modify this list")
+        return owner
+
+    def update(self, instance: MovieList, validated_data: dict):
+        logger.debug(f"create::{validated_data}")
+        user = validated_data.pop("user")
+        if instance.owner != user:
+            raise serializers.ValidationError("You cannot perform this action")
+        return super().update(instance, validated_data)
+
+    def create(self, validated_data: dict):
+        logger.debug(f"create::{validated_data}")
+        user = validated_data.pop("user")
+        return MovieList.objects.create(**validated_data, owner=user)

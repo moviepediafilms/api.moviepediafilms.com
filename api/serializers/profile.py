@@ -59,6 +59,7 @@ class ProfileSerializer(serializers.ModelSerializer):
         fields = [
             "profile_id",
             "user",
+            "image"
         ]
 
     def to_representation(self, instance):

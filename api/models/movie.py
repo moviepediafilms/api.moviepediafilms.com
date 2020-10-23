@@ -66,6 +66,9 @@ class Movie(models.Model):
     # cached audience rating to be updated periodically
     audience_rating = models.FloatField(null=True, blank=True, default=0)
 
+    def __str__(self):
+        return self.title
+
 
 class CrewMember(models.Model):
     movie = models.ForeignKey("Movie", on_delete=models.CASCADE)
@@ -73,6 +76,7 @@ class CrewMember(models.Model):
     role = models.ForeignKey("Role", on_delete=models.CASCADE)
 
     class Meta:
+        # one person(profile) cannot be a Director(Role) multiple times in a movie
         unique_together = [["movie", "profile", "role"]]
 
 
