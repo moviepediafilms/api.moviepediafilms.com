@@ -1,5 +1,23 @@
 [{
         "model": "auth.user",
+        "pk": 1,
+        "fields": {
+            "password": "pbkdf2_sha256$216000$jW5swHrr6OhM$G75IHK/TthAaro0gU0OsXG7dc+fig2SArHKjna8OL5I=",
+            "last_login": null,
+            "is_superuser": true,
+            "username": "simple.shivam014@gmail.com",
+            "first_name": "Shivam",
+            "last_name": "Sharma",
+            "email": "simple.shivam014@gmail.com",
+            "is_staff": true,
+            "is_active": true,
+            "date_joined": "2020-10-01T13:04:44.652Z",
+            "groups": [],
+            "user_permissions": []
+        }
+    },
+    {
+        "model": "auth.user",
         "pk": 2,
         "fields": {
             "password": "pbkdf2_sha256$216000$jW5swHrr6OhM$G75IHK/TthAaro0gU0OsXG7dc+fig2SArHKjna8OL5I=",
@@ -76,14 +94,37 @@
     },
     {
         "model": "api.profile",
-        "pk": 1,
+        "pk": 2,
         "fields": {
             "user": 2,
             "city": "Lucknow",
             "mobile": "8932061116",
             "gender": "M",
             "dob": "1993-10-07",
-            "image": null,
+            "image": "https://lh3.googleusercontent.com/ogw/ADGmqu_ROyhxdiC8S8an63aKUds-000enGPpbCyMidUhkA=s32-c-mo",
+            "mcoins": 0.0,
+            "rank": -1,
+            "score": 0.0,
+            "level": 1,
+            "pop_score": 0.0,
+            "roles": [
+                1,
+                3
+            ],
+            "follows": [],
+            "badges": []
+        }
+    },
+    {
+        "model": "api.profile",
+        "pk": 1,
+        "fields": {
+            "user": 1,
+            "city": "Lucknow",
+            "mobile": "8932061116",
+            "gender": "M",
+            "dob": "1993-10-07",
+            "image": "https://lh3.googleusercontent.com/ogw/ADGmqu8i55s0OMJJYgU4sTI8iQ8u221B0jy0gi-k1OUnqEw=s32-c-mo",
             "mcoins": 0.0,
             "rank": -1,
             "score": 0.0,
@@ -140,6 +181,20 @@
         }
     },
     {
+        "model": "api.moviegenre",
+        "pk": 2,
+        "fields": {
+            "name": "crime"
+        }
+    },
+    {
+        "model": "api.moviegenre",
+        "pk": 3,
+        "fields": {
+            "name": "thrill"
+        }
+    },
+    {
         "model": "api.order",
         "pk": 1,
         "fields": {
@@ -162,7 +217,7 @@
             "title": "30 Days of Existence | A Moviepedia Short Film on Depression",
             "link": "https://www.youtube.com/embed/KS0bagkAC4Y",
             "runtime": 6.0,
-            "about": "",
+            "about": "This is a good movie",
             "lang": 1,
             "poster": null,
             "month": null,
@@ -170,7 +225,9 @@
             "jury_rating": 7.8,
             "audience_rating": 0,
             "genres": [
-                1
+                1,
+                2,
+                3
             ]
         }
     },
@@ -180,7 +237,7 @@
         "fields": {
             "movie": 1,
             "profile": 1,
-            "role": 1
+            "role": 2
         }
     },
     {
@@ -188,8 +245,8 @@
         "pk": 2,
         "fields": {
             "movie": 1,
-            "profile": 1,
-            "role": 2
+            "profile": 2,
+            "role": 1
         }
     },
     {
