@@ -50,3 +50,6 @@ class Profile(models.Model):
 
     # content consumers attributes
     engagement_score = models.FloatField(default=0)
+
+    def __str__(self):
+        return self.user.username

@@ -10,6 +10,7 @@ from api.serializers.movie import (
     MovieGenreSerializer,
     MovieSerializer,
     MovieReviewDetailSerializer,
+    MovieListSerializer,
 )
 from api.models import (
     Movie,
@@ -162,3 +163,19 @@ class MovieRecommendView(
             recommendation_list.movies.remove(movie)
             recommendation_list.save()
         return response.Response(dict(success=True))
+
+
+class MovieListView(viewsets.ModelViewSet):
+    queryset = MovieList.objects.annotate(
+        likes=Count("liked_by"), number_of_movies=Count("movies")
+    ).exclude(name="Recommendation")
+    serializer_class = MovieListSerializer
+    filterset_fields = ["owner__id"]
+    ordering_fields = ["movies", "likes"]
+    ordering = ["likes"]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+    def perform_update(self, serializer):
+        serializer.save(user=self.request.user)

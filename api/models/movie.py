@@ -66,13 +66,18 @@ class Movie(models.Model):
     # cached audience rating to be updated periodically
     audience_rating = models.FloatField(null=True, blank=True, default=0)
 
+    def __str__(self):
+        return self.title
+
 
 class CrewMember(models.Model):
     movie = models.ForeignKey("Movie", on_delete=models.CASCADE)
     profile = models.ForeignKey("Profile", on_delete=models.CASCADE)
     role = models.ForeignKey("Role", on_delete=models.CASCADE)
 
-    unique_together = [["movie", "profile", "role"]]
+    class Meta:
+        # one person(profile) cannot be a Director(Role) multiple times in a movie
+        unique_together = [["movie", "profile", "role"]]
 
 
 class MovieList(models.Model):
@@ -81,7 +86,8 @@ class MovieList(models.Model):
     name = models.CharField(max_length=50)
     liked_by = models.ManyToManyField(User, related_name="liked_lists", blank=True)
 
-    unique_together = [["owner", "name"]]
+    class Meta:
+        unique_together = [["owner", "name"]]
 
 
 class Visits(models.Model):
@@ -100,5 +106,6 @@ class MovieRateReview(models.Model):
     # is nullable since user might review the movie first before rating or may choose to not rate at all
     rating = models.FloatField(null=True, blank=True)
     liked_by = models.ManyToManyField(User, related_name="liked_reviews", blank=True)
-    # TODO: enable unique constrains before finalizing
-    unique_together = [["movie", "author"]]
+
+    class Meta:
+        unique_together = [["movie", "author"]]
