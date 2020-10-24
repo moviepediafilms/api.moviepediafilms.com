@@ -560,6 +560,6 @@ class CrewMemberRequestSerializer(serializers.ModelSerializer):
             for role in validated_data.pop("roles"):
                 validated_data["role"] = role
                 instance = CrewMemberRequest.objects.create(
-                    **validated_data, stat=state
+                    **validated_data, state=state
                 )
         return instance
