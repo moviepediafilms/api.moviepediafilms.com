@@ -12,6 +12,7 @@ from api.models import (
     MovieList,
     Package,
     CrewMember,
+    CrewMemberRequest,
 )
 
 
@@ -55,6 +56,10 @@ class CrewMemberAdmin(admin.ModelAdmin):
     list_display = ["movie", "profile", "role"]
 
 
+class CrewMemberRequestAdmin(admin.ModelAdmin):
+    list_display = ["requestor", "movie", "user", "role", "state", "reason"]
+
+
 admin.site.register(Profile, ProfileAdmin)
 admin.site.register(Role, RoleAdmin)
 admin.site.register(Order, OrderAdmin)
@@ -65,3 +70,4 @@ admin.site.register(MovieRateReview, MovieRateReviewAdmin)
 admin.site.register(Package, PackageAdmin)
 admin.site.register(MovieList, MovieListAdmin)
 admin.site.register(CrewMember, CrewMemberAdmin)
+admin.site.register(CrewMemberRequest, CrewMemberRequestAdmin)

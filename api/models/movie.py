@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
-from api.constants import MOVIE_STATE, REVIEW_STATE
+from api.constants import MOVIE_STATE, REVIEW_STATE, CREW_MEMBER_REQUEST_STATE
 
 MOVIE_STATE_CHOICES = (
     (MOVIE_STATE.SUBMITTED, "Submitted"),
@@ -14,6 +14,12 @@ MOVIE_STATE_CHOICES = (
 REVIEW_STATE_CHOICES = [
     (REVIEW_STATE.PUBLISHED, "Published"),
     (REVIEW_STATE.BLOCKED, "Blocked"),
+]
+
+CREW_MEMBER_CHOICES = [
+    (CREW_MEMBER_REQUEST_STATE.SUBMITTED, "Submitted"),
+    (CREW_MEMBER_REQUEST_STATE.APPROVED, "Approved"),
+    (CREW_MEMBER_REQUEST_STATE.DECLINED, "Declined"),
 ]
 
 
@@ -78,6 +84,21 @@ class CrewMember(models.Model):
     class Meta:
         # one person(profile) cannot be a Director(Role) multiple times in a movie
         unique_together = [["movie", "profile", "role"]]
+
+
+class CrewMemberRequest(models.Model):
+    requestor = models.ForeignKey(User, on_delete=models.CASCADE)
+    movie = models.ForeignKey("Movie", on_delete=models.CASCADE)
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="in_crewmemberrequest"
+    )
+    role = models.ForeignKey("Role", on_delete=models.CASCADE)
+    state = models.CharField(max_length=1, choices=CREW_MEMBER_CHOICES)
+    reason = models.CharField(max_length=100, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = [["requestor", "movie", "user", "role"]]
 
 
 class MovieList(models.Model):

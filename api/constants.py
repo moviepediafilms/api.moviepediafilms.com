@@ -21,3 +21,9 @@ class CLAIM_STATE:
     CREATED = "C"
     SUCCESS = "S"
     FAILED = "F"
+
+
+class CREW_MEMBER_REQUEST_STATE:
+    SUBMITTED = "S"
+    APPROVED = "A"
+    DECLINED = "D"

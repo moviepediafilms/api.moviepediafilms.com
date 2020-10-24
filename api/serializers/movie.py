@@ -4,12 +4,13 @@ import os
 
 from django.conf import settings
 from django.db.models import Avg
+from django.db import transaction
 from django.core.files.storage import default_storage
 from rest_framework import serializers
 from collections import defaultdict
 import razorpay
 
-from api.constants import MOVIE_STATE
+from api.constants import MOVIE_STATE, CREW_MEMBER_REQUEST_STATE
 from api.models import (
     User,
     Movie,
@@ -23,6 +24,7 @@ from api.models import (
     CrewMember,
     MovieRateReview,
     MovieList,
+    CrewMemberRequest,
 )
 from .profile import ProfileSerializer, UserSerializer
 
@@ -134,6 +136,16 @@ class DirectorSerializer(serializers.Serializer):
 class CrewMemberSerializer(serializers.Serializer):
     roles = RoleSerializer(many=True)
     profile = ProfileSerializer()
+
+
+class MovieSerializerSummary(serializers.ModelSerializer):
+    class Meta:
+        model = Movie
+        fields = [
+            "id",
+            "title",
+            "poster",
+        ]
 
 
 class MovieSerializer(serializers.ModelSerializer):
@@ -480,25 +492,74 @@ class MovieListSerializer(serializers.ModelSerializer):
         model = MovieList
         fields = ["id", "owner", "name", "movies", "like_count"]
 
-    def validate_owner(self, owner):
-        request = self.context.get("request")
-        if not (
-            request
-            and request.user
-            and request.owner.is_authenticated
-            and owner == request.user.id
-        ):
-            raise serializers.ValidationError("You cannot modify this list")
-        return owner
-
-    def update(self, instance: MovieList, validated_data: dict):
-        logger.debug(f"create::{validated_data}")
-        user = validated_data.pop("user")
-        if instance.owner != user:
-            raise serializers.ValidationError("You cannot perform this action")
-        return super().update(instance, validated_data)
-
     def create(self, validated_data: dict):
-        logger.debug(f"create::{validated_data}")
         user = validated_data.pop("user")
         return MovieList.objects.create(**validated_data, owner=user)
+
+
+class CrewMemberRequestSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+    role = RoleSerializer(read_only=True)
+    requestor = UserSerializer(read_only=True)
+    movie_detail = MovieSerializerSummary(read_only=True)
+
+    name = serializers.CharField(write_only=True)
+    email = serializers.EmailField(write_only=True)
+    roles = serializers.PrimaryKeyRelatedField(
+        queryset=Role.objects.all(), many=True, write_only=True
+    )
+
+    class Meta:
+        model = CrewMemberRequest
+        fields = [
+            "id",
+            "name",
+            "email",
+            "roles",
+            "movie",
+            "requestor",
+            "user",
+            "role",
+            "movie_detail",
+            "state",
+        ]
+        read_only_fields = ["id", "requestor", "role", "user", "movie_detail", "state"]
+
+    def _create_new_user(self, name, email):
+        email = email.strip().lower()
+        name_segs = [seg.strip() for seg in name.split(" ")]
+        first_name = name_segs[0]
+        last_name = " ".join(name_segs[1:])
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            user = User.objects.create_user(
+                first_name=first_name, last_name=last_name, username=email, email=email,
+            )
+        return user
+
+    def create(self, validated_data):
+        requestor = validated_data.pop("user")
+        movie = validated_data.get("movie")
+        validated_data["requestor"] = requestor
+        email = validated_data.pop("email")
+        name = validated_data.pop("name")
+        instance = None
+        director = Role.objects.get(name="Director")
+        requestor_is_director_of_movie = CrewMember.objects.filter(
+            profile__user=requestor, role=director, movie=movie
+        ).exists()
+        state = (
+            CREW_MEMBER_REQUEST_STATE.APPROVED
+            if requestor_is_director_of_movie
+            else CREW_MEMBER_REQUEST_STATE.SUBMITTED
+        )
+        with transaction.atomic():
+            user = self._create_new_user(name, email)
+            validated_data["user"] = user
+            for role in validated_data.pop("roles"):
+                validated_data["role"] = role
+                instance = CrewMemberRequest.objects.create(
+                    **validated_data, stat=state
+                )
+        return instance
