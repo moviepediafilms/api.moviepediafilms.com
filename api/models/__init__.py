@@ -19,6 +19,7 @@ from .movie import (
     MoviePoster,
     CrewMember,
     MovieList,
+    CrewMemberRequest,
 )
 
 __all__ = [
@@ -43,4 +44,5 @@ __all__ = [
     Award,
     AwardType,
     MovieList,
+    CrewMemberRequest,
 ]

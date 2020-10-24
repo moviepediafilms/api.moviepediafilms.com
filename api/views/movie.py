@@ -2,7 +2,7 @@ from logging import getLogger
 
 from django.db.models import Count
 
-from rest_framework import mixins, exceptions, parsers, viewsets, response
+from rest_framework import mixins, exceptions, parsers, viewsets, response, permissions
 from api.serializers.movie import (
     SubmissionSerializer,
     MoviePosterSerializer,
@@ -11,6 +11,7 @@ from api.serializers.movie import (
     MovieSerializer,
     MovieReviewDetailSerializer,
     MovieListSerializer,
+    CrewMemberRequestSerializer,
 )
 from api.models import (
     Movie,
@@ -19,6 +20,8 @@ from api.models import (
     MovieGenre,
     MovieRateReview,
     MovieList,
+    CrewMemberRequest,
+    Role,
 )
 
 
@@ -30,13 +33,7 @@ class SubmissionView(
 ):
     parser_classes = (parsers.MultiPartParser, parsers.FormParser)
     queryset = Movie.objects.all()
-
-    def get_serializer_class(self):
-        logger.debug(f"get_serializer_class::{self.action}")
-        if self.action == "retrieve":
-            return MovieSerializer
-        else:
-            return SubmissionSerializer
+    serializer_class = SubmissionSerializer
 
     def perform_create(self, serializer):
         logger.info(f"perform_create::{self.request.user.email}")
@@ -78,15 +75,21 @@ class MovieGenreView(viewsets.GenericViewSet, mixins.ListModelMixin):
     serializer_class = MovieGenreSerializer
 
 
+class IsMovieRateReviewOwner(permissions.BasePermission):
+    def has_object_permission(self, request, view, object: MovieRateReview):
+        me = request.user
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        return object.author == me
+
+
 class MovieReviewView(
     viewsets.GenericViewSet,
     mixins.ListModelMixin,
     mixins.UpdateModelMixin,
     mixins.CreateModelMixin,
 ):
-    queryset = MovieRateReview.objects.annotate(
-        number_of_likes=Count("liked_by")
-    ).exclude(content__isnull=True)
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsMovieRateReviewOwner]
     serializer_class = MovieReviewDetailSerializer
     filterset_fields = ["movie__id", "author__id"]
     ordering_fields = ["published_at", "number_of_likes"]
@@ -95,6 +98,13 @@ class MovieReviewView(
         "-published_at",
     ]
 
+    def get_queryset(self):
+        query = MovieRateReview.objects.annotate(number_of_likes=Count("liked_by"))
+        if self.request.method in permissions.SAFE_METHODS:
+            return query.exclude(content__isnull=True)
+        else:
+            return query
+
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
@@ -102,7 +112,7 @@ class MovieReviewView(
 class MovieReviewLikeView(
     viewsets.GenericViewSet, mixins.DestroyModelMixin, mixins.UpdateModelMixin
 ):
-    queryset = MovieRateReview.objects.all()
+    queryset = MovieRateReview.objects
 
     def update(self, request, *args, **kwargs):
         user = request.user
@@ -120,9 +130,10 @@ class MovieReviewLikeView(
 
 
 class MovieWatchlistView(
-    viewsets.GenericViewSet, mixins.DestroyModelMixin, mixins.UpdateModelMixin
+    mixins.DestroyModelMixin, mixins.UpdateModelMixin, viewsets.GenericViewSet
 ):
-    queryset = Movie.objects.all()
+    def get_queryset(self):
+        return Movie.objects
 
     def update(self, request, *args, **kwargs):
         user = request.user
@@ -142,7 +153,7 @@ class MovieWatchlistView(
 class MovieRecommendView(
     viewsets.GenericViewSet, mixins.DestroyModelMixin, mixins.UpdateModelMixin
 ):
-    queryset = Movie.objects.all()
+    queryset = Movie.objects
 
     def update(self, request, *args, **kwargs):
         user = request.user
@@ -165,7 +176,16 @@ class MovieRecommendView(
         return response.Response(dict(success=True))
 
 
+class IsMovieListOwner(permissions.BasePermission):
+    def has_object_permission(self, request, view, object: MovieList):
+        me = request.user
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        return object.owner == me
+
+
 class MovieListView(viewsets.ModelViewSet):
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsMovieListOwner]
     queryset = MovieList.objects.annotate(
         likes=Count("liked_by"), number_of_movies=Count("movies")
     ).exclude(name="Recommendation")
@@ -173,6 +193,42 @@ class MovieListView(viewsets.ModelViewSet):
     filterset_fields = ["owner__id"]
     ordering_fields = ["movies", "likes"]
     ordering = ["likes"]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+    def perform_update(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class IsDirectorCreatorOrRequestor(permissions.BasePermission):
+    def has_object_permission(self, request, view, object: CrewMemberRequest):
+        me = request.user
+        if request.method in permissions.SAFE_METHODS:
+            return (
+                object.user == me
+                or object.requestor == me
+                or object.movie.crewmember_set.filter(
+                    role__name="Director", profile__user=me
+                ).exists()
+            )
+            return True
+
+        director = Role.objects.get(name="Director")
+        return Movie.objects.filter(
+            id=object.movie.id,
+            crewmember__role=director,
+            crewmember__profile=me.profile,
+        ).exists()
+
+
+class CrewMemberRequestView(viewsets.ModelViewSet):
+    permission_classes = [permissions.IsAuthenticated, IsDirectorCreatorOrRequestor]
+    serializer_class = CrewMemberRequestSerializer
+    filterset_fields = ["requestor__id"]
+
+    def get_queryset(self):
+        return CrewMemberRequest.objects
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
