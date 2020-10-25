@@ -101,7 +101,7 @@ class MovieReviewView(
     def get_queryset(self):
         query = MovieRateReview.objects.annotate(number_of_likes=Count("liked_by"))
         if self.request.method in permissions.SAFE_METHODS:
-            return query.exclude(content__isnull=True)
+            return query.exclude(content__isnull=True).exclude(content__exact="")
         else:
             return query
 
