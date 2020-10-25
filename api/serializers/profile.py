@@ -102,6 +102,7 @@ class ProfileDetailSerializer(serializers.ModelSerializer):
             "score",
             "mcoins",
             "pop_score",
+            "follows",
         ]
 
     def create(self, validated_data: dict):
@@ -119,3 +120,20 @@ class ProfileDetailSerializer(serializers.ModelSerializer):
         representation = super().to_representation(instance)
         representation.update(representation.pop("user"))
         return representation
+
+
+class FollowSerializer(serializers.ModelSerializer):
+    follow = serializers.BooleanField(write_only=True)
+
+    class Meta:
+        model = Profile
+        fields = ["follow", "follows"]
+
+    def update(self, profile_to_follow, validated_data):
+        user = validated_data.get("user")
+        if validated_data.get("follow"):
+            user.profile.follows.add(profile_to_follow)
+        else:
+            user.profile.follows.remove(profile_to_follow)
+        user.profile.save()
+        return user.profile

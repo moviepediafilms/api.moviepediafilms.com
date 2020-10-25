@@ -6,6 +6,7 @@ from api.views import auth, profile, movie, payment
 router = DefaultRouter()
 router.register("profile", profile.ProfileView, basename="profile")
 router.register("role", profile.RoleView, basename="role")
+router.register("follow", profile.FollowView, basename="follow")
 router.register("lang", movie.MovieLanguageView, basename="lang")
 router.register("genre", movie.MovieGenreView, basename="genre")
 router.register("submit", movie.SubmissionView, basename="submit")
@@ -18,6 +19,7 @@ router.register("movie-list", movie.MovieListView, basename="movielist")
 router.register(
     "crew-member-request", movie.CrewMemberRequestView, basename="crewmemberrequest"
 )
+
 
 urlpatterns = [
     path("", include(router.urls)),
