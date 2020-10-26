@@ -19,7 +19,8 @@ router.register("movie-list", movie.MovieListView, basename="movielist")
 router.register(
     "crew-member-request", movie.CrewMemberRequestView, basename="crewmemberrequest"
 )
-
+router.register("my-watchlist", profile.MyWatchlistView, basename="mywatchlist")
+router.register("my-recommends", profile.MyRecommendedView, basename="myrecommends")
 
 urlpatterns = [
     path("", include(router.urls)),
