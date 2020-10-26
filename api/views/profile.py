@@ -1,13 +1,14 @@
 from logging import getLogger
 
 from django.db.models import Count
-from rest_framework import permissions, viewsets, mixins, response
+from rest_framework import permissions, viewsets, mixins
+from api.serializers.movie import MovieSerializerSummary
 from api.serializers.profile import (
     ProfileDetailSerializer,
     RoleSerializer,
     FollowSerializer,
 )
-from api.models import Profile, Role
+from api.models import Profile, Role, MovieList
 
 
 logger = getLogger("app.view")
@@ -34,3 +35,23 @@ class FollowView(viewsets.GenericViewSet, mixins.UpdateModelMixin):
     def perform_update(self, serializer):
         serializer.save(user=self.request.user)
 
+
+class MyWatchlistView(viewsets.GenericViewSet, mixins.ListModelMixin):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = MovieSerializerSummary
+
+    def get_queryset(self):
+        user = self.request.user
+        return user.profile.watchlist.all()
+
+
+class MyRecommendedView(viewsets.GenericViewSet, mixins.ListModelMixin):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = MovieSerializerSummary
+
+    def get_queryset(self):
+        user = self.request.user
+        recommend_list = MovieList.objects.filter(
+            owner=user, name="Recommendation"
+        ).first()
+        return recommend_list.movies.all()

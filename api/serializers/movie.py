@@ -145,6 +145,7 @@ class MovieSerializerSummary(serializers.ModelSerializer):
             "id",
             "title",
             "poster",
+            "about",
         ]
 
 
@@ -183,6 +184,7 @@ class MovieSerializer(serializers.ModelSerializer):
             "requestor_rating",
             "is_watchlisted",
             "is_recommended",
+            "publish_on",
         ]
 
     def get_requestor_rating(self, movie):
