@@ -145,6 +145,7 @@ class MovieSerializerSummary(serializers.ModelSerializer):
             "id",
             "title",
             "poster",
+            "about",
         ]
 
 
