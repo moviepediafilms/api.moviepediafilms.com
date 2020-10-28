@@ -5,6 +5,7 @@ from api.views import auth, profile, movie, payment
 
 router = DefaultRouter()
 router.register("profile", profile.ProfileView, basename="profile")
+router.register("profile-image", profile.ProfileImageView, basename="profileimage")
 router.register("role", profile.RoleView, basename="role")
 router.register("follow", profile.FollowView, basename="follow")
 router.register("lang", movie.MovieLanguageView, basename="lang")
