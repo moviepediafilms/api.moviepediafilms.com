@@ -2,7 +2,9 @@ from logging import getLogger
 from rest_framework import serializers, validators
 from django.contrib.auth.models import User
 from django.db import transaction
-
+from django.conf import settings
+from django.core.files.storage import default_storage
+import os
 from api.models import Profile, Role, Movie
 
 
@@ -104,6 +106,7 @@ class ProfileDetailSerializer(serializers.ModelSerializer):
             "pop_score",
             "follows",
         ]
+        read_only_fields = ["level", "rank", "score", "mcoins", "pop_score", "follows"]
 
     def create(self, validated_data: dict):
         logger.debug(f"profile::create {validated_data}")
@@ -137,3 +140,33 @@ class FollowSerializer(serializers.ModelSerializer):
             user.profile.follows.remove(profile_to_follow)
         user.profile.save()
         return user.profile
+
+
+class ProfileImageSerializer(serializers.Serializer):
+    image = serializers.ImageField()
+
+    class Meta:
+        model = Profile
+        fields = ["image"]
+
+    def update(self, profile, validated_data):
+        image = validated_data.get("image")
+        image_url = self._write_image(image, profile)
+        profile.image = image_url
+        return profile
+
+    def _write_image(self, image, profile):
+        if not image:
+            return
+        ext = image.name.split(".")[-1]
+        image_filename = f"{profile.id:010d}.{ext}"
+        image_path = os.path.join(settings.MEDIA_PROFILE, image_filename)
+        if default_storage.exists(image_path):
+            default_storage.delete(image_path)
+        image_filename = default_storage.save(image_path, image)
+        url = default_storage.url(image_filename)
+        logger.debug(f"image saved at: {url}")
+        return url
+
+    def to_representation(self, instance):
+        return ProfileDetailSerializer(instance=instance).data
