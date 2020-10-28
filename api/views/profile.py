@@ -83,4 +83,6 @@ class MyRecommendedView(viewsets.GenericViewSet, mixins.ListModelMixin):
         recommend_list = MovieList.objects.filter(
             owner=user, name="Recommendation"
         ).first()
-        return recommend_list.movies.all()
+        if recommend_list:
+            return recommend_list.movies.all()
+        return MovieList.objects.none()
