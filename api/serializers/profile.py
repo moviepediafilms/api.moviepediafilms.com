@@ -153,6 +153,7 @@ class ProfileImageSerializer(serializers.Serializer):
         image = validated_data.get("image")
         image_url = self._write_image(image, profile)
         profile.image = image_url
+        profile.save()
         return profile
 
     def _write_image(self, image, profile):
