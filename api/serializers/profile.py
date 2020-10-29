@@ -1,12 +1,16 @@
+import os
+import uuid
 from logging import getLogger
-from rest_framework import serializers, validators
+
 from django.contrib.auth.models import User
 from django.db import transaction
 from django.conf import settings
 from django.core.files.storage import default_storage
-import os
-from api.models import Profile, Role, Movie
 
+from rest_framework import serializers, validators
+from PIL import Image
+
+from api.models import Profile, Role, Movie
 
 logger = getLogger("app.serializer")
 
@@ -151,23 +155,67 @@ class ProfileImageSerializer(serializers.Serializer):
 
     def update(self, profile, validated_data):
         image = validated_data.get("image")
-        image_url = self._write_image(image, profile)
+        image_url, img_name = self._write_image(image, profile)
+        self._resize_image(img_name)
+        self._delete_existing_profile_image(profile)
         profile.image = image_url
         profile.save()
         return profile
+
+    def _get_thumb_path(self, dimen, img_name):
+        thumb_name = f"{dimen}_{img_name}"
+        return os.path.join(settings.MEDIA_PROFILE, thumb_name)
+
+    def _resize_image(self, img_name):
+        if not img_name:
+            return
+        img_abs_path = os.path.join(
+            settings.MEDIA_ROOT, settings.MEDIA_PROFILE, img_name
+        )
+
+        logger.debug(f"resizing {img_abs_path}")
+        try:
+            img = Image.open(img_abs_path)
+            img = img.resize((400, 400))
+            img.save(img_abs_path)
+            for dimen in settings.THUMB_DIMENS:
+                tmp_img = img.resize((dimen, dimen))
+                thumb_abs_path = os.path.join(
+                    settings.MEDIA_ROOT, self._get_thumb_path(dimen, img_name)
+                )
+                tmp_img.save(thumb_abs_path)
+        except Exception as ex:
+            logger.debug("image resize failed")
+            logger.exception(ex)
+        else:
+            logger.debug("image resized")
+
+    def _delete_existing_profile_image(self, profile):
+        if profile.image:
+            old_image_name = profile.image.lstrip(
+                settings.MEDIA_URL + settings.MEDIA_PROFILE
+            )
+            old_image_path = os.path.join(settings.MEDIA_PROFILE, old_image_name)
+            files_to_del = []
+            files_to_del.append(old_image_path)
+            for dimen in settings.THUMB_DIMENS:
+                files_to_del.append(self._get_thumb_path(dimen, old_image_name))
+
+            logger.debug(f"deleting files at {files_to_del}")
+            for file_path in files_to_del:
+                if default_storage.exists(file_path):
+                    default_storage.delete(file_path)
 
     def _write_image(self, image, profile):
         if not image:
             return
         ext = image.name.split(".")[-1]
-        image_filename = f"{profile.id:010d}.{ext}"
+        image_filename = f"{uuid.uuid4()}.{ext}"
         image_path = os.path.join(settings.MEDIA_PROFILE, image_filename)
-        if default_storage.exists(image_path):
-            default_storage.delete(image_path)
-        image_filename = default_storage.save(image_path, image)
-        url = default_storage.url(image_filename)
+        image_path = default_storage.save(image_path, image)
+        url = default_storage.url(image_path)
         logger.debug(f"image saved at: {url}")
-        return url
+        return url, image_filename
 
     def to_representation(self, instance):
         return ProfileDetailSerializer(instance=instance).data
