@@ -22,6 +22,17 @@ router.register(
 )
 router.register("my-watchlist", profile.MyWatchlistView, basename="mywatchlist")
 router.register("my-recommends", profile.MyRecommendedView, basename="myrecommends")
+router.register(
+    "audience-leaderboard",
+    profile.AudienceLeaderboardView,
+    basename="audienceleaderboard",
+)
+router.register(
+    "filmmaker-leaderboard",
+    profile.FilmmakerLeaderboardView,
+    basename="filmmakerleaderboard",
+)
+
 
 urlpatterns = [
     path("", include(router.urls)),
