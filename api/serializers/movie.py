@@ -443,6 +443,9 @@ class MovieReviewDetailSerializer(serializers.ModelSerializer):
     liked_by = MinUserSerializer(read_only=True, many=True)
     # serializers.IntegerField(source="liked_by.count", read_only=True)
     published_at = serializers.DateTimeField(read_only=True)
+    # added for my reviews page, normal reviews for a movie don't use this,
+    # can be moved to a new serializer and new view
+    movie = MovieSerializerSummary()
 
     class Meta:
         model = MovieRateReview
