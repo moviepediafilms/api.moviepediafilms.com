@@ -8,6 +8,7 @@ from api.serializers.profile import (
     ProfileImageSerializer,
     RoleSerializer,
     FollowSerializer,
+    ProfileSerializer,
 )
 from api.models import Profile, Role, MovieList
 
@@ -49,6 +50,18 @@ class ProfileView(viewsets.ModelViewSet):
     authentication_classes = []
     permission_classes = [permissions.AllowAny, IsOwnProfileOrReadOnly]
     lookup_field = "user__id"
+
+
+class AudienceLeaderboardView(viewsets.ModelViewSet):
+    queryset = Profile.objects.all()
+    serializer_class = ProfileSerializer
+    ordering = ["rank"]
+
+
+class FilmmakerLeaderboardView(viewsets.ModelViewSet):
+    queryset = Profile.objects.all()
+    serializer_class = ProfileSerializer
+    ordering = ["pop_score"]
 
 
 class RoleView(viewsets.ModelViewSet):
