@@ -29,7 +29,7 @@ class Profile(models.Model):
     # should be updated as batch process
     roles = models.ManyToManyField("Role", blank=True)
     image = models.URLField(null=True, blank=True)
-    follows = models.ManyToManyField("Profile", blank=True)
+    follows = models.ManyToManyField("Profile", blank=True, related_name="followed_by")
 
     # content consumers attributes
     mcoins = models.FloatField(default=0)
