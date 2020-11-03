@@ -12,6 +12,7 @@ from api.serializers.movie import (
     MovieReviewDetailSerializer,
     MovieListSerializer,
     CrewMemberRequestSerializer,
+    MovieListDetailSerializer,
 )
 from api.models import (
     Movie,
@@ -189,10 +190,15 @@ class MovieListView(viewsets.ModelViewSet):
     queryset = MovieList.objects.annotate(
         likes=Count("liked_by"), number_of_movies=Count("movies")
     ).exclude(name="Recommendation")
-    serializer_class = MovieListSerializer
     filterset_fields = ["owner__id"]
     ordering_fields = ["movies", "likes"]
     ordering = ["likes"]
+
+    def get_serializer_class(self):
+        logger.debug(self.action)
+        if self.action == "retrieve":
+            return MovieListDetailSerializer
+        return MovieListSerializer
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)

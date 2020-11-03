@@ -445,7 +445,8 @@ class MovieReviewDetailSerializer(serializers.ModelSerializer):
     published_at = serializers.DateTimeField(read_only=True)
     # added for my reviews page, normal reviews for a movie don't use this,
     # can be moved to a new serializer and new view
-    movie = MovieSerializerSummary()
+    movie = MovieSerializerSummary(read_only=True)
+    movie_id = serializers.IntegerField(write_only=True)
 
     class Meta:
         model = MovieRateReview
@@ -457,6 +458,7 @@ class MovieReviewDetailSerializer(serializers.ModelSerializer):
             "published_at",
             "rating",
             "movie",
+            "movie_id",
         ]
 
     def validate(self, validated_data):
@@ -500,6 +502,10 @@ class MovieListSerializer(serializers.ModelSerializer):
     def create(self, validated_data: dict):
         user = validated_data.pop("user")
         return MovieList.objects.create(**validated_data, owner=user)
+
+
+class MovieListDetailSerializer(MovieListSerializer):
+    movies = MovieSerializerSummary(many=True)
 
 
 class CrewMemberRequestSerializer(serializers.ModelSerializer):
