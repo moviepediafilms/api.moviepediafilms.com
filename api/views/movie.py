@@ -13,8 +13,10 @@ from api.serializers.movie import (
     MovieListSerializer,
     CrewMemberRequestSerializer,
     MovieListDetailSerializer,
+    MovieSerializerSummary,
 )
 from api.models import (
+    User,
     Movie,
     MoviePoster,
     MovieLanguage,
@@ -23,6 +25,7 @@ from api.models import (
     MovieList,
     CrewMemberRequest,
     Role,
+    Profile,
 )
 
 
@@ -51,7 +54,11 @@ class MovieView(
     mixins.RetrieveModelMixin, mixins.ListModelMixin, viewsets.GenericViewSet,
 ):
     queryset = Movie.objects.all()
-    serializer_class = MovieSerializer
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return MovieSerializerSummary
+        return MovieSerializer
 
     def perform_update(self, serializer):
         try:
@@ -151,10 +158,29 @@ class MovieWatchlistView(
         return response.Response(dict(success=True))
 
 
+from rest_framework.decorators import action
+from rest_framework.response import Response
+
+
 class MovieRecommendView(
-    viewsets.GenericViewSet, mixins.DestroyModelMixin, mixins.UpdateModelMixin
+    viewsets.GenericViewSet, mixins.DestroyModelMixin, mixins.UpdateModelMixin,
 ):
-    queryset = Movie.objects
+    serializer = MovieSerializerSummary
+
+    def get_queryset(self):
+        if self.action == "movies":
+            return User.objects
+        return Movie.objects
+
+    @action(methods=["get"], detail=True)
+    def movies(self, request, pk=None, **kwargs):
+        user = self.get_object()
+        movie_list = MovieList.objects.filter(owner=user, name="Recommendation").first()
+        movies = []
+        if movie_list:
+            movies = movie_list.movies.all()
+        logger.debug(f"{pk} {user} {movies}")
+        return Response(data=MovieSerializerSummary(instance=movies, many=True).data)
 
     def update(self, request, *args, **kwargs):
         user = request.user

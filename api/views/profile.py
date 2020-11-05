@@ -1,7 +1,7 @@
 from logging import getLogger
 
 from django.db.models import Count
-from rest_framework import permissions, viewsets, mixins, parsers
+from rest_framework import permissions, viewsets, mixins, parsers, response
 from api.serializers.movie import MovieSerializerSummary
 from api.serializers.profile import (
     ProfileDetailSerializer,
@@ -11,25 +11,24 @@ from api.serializers.profile import (
     ProfileSerializer,
 )
 from api.models import Profile, Role, MovieList
-
+from rest_framework.decorators import action
 
 logger = getLogger("app.view")
 
 
 class IsOwnProfile(permissions.BasePermission):
     def has_object_permission(self, request, view, object: Profile):
+        logger.debug(f"{object.user} == {request.user}")
         return object.user == request.user
 
 
-class ReadOnlyMixin:
-    def has_object_permission(self, request, view, object):
+class IsCreateSafeOrIsOwner(IsOwnProfile):
+    def has_object_permission(self, request, view, object: Profile):
         if request.method in permissions.SAFE_METHODS:
             return True
+        if request.method == "POST":
+            return True
         return super().has_object_permission(request, view, object)
-
-
-class IsOwnProfileOrReadOnly(ReadOnlyMixin, IsOwnProfile):
-    pass
 
 
 class ProfileImageView(mixins.UpdateModelMixin, viewsets.GenericViewSet):
@@ -47,8 +46,7 @@ class ProfileImageView(mixins.UpdateModelMixin, viewsets.GenericViewSet):
 class ProfileView(viewsets.ModelViewSet):
     queryset = Profile.objects.all()
     serializer_class = ProfileDetailSerializer
-    authentication_classes = []
-    permission_classes = [permissions.AllowAny, IsOwnProfileOrReadOnly]
+    permission_classes = [IsCreateSafeOrIsOwner]
     lookup_field = "user__id"
 
 
@@ -69,47 +67,46 @@ class RoleView(viewsets.ModelViewSet):
     serializer_class = RoleSerializer
 
 
-class FollowView(
-    viewsets.GenericViewSet, mixins.ListModelMixin, mixins.UpdateModelMixin
-):
+class FollowView(viewsets.GenericViewSet, mixins.UpdateModelMixin):
+    queryset = Profile.objects.all()
+    lookup_field = "user__id"
     permission_classes = [permissions.IsAuthenticated]
 
+    @action(methods=["get"], detail=True)
+    def followers(self, pk=None, **kwargs):
+        profile = self.get_object()
+        # profiles that are following the logged in user
+        followers = profile.followed_by.all()
+        page = self.paginate_queryset(followers)
+        if page is not None:
+            serializer = self.get_serializer(instance=page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(instance=followers, many=True)
+        return response.Response(serializer.data)
+
+    @action(methods=["get"], detail=True)
+    def following(self, pk=None, **kwargs):
+        profile = self.get_object()
+        # profiles that are followed by the logged in user (yes its correct)
+        queryset = profile.follows.all()
+        followings = self.paginate_queryset(queryset=queryset)
+        page = self.paginate_queryset(followings)
+        if page is not None:
+            serializer = self.get_serializer(instance=page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(instance=followings, many=True)
+        return response.Response(serializer.data)
+
     def get_queryset(self):
-        logger.debug(f"{self.action} {str(self.request.query_params)}")
-        if self.action == "list":
-            # profiles that are following the logged in user
-            if "followers" in self.request.query_params:
-                return self.request.user.profile.followed_by.all()
-            # profiles that are followed by the logged in user (yes its correct)
-            return self.request.user.profile.follows.all()
         return Profile.objects.annotate(following=Count("follows"))
 
     def get_serializer_class(self):
-        if self.action == "list":
+        if self.action in ("followers", "following"):
             return ProfileSerializer
         return FollowSerializer
 
     def perform_update(self, serializer):
         serializer.save(user=self.request.user)
-
-
-#
-# class FollowersView(viewsets.GenericViewSet, mixins.ListModelMixin):
-#     serializer_class = ProfileSerializer
-#     permission_classes = [permissions.IsAuthenticated]
-
-#     def get_queryset(self):
-#         query = self.request.user.profile.followed_by.all()
-#         logger.debug(query.query)
-#         return query
-
-
-# class FollowingView(viewsets.GenericViewSet, mixins.ListModelMixin):
-#     serializer_class = ProfileSerializer
-#     permission_classes = [permissions.IsAuthenticated]
-
-#     def get_queryset(self):
-#         return self.request.user.profile.follows.all()
 
 
 class MyWatchlistView(viewsets.GenericViewSet, mixins.ListModelMixin):
