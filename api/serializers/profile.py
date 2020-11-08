@@ -1,3 +1,4 @@
+from api.models.movie import CrewMember
 import os
 import uuid
 from logging import getLogger
@@ -11,8 +12,9 @@ from rest_framework import serializers, validators
 from PIL import Image
 
 from api.models import Profile, Role, Movie
+from api.constants import MOVIE_STATE
 
-logger = getLogger("app.serializer")
+logger = getLogger(__name__)
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -91,6 +93,7 @@ class ProfileDetailSerializer(serializers.ModelSerializer):
     profile_id = serializers.IntegerField(source="id", read_only=True)
     user = UserSerializer()
     roles = RoleSerializer(many=True, read_only=True)
+    movies_directed = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Profile
@@ -109,6 +112,7 @@ class ProfileDetailSerializer(serializers.ModelSerializer):
             "mcoins",
             "pop_score",
             "follows",
+            "movies_directed",
         ]
         read_only_fields = ["level", "rank", "score", "mcoins", "pop_score", "follows"]
 
@@ -127,6 +131,12 @@ class ProfileDetailSerializer(serializers.ModelSerializer):
         representation = super().to_representation(instance)
         representation.update(representation.pop("user"))
         return representation
+
+    def get_movies_directed(self, profile):
+        director_role = Role.objects.filter(name="Director").first()
+        return CrewMember.objects.filter(
+            profile=profile, role=director_role, movie__state=MOVIE_STATE.PUBLISHED
+        ).count()
 
 
 class FollowSerializer(serializers.ModelSerializer):

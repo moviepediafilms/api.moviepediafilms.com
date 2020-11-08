@@ -13,7 +13,7 @@ from api.serializers.profile import (
 from api.models import Profile, Role, MovieList
 from rest_framework.decorators import action
 
-logger = getLogger("app.view")
+logger = getLogger(__name__)
 
 
 class IsOwnProfile(permissions.BasePermission):

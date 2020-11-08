@@ -9,7 +9,7 @@ from rest_framework import status
 from django.conf import settings
 from api.models import Order
 
-logger = getLogger("app.payment")
+logger = getLogger(__name__)
 rzp_client = razorpay.Client(
     auth=(settings.RAZORPAY_API_KEY, settings.RAZORPAY_API_SECRET)
 )

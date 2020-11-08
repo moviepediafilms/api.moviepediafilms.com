@@ -51,6 +51,11 @@ LOGGING = {
             "level": "DEBUG",
             "propagate": False,
         },
+        "api": {
+            "handlers": ["console"] if DEBUG else ["file"],
+            "level": "DEBUG",
+            "propagate": False,
+        },
     },
 }
 
