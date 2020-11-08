@@ -27,7 +27,7 @@ class Profile(models.Model):
     dob = models.DateField(null=True, blank=True)
     # cached roles from movie, profile, roles association
     # should be updated as batch process
-    roles = models.ManyToManyField("Role", blank=True)
+    roles = models.ManyToManyField("Role", blank=True, related_name="profiles")
     image = models.URLField(null=True, blank=True)
     follows = models.ManyToManyField("Profile", blank=True, related_name="followed_by")
 

@@ -28,7 +28,7 @@ from api.models import (
 )
 from .profile import ProfileSerializer, UserSerializer
 
-logger = getLogger("app.serializer")
+logger = getLogger(__name__)
 
 rzp_client = razorpay.Client(
     auth=(settings.RAZORPAY_API_KEY, settings.RAZORPAY_API_SECRET)

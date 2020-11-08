@@ -3,6 +3,8 @@ from logging import getLogger
 from django.db.models import Count
 
 from rest_framework import mixins, exceptions, parsers, viewsets, response, permissions
+from rest_framework.decorators import action
+from rest_framework.response import Response
 from api.serializers.movie import (
     SubmissionSerializer,
     MoviePosterSerializer,
@@ -25,11 +27,10 @@ from api.models import (
     MovieList,
     CrewMemberRequest,
     Role,
-    Profile,
 )
 
 
-logger = getLogger("app.view")
+logger = getLogger(__name__)
 
 
 class SubmissionView(
@@ -156,10 +157,6 @@ class MovieWatchlistView(
         user.profile.watchlist.remove(movie)
         user.profile.save()
         return response.Response(dict(success=True))
-
-
-from rest_framework.decorators import action
-from rest_framework.response import Response
 
 
 class MovieRecommendView(
