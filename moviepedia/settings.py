@@ -39,6 +39,13 @@ LOGGING = {
             "filename": os.getenv("LOG_PATH"),
             "formatter": "simple_format",
         },
+        "job_file": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "maxBytes": 1024 * 1024 * 5,
+            "backupCount": 5,
+            "filename": os.getenv("LOG_PATH_JOB"),
+            "formatter": "simple_format",
+        },
     },
     "loggers": {
         "django": {
@@ -53,6 +60,11 @@ LOGGING = {
         },
         "api": {
             "handlers": ["console"] if DEBUG else ["file"],
+            "level": "DEBUG",
+            "propagate": False,
+        },
+        "api.management": {
+            "handlers": ["console"] if DEBUG else ["job_file"],
             "level": "DEBUG",
             "propagate": False,
         },
