@@ -5,6 +5,7 @@ from django.db.models import Count
 from rest_framework import mixins, exceptions, parsers, viewsets, response, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from api.constants import MOVIE_STATE, RECOMMENDATION
 from api.serializers.movie import (
     SubmissionSerializer,
     MoviePosterSerializer,
@@ -54,7 +55,7 @@ class SubmissionView(
 class MovieView(
     mixins.RetrieveModelMixin, mixins.ListModelMixin, viewsets.GenericViewSet,
 ):
-    queryset = Movie.objects.all()
+    queryset = Movie.objects.filter(state=MOVIE_STATE.PUBLISHED)
 
     def get_serializer_class(self):
         if self.action == "list":
@@ -172,7 +173,7 @@ class MovieRecommendView(
     @action(methods=["get"], detail=True)
     def movies(self, request, pk=None, **kwargs):
         user = self.get_object()
-        movie_list = MovieList.objects.filter(owner=user, name="Recommendation").first()
+        movie_list = MovieList.objects.filter(owner=user, name=RECOMMENDATION).first()
         movies = []
         if movie_list:
             movies = movie_list.movies.all()
@@ -183,7 +184,7 @@ class MovieRecommendView(
         user = request.user
         movie = self.get_object()
         recommendation_list, _ = MovieList.objects.get_or_create(
-            owner=user, name="Recommendation"
+            owner=user, name=RECOMMENDATION
         )
         logger.debug(f"{recommendation_list}")
         recommendation_list.movies.add(movie)
@@ -193,7 +194,7 @@ class MovieRecommendView(
     def destroy(self, request, *args, **kwargs):
         user = request.user
         movie = self.get_object()
-        recommendation_list = MovieList.objects.get(owner=user, name="Recommendation")
+        recommendation_list = MovieList.objects.get(owner=user, name=RECOMMENDATION)
         if recommendation_list:
             recommendation_list.movies.remove(movie)
             recommendation_list.save()
@@ -212,7 +213,7 @@ class MovieListView(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsMovieListOwner]
     queryset = MovieList.objects.annotate(
         likes=Count("liked_by"), number_of_movies=Count("movies")
-    ).exclude(name="Recommendation")
+    ).exclude(name=RECOMMENDATION)
     filterset_fields = ["owner__id"]
     ordering_fields = ["movies", "likes"]
     ordering = ["likes"]

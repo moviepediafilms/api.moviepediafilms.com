@@ -10,7 +10,7 @@ from rest_framework import serializers
 from collections import defaultdict
 import razorpay
 
-from api.constants import MOVIE_STATE, CREW_MEMBER_REQUEST_STATE
+from api.constants import MOVIE_STATE, CREW_MEMBER_REQUEST_STATE, RECOMMENDATION
 from api.models import (
     User,
     Movie,
@@ -200,7 +200,7 @@ class MovieSerializer(serializers.ModelSerializer):
         request = self.context.get("request")
         if request and request.user.is_authenticated:
             recommendation_list = MovieList.objects.filter(
-                owner=request.user, name="Recommendation"
+                owner=request.user, name=RECOMMENDATION
             ).first()
             if recommendation_list:
                 return recommendation_list.movies.filter(id=movie.id).exists()

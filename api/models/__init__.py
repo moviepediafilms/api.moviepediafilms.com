@@ -20,6 +20,7 @@ from .movie import (
     CrewMember,
     MovieList,
     CrewMemberRequest,
+    Contest,
 )
 
 __all__ = [

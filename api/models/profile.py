@@ -52,4 +52,4 @@ class Profile(models.Model):
     engagement_score = models.FloatField(default=0)
 
     def __str__(self):
-        return self.user.username
+        return self.id

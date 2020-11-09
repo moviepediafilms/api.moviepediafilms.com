@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from api.models import CrewMember, Profile
+from api.models import CrewMember
 from api.constants import MOVIE_STATE
 from logging import getLogger
 

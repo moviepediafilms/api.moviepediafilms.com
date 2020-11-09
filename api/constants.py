@@ -27,3 +27,13 @@ class CREW_MEMBER_REQUEST_STATE:
     SUBMITTED = "S"
     APPROVED = "A"
     DECLINED = "D"
+
+
+class CONTEST_STATE:
+    CREATED = "C"
+    LIVE = "L"
+    FINISHED = "F"
+
+
+REGULAR_MONTHLY_CONTEST_NAME = "Regular Monthly Contest"
+RECOMMENDATION = "Recommendation"

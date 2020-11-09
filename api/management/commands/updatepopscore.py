@@ -6,6 +6,15 @@ from logging import getLogger
 
 logger = getLogger(__name__)
 
+PART_A_LEVELS = [
+    512,
+    1280,
+    2560,
+    3840,
+    5120,
+]
+PART_B_LEVELS = [128, 320, 640, 960, 1280]
+
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
@@ -27,12 +36,36 @@ class Command(BaseCommand):
             recommend_points = self.get_recommend_points(directed_movies)
             rating_review_points = self.get_review_points(directed_movies)
 
-            profile.pop_score = (
-                followers_points + recommend_points + rating_review_points + jury_points
-            )
+            part_b = recommend_points + rating_review_points + jury_points
+            part_a = followers_points
+
+            capped_points = self._get_capped_points(part_a, part_b)
+
+            profile.pop_score = capped_points
             logger.info(f"{profile.user.username} => {profile.pop_score}")
             profile.save()
         self.update_rank(directors)
+
+    def _get_capped_points(self, part_a, part_b):
+        level_a = self._get_part_a_level(part_a)
+        level_b = self._get_part_b_level(part_b)
+        level = min(level_a, level_b)
+        logger.info(f"level: {level}")
+        part_a = min(part_a, PART_A_LEVELS[level])
+        part_b = min(part_b, PART_B_LEVELS[level])
+        return part_a + part_b
+
+    def _get_part_b_level(self, points):
+        for level, limit in enumerate(PART_B_LEVELS):
+            if points < limit:
+                return level + 1
+        return len(PART_B_LEVELS)
+
+    def _get_part_a_level(self, num):
+        for level, limit in enumerate(PART_A_LEVELS):
+            if num < limit:
+                return level + 1
+        return len(PART_A_LEVELS)
 
     def update_rank(self, directors):
         directors = list(directors)
@@ -91,7 +124,8 @@ class Command(BaseCommand):
         recommended_count = 0
         for movie in directed_movies:
             recommended_count += min(
-                movie.in_lists.filter(name="Recommendation").count(), RECOMMENT_LIMIT
+                movie.in_lists.exclude(contest_id__isnull=True).count(),
+                RECOMMENT_LIMIT,
             )
         logger.debug(f"recommended {recommended_count} times")
         return recommended_count * MULTIPYER
