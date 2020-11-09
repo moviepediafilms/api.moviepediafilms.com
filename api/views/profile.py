@@ -10,6 +10,7 @@ from api.serializers.profile import (
     FollowSerializer,
     ProfileSerializer,
 )
+from api.constants import RECOMMENDATION
 from api.models import Profile, Role, MovieList
 from rest_framework.decorators import action
 
@@ -125,7 +126,7 @@ class MyRecommendedView(viewsets.GenericViewSet, mixins.ListModelMixin):
     def get_queryset(self):
         user = self.request.user
         recommend_list = MovieList.objects.filter(
-            owner=user, name="Recommendation"
+            owner=user, name=RECOMMENDATION
         ).first()
         if recommend_list:
             return recommend_list.movies.all()

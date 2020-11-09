@@ -1,6 +1,12 @@
 from django.db import models
 from django.contrib.auth.models import User
-from api.constants import MOVIE_STATE, REVIEW_STATE, CREW_MEMBER_REQUEST_STATE
+from django.db.models.deletion import CASCADE
+from api.constants import (
+    MOVIE_STATE,
+    REVIEW_STATE,
+    CREW_MEMBER_REQUEST_STATE,
+    CONTEST_STATE,
+)
 
 MOVIE_STATE_CHOICES = (
     (MOVIE_STATE.SUBMITTED, "Submitted"),
@@ -22,6 +28,12 @@ CREW_MEMBER_CHOICES = [
     (CREW_MEMBER_REQUEST_STATE.DECLINED, "Declined"),
 ]
 
+CONTEST_STATE_CHOICES = [
+    (CONTEST_STATE.CREATED, "Created"),
+    (CONTEST_STATE.LIVE, "Live"),
+    (CONTEST_STATE.FINISHED, "Finished"),
+]
+
 
 class MovieGenre(models.Model):
     name = models.CharField(max_length=50, unique=True)
@@ -39,6 +51,39 @@ class MovieLanguage(models.Model):
 
     def __str__(self):
         return self.name.title()
+
+
+class Title(models.Model):
+    name = models.CharField(max_length=50)
+
+
+class ContestWinner(models.Model):
+    contest = models.ForeignKey("Contest", on_delete=models.CASCADE)
+    profile = models.ForeignKey("Profile", on_delete=models.CASCADE)
+    position = models.IntegerField()
+    title = models.ForeignKey("Title", on_delete=CASCADE)
+
+    def __str__(self):
+        return f"{self.content_id}, {self.profile_id}, {self.position}"
+
+
+class ContestType(models.Model):
+    name = models.CharField(max_length=50)
+
+
+class Contest(models.Model):
+    name = models.CharField(max_length=100)
+    start = models.DateTimeField(auto_now_add=False)
+    end = models.DateTimeField(auto_now_add=False)
+    days_per_movie = models.IntegerField(default=15)
+    type = models.ForeignKey("ContestType", on_delete=models.CASCADE)
+    state = models.CharField(
+        max_length=1, choices=CONTEST_STATE_CHOICES, default=CONTEST_STATE.CREATED
+    )
+    winners = models.ManyToManyField("Profile", through="ContestWinner", blank=True)
+
+    def __str__(self):
+        return self.name
 
 
 class MoviePoster(models.Model):
@@ -71,6 +116,9 @@ class Movie(models.Model):
     jury_rating = models.FloatField(null=True, blank=True, default=0)
     # cached audience rating to be updated periodically
     audience_rating = models.FloatField(null=True, blank=True, default=0)
+    contest = models.ForeignKey(
+        "Contest", on_delete=models.CASCADE, null=True, blank=True
+    )
 
     def __str__(self):
         return self.title
@@ -106,6 +154,10 @@ class MovieList(models.Model):
     movies = models.ManyToManyField("Movie", related_name="in_lists", blank=True)
     name = models.CharField(max_length=50)
     liked_by = models.ManyToManyField(User, related_name="liked_lists", blank=True)
+    frozen = models.BooleanField(default=False)
+    contest = models.ForeignKey(
+        "Contest", on_delete=models.CASCADE, null=True, blank=True
+    )
 
     class Meta:
         unique_together = [["owner", "name"]]

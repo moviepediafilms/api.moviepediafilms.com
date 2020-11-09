@@ -13,6 +13,7 @@ from api.models import (
     Package,
     CrewMember,
     CrewMemberRequest,
+    Contest,
 )
 
 
@@ -60,6 +61,10 @@ class CrewMemberRequestAdmin(admin.ModelAdmin):
     list_display = ["requestor", "movie", "user", "role", "state", "reason"]
 
 
+class ContestAdmin(admin.ModelAdmin):
+    list_display = ["name", "start", "end", "days_per_movie", "state"]
+
+
 admin.site.register(Profile, ProfileAdmin)
 admin.site.register(Role, RoleAdmin)
 admin.site.register(Order, OrderAdmin)
@@ -71,3 +76,4 @@ admin.site.register(Package, PackageAdmin)
 admin.site.register(MovieList, MovieListAdmin)
 admin.site.register(CrewMember, CrewMemberAdmin)
 admin.site.register(CrewMemberRequest, CrewMemberRequestAdmin)
+admin.site.register(Contest, ContestAdmin)
