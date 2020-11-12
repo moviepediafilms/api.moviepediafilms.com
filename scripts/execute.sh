@@ -1,7 +1,3 @@
-#!/bin/bash
-HOME=/home/zeeshan/api.moviepediafilms.com
-echo "$PATH"
-export PATH=/home/zeeshan/.local/bin:$PATH
-echo "$PATH"
-cd $HOME
-pipenv run python manage.py $1
+. $HOME/.profile
+PROJECT_DIR=/home/zeeshan/api.moviepediafilms.com
+cd $PROJECT_DIR && pipenv run python ./manage.py $1
