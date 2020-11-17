@@ -25,8 +25,7 @@ class UserSerializer(serializers.ModelSerializer):
     username = serializers.CharField(
         validators=[
             validators.UniqueValidator(
-                queryset=User.objects.all(),
-                message="This email is already in use.",
+                queryset=User.objects.all(), message="This email is already in use.",
             )
         ],
         write_only=True,
@@ -34,8 +33,7 @@ class UserSerializer(serializers.ModelSerializer):
     email = serializers.CharField(
         validators=[
             validators.UniqueValidator(
-                queryset=User.objects.all(),
-                message="This email is already in use.",
+                queryset=User.objects.all(), message="This email is already in use.",
             )
         ]
     )
