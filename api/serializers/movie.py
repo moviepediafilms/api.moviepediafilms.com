@@ -551,10 +551,7 @@ class CrewMemberRequestSerializer(serializers.ModelSerializer):
             user = User.objects.get(email=email)
         except User.DoesNotExist:
             user = User.objects.create_user(
-                first_name=first_name,
-                last_name=last_name,
-                username=email,
-                email=email,
+                first_name=first_name, last_name=last_name, username=email, email=email,
             )
         return user
 
