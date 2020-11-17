@@ -25,6 +25,7 @@ from api.models import (
     MovieRateReview,
     MovieList,
     CrewMemberRequest,
+    Contest,
 )
 from .profile import ProfileSerializer, UserSerializer
 
@@ -139,14 +140,17 @@ class CrewMemberSerializer(serializers.Serializer):
 
 
 class MovieSerializerSummary(serializers.ModelSerializer):
+    contest = serializers.CharField(source="contest.name")
+
     class Meta:
         model = Movie
-        fields = [
-            "id",
-            "title",
-            "poster",
-            "about",
-        ]
+        fields = ["id", "title", "poster", "about", "is_live", "contest"]
+
+
+class ContestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Contest
+        fields = ["id", "name", "is_live"]
 
 
 class MovieSerializer(serializers.ModelSerializer):
@@ -163,6 +167,7 @@ class MovieSerializer(serializers.ModelSerializer):
     is_watchlisted = serializers.SerializerMethodField(read_only=True)
     # is recommended by the requestor if he is authenticated
     is_recommended = serializers.SerializerMethodField(read_only=True)
+    contest = ContestSerializer(read_only=True)
 
     class Meta:
         model = Movie
@@ -185,6 +190,7 @@ class MovieSerializer(serializers.ModelSerializer):
             "is_watchlisted",
             "is_recommended",
             "publish_on",
+            "contest",
         ]
 
     def get_requestor_rating(self, movie):
@@ -497,7 +503,7 @@ class MovieListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = MovieList
-        fields = ["id", "owner", "name", "movies", "like_count"]
+        fields = ["id", "owner", "name", "movies", "like_count", "frozen"]
 
     def create(self, validated_data: dict):
         user = validated_data.pop("user")
@@ -545,7 +551,10 @@ class CrewMemberRequestSerializer(serializers.ModelSerializer):
             user = User.objects.get(email=email)
         except User.DoesNotExist:
             user = User.objects.create_user(
-                first_name=first_name, last_name=last_name, username=email, email=email,
+                first_name=first_name,
+                last_name=last_name,
+                username=email,
+                email=email,
             )
         return user
 

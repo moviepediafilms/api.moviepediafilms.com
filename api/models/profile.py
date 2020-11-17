@@ -30,13 +30,12 @@ class Profile(models.Model):
     roles = models.ManyToManyField("Role", blank=True, related_name="profiles")
     image = models.URLField(null=True, blank=True)
     follows = models.ManyToManyField("Profile", blank=True, related_name="followed_by")
+    is_celeb = models.BooleanField(default=False)
 
     # content consumers attributes
     mcoins = models.FloatField(default=0)
     # will get updated after a defined interval of time
     rank = models.IntegerField(default=-1)
-    # score as per current level
-    score = models.FloatField(default=0)
     level = models.IntegerField(default=1)
     # insert a badge here after the attempt, so that user can claim it
     badges = models.ManyToManyField("Badge", blank=True)
@@ -52,4 +51,4 @@ class Profile(models.Model):
     engagement_score = models.FloatField(default=0)
 
     def __str__(self):
-        return self.id
+        return str(self.id)

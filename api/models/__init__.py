@@ -20,6 +20,7 @@ from .movie import (
     CrewMember,
     MovieList,
     CrewMemberRequest,
+    ContestType,
     Contest,
 )
 
@@ -46,4 +47,6 @@ __all__ = [
     AwardType,
     MovieList,
     CrewMemberRequest,
+    ContestType,
+    Contest,
 ]

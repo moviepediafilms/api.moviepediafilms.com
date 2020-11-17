@@ -180,9 +180,51 @@ class MovieRecommendView(
         logger.debug(f"{pk} {user} {movies}")
         return Response(data=MovieSerializerSummary(instance=movies, many=True).data)
 
+    def _is_movie_live(self, movie):
+        return (
+            movie.state == MOVIE_STATE.PUBLISHED
+            and movie.contest
+            and movie.contest.is_live()
+        )
+
+    def _add_to_contest_recommend(self, movie, user):
+        if self._is_movie_live(movie):
+            logger.debug("MOVIE IS LIVE")
+            # fetch the list for that month
+            # check the size for list
+            contest_recomm_list, _ = MovieList.objects.get_or_create(
+                name=movie.contest.name, owner=user, contest=movie.contest, frozen=True
+            )
+            if (
+                contest_recomm_list.movies.count()
+                >= contest_recomm_list.contest.max_recommends
+            ):
+                return response.Response(
+                    dict(
+                        success=False,
+                        message=f"Cannot recommend more that {contest_recomm_list.contest.max_recommends} movies from {contest_recomm_list.contest.name}",
+                    )
+                )
+            else:
+                contest_recomm_list.movies.add(movie)
+                contest_recomm_list.save()
+                logger.debug("Added to contest list")
+
+    def _remove_from_contest_recommend(self, movie, user):
+        if self._is_movie_live(movie):
+            logger.debug("MOVIE IS LIVE")
+            contest_recomm_list = MovieList.objects.filter(
+                owner=user, contest=movie.contest
+            ).first()
+            if contest_recomm_list and movie in contest_recomm_list.movies.all():
+                contest_recomm_list.movies.remove(movie)
+                contest_recomm_list.save()
+                logger.debug("Removed from contest list")
+
     def update(self, request, *args, **kwargs):
         user = request.user
         movie = self.get_object()
+        self._add_to_contest_recommend(movie, user)
         recommendation_list, _ = MovieList.objects.get_or_create(
             owner=user, name=RECOMMENDATION
         )
@@ -194,6 +236,7 @@ class MovieRecommendView(
     def destroy(self, request, *args, **kwargs):
         user = request.user
         movie = self.get_object()
+        self._remove_from_contest_recommend(movie, user)
         recommendation_list = MovieList.objects.get(owner=user, name=RECOMMENDATION)
         if recommendation_list:
             recommendation_list.movies.remove(movie)

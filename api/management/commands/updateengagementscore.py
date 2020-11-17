@@ -1,6 +1,10 @@
-from django.core.management.base import BaseCommand
-from api.models import Profile
 from logging import getLogger
+
+from django.core.management.base import BaseCommand
+from django.db.models import F
+from api.models import Profile, MovieList
+from collections import defaultdict
+import itertools
 
 logger = getLogger(__name__)
 
@@ -20,7 +24,13 @@ class Command(BaseCommand):
         review_points = self._get_review_points(reviews)
         jury_rating_similarity_points = self._get_jury_similarity_points(reviews)
         review_liked_points = self._get_review_liked_points(reviews)
-        return review_points + jury_rating_similarity_points + review_liked_points
+        celeb_recommend_points = self._get_celeb_recommend_similarity_points(profile)
+        return (
+            review_points
+            + jury_rating_similarity_points
+            + review_liked_points
+            + celeb_recommend_points
+        )
 
     def _get_review_points(self, reviews):
         # since the reviews are fetched already, simple loop and filter in python instead of ORM query
@@ -52,3 +62,37 @@ class Command(BaseCommand):
                 n = review.liked_by.count()
                 points += min(a * (r ** n - 1) / r - 1, MAX_PER_REVIEW)
         return points
+
+    def _get_celeb_recommend_similarity_points(self, profile):
+        MULTIPLER = 20
+        user_lists = MovieList.objects.filter(
+            contest__isnull=False, owner=profile.user
+        ).all()
+        logger.debug(f"{len(user_lists)} users contest list in the system")
+        contests = set([ul.contest for ul in user_lists])
+        logger.debug(f"contests {contests}")
+        celebs = [p.user for p in Profile.objects.filter(is_celeb=True).all()]
+        logger.debug(f"celeb user id {celebs}")
+        logger.debug(f"{len(celebs)} celebs in the system")
+        celeb_recomm_lists = MovieList.objects.filter(
+            contest_id__in=contests, owner_id__in=celebs
+        ).all()
+        logger.debug(f"Celeb recommends lists {celeb_recomm_lists}")
+        logger.debug(f"user recommends lists {user_lists}")
+        contest_lists = defaultdict(list)
+        for recomm_list in itertools.chain(celeb_recomm_lists, user_lists):
+            contest_lists[recomm_list.contest].append(recomm_list)
+
+        points = 0
+        for contest, lists in contest_lists.items():
+            if len(lists) == 2:
+                celeb_list, user_list = lists
+                contest_points = len(
+                    set([m.id for m in celeb_list.movies.all()]).intersection(
+                        set([m.id for m in user_list.movies.all()])
+                    )
+                )
+                logger.debug(f"for contest {contest.name}: {contest_points}")
+                points += contest_points
+        logger.debug(f"total celeb recommend points {points}")
+        return points * MULTIPLER
