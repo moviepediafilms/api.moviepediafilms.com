@@ -13,12 +13,14 @@ from api.models import (
     Package,
     CrewMember,
     CrewMemberRequest,
+    ContestType,
     Contest,
 )
 
 
 class ProfileAdmin(admin.ModelAdmin):
     list_display = ["user", "city", "mobile", "gender", "dob", "rank", "mcoins"]
+    list_filter = ["is_celeb", "gender"]
 
 
 class RoleAdmin(admin.ModelAdmin):
@@ -46,11 +48,14 @@ class MovieRateReviewAdmin(admin.ModelAdmin):
 
 
 class MovieListAdmin(admin.ModelAdmin):
-    list_display = ["id", "name", "owner"]
+    list_display = ["name", "owner", "contest", "frozen"]
+    list_filter = ["owner", "contest"]
 
 
 class PackageAdmin(admin.ModelAdmin):
-    list_display = ["name"]
+    list_display = [
+        "name",
+    ]
 
 
 class CrewMemberAdmin(admin.ModelAdmin):
@@ -59,6 +64,10 @@ class CrewMemberAdmin(admin.ModelAdmin):
 
 class CrewMemberRequestAdmin(admin.ModelAdmin):
     list_display = ["requestor", "movie", "user", "role", "state", "reason"]
+
+
+class ContestTypeAdmin(admin.ModelAdmin):
+    list_display = ["name"]
 
 
 class ContestAdmin(admin.ModelAdmin):
@@ -76,4 +85,5 @@ admin.site.register(Package, PackageAdmin)
 admin.site.register(MovieList, MovieListAdmin)
 admin.site.register(CrewMember, CrewMemberAdmin)
 admin.site.register(CrewMemberRequest, CrewMemberRequestAdmin)
+admin.site.register(ContestType, ContestTypeAdmin)
 admin.site.register(Contest, ContestAdmin)

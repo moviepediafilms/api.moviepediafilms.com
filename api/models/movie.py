@@ -1,3 +1,4 @@
+from django.utils import timezone
 from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.deletion import CASCADE
@@ -81,9 +82,17 @@ class Contest(models.Model):
         max_length=1, choices=CONTEST_STATE_CHOICES, default=CONTEST_STATE.CREATED
     )
     winners = models.ManyToManyField("Profile", through="ContestWinner", blank=True)
+    max_recommends = models.IntegerField(default=20)
 
     def __str__(self):
         return self.name
+
+    def is_live(self):
+        if self.state == CONTEST_STATE.LIVE:
+            now = timezone.now()
+            return self.start < now and now < self.end
+        else:
+            return False
 
 
 class MoviePoster(models.Model):
@@ -123,6 +132,9 @@ class Movie(models.Model):
     def __str__(self):
         return self.title
 
+    def is_live(self):
+        return self.contest and self.contest.is_live()
+
 
 class CrewMember(models.Model):
     movie = models.ForeignKey("Movie", on_delete=models.CASCADE)
@@ -161,6 +173,9 @@ class MovieList(models.Model):
 
     class Meta:
         unique_together = [["owner", "name"]]
+
+    def is_celeb_recommends(self):
+        return self.owner.is_celeb and self.contest and self.contest.name == self.name
 
 
 class Visits(models.Model):

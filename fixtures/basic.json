@@ -106,6 +106,7 @@
             "rank": -1,
             "score": 0.0,
             "level": 1,
+            "is_celeb": false,
             "pop_score": 0.0,
             "roles": [
                 1,
@@ -129,6 +130,7 @@
             "rank": -1,
             "score": 0.0,
             "level": 1,
+            "is_celeb": true,
             "pop_score": 0.0,
             "roles": [
                 1,
@@ -195,8 +197,40 @@
         }
     },
     {
+        "model": "api.contesttype",
+        "pk": 1,
+        "fields": {
+            "name": "Monthly"
+        }
+    },
+    {
+        "model": "api.contest",
+        "pk": 1,
+        "fields": {
+            "name": "Nov 2020",
+            "start": "2020-11-13T09:54:36Z",
+            "end": "2021-11-13T09:54:39Z",
+            "days_per_movie": 15,
+            "type": 1,
+            "state": "L",
+            "max_recommends": 2
+        }
+    },
+    {
         "model": "api.order",
         "pk": 1,
+        "fields": {
+            "order_id": null,
+            "payment_id": null,
+            "receipt_number": null,
+            "amount": null,
+            "created_at": "2020-10-14T07:42:28.377Z",
+            "owner": 2
+        }
+    },
+    {
+        "model": "api.order",
+        "pk": 2,
         "fields": {
             "order_id": null,
             "payment_id": null,
@@ -213,7 +247,7 @@
             "created_at": "2020-10-14T07:42:28.386Z",
             "order": 1,
             "package": null,
-            "state": "S",
+            "state": "P",
             "title": "30 Days of Existence | A Moviepedia Short Film on Depression",
             "link": "https://www.youtube.com/embed/KS0bagkAC4Y",
             "runtime": 6.0,
@@ -224,6 +258,33 @@
             "publish_on": null,
             "jury_rating": 7.8,
             "audience_rating": 0,
+            "contest": 1,
+            "genres": [
+                1,
+                2,
+                3
+            ]
+        }
+    },
+    {
+        "model": "api.movie",
+        "pk": 2,
+        "fields": {
+            "created_at": "2020-10-14T07:42:28.386Z",
+            "order": 2,
+            "package": null,
+            "state": "P",
+            "title": "30 Days of Existence | A Moviepedia Short Film on Depression",
+            "link": "https://www.youtube.com/embed/KS0bagkAC4Y",
+            "runtime": 6.0,
+            "about": "This is a good movie",
+            "lang": 1,
+            "poster": "https://img.youtube.com/vi/KS0bagkAC4Y/hqdefault.jpg",
+            "month": null,
+            "publish_on": null,
+            "jury_rating": 7.8,
+            "audience_rating": 0,
+            "contest": 1,
             "genres": [
                 1,
                 2,
@@ -245,6 +306,24 @@
         "pk": 2,
         "fields": {
             "movie": 1,
+            "profile": 2,
+            "role": 1
+        }
+    },
+    {
+        "model": "api.crewmember",
+        "pk": 3,
+        "fields": {
+            "movie": 2,
+            "profile": 1,
+            "role": 2
+        }
+    },
+    {
+        "model": "api.crewmember",
+        "pk": 4,
+        "fields": {
+            "movie": 2,
             "profile": 2,
             "role": 1
         }

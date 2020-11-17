@@ -25,7 +25,8 @@ class UserSerializer(serializers.ModelSerializer):
     username = serializers.CharField(
         validators=[
             validators.UniqueValidator(
-                queryset=User.objects.all(), message="This email is already in use.",
+                queryset=User.objects.all(),
+                message="This email is already in use.",
             )
         ],
         write_only=True,
@@ -33,7 +34,8 @@ class UserSerializer(serializers.ModelSerializer):
     email = serializers.CharField(
         validators=[
             validators.UniqueValidator(
-                queryset=User.objects.all(), message="This email is already in use.",
+                queryset=User.objects.all(),
+                message="This email is already in use.",
             )
         ]
     )
@@ -64,7 +66,15 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Profile
-        fields = ["profile_id", "user", "image", "rank", "level", "score", "city"]
+        fields = [
+            "profile_id",
+            "user",
+            "image",
+            "rank",
+            "level",
+            "engagement_score",
+            "city",
+        ]
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
@@ -108,7 +118,7 @@ class ProfileDetailSerializer(serializers.ModelSerializer):
             "image",
             "level",
             "rank",
-            "score",
+            "engagement_score",
             "mcoins",
             "pop_score",
             "follows",
