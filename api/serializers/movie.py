@@ -191,7 +191,9 @@ class MovieSerializer(serializers.ModelSerializer):
             "is_recommended",
             "publish_on",
             "contest",
+            "about",
         ]
+        read_only_fields = ["about"]
 
     def get_requestor_rating(self, movie):
         request = self.context.get("request")
@@ -551,7 +553,10 @@ class CrewMemberRequestSerializer(serializers.ModelSerializer):
             user = User.objects.get(email=email)
         except User.DoesNotExist:
             user = User.objects.create_user(
-                first_name=first_name, last_name=last_name, username=email, email=email,
+                first_name=first_name,
+                last_name=last_name,
+                username=email,
+                email=email,
             )
         return user
 

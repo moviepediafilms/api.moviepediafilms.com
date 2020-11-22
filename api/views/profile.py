@@ -51,13 +51,13 @@ class ProfileView(viewsets.ModelViewSet):
     lookup_field = "user__id"
 
 
-class AudienceLeaderboardView(viewsets.ModelViewSet):
+class AudienceLeaderboardView(viewsets.GenericViewSet, mixins.ListModelMixin):
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
     ordering = ["rank"]
 
 
-class FilmmakerLeaderboardView(viewsets.ModelViewSet):
+class FilmmakerLeaderboardView(viewsets.GenericViewSet, mixins.ListModelMixin):
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
     ordering = ["pop_score"]
@@ -131,3 +131,15 @@ class MyRecommendedView(viewsets.GenericViewSet, mixins.ListModelMixin):
         if recommend_list:
             return recommend_list.movies.all()
         return MovieList.objects.none()
+
+
+class TopCreatorView(viewsets.GenericViewSet, mixins.ListModelMixin):
+    queryset = Profile.objects.all()
+    serializer_class = ProfileSerializer
+    ordering = ["rank"]
+
+
+class TopCuratorView(viewsets.GenericViewSet, mixins.ListModelMixin):
+    queryset = Profile.objects.all()
+    serializer_class = ProfileSerializer
+    ordering = ["rank"]
