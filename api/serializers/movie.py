@@ -1,3 +1,4 @@
+from api.models.movie import TopCreator, TopCurator
 from logging import getLogger
 import hashlib
 import os
@@ -202,7 +203,6 @@ class MovieSerializer(serializers.ModelSerializer):
                 movie=movie, author=request.user
             ).first()
             return MovieReviewSerializer(instance=review).data
-        return False
 
     def get_is_recommended(self, movie):
         request = self.context.get("request")
@@ -553,10 +553,7 @@ class CrewMemberRequestSerializer(serializers.ModelSerializer):
             user = User.objects.get(email=email)
         except User.DoesNotExist:
             user = User.objects.create_user(
-                first_name=first_name,
-                last_name=last_name,
-                username=email,
-                email=email,
+                first_name=first_name, last_name=last_name, username=email, email=email,
             )
         return user
 
@@ -585,3 +582,26 @@ class CrewMemberRequestSerializer(serializers.ModelSerializer):
                     **validated_data, state=state
                 )
         return instance
+
+
+class TopCreatorSerializer(serializers.ModelSerializer):
+    profile = ProfileSerializer()
+
+    class Meta:
+        model = TopCreator
+        fields = [
+            "score",
+            "recommend_count",
+            "profile",
+        ]
+
+    def to_representation(self, value):
+        value = super().to_representation(value)
+        value.update(value.pop("profile"))
+        return value
+
+
+class TopCuratorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TopCurator
+        fields = ["title"]

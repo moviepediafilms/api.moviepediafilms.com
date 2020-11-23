@@ -126,7 +126,11 @@ class Movie(models.Model):
     # cached audience rating to be updated periodically
     audience_rating = models.FloatField(null=True, blank=True, default=0)
     contest = models.ForeignKey(
-        "Contest", on_delete=models.CASCADE, null=True, blank=True
+        "Contest",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="movies",
     )
 
     def __str__(self):
@@ -168,7 +172,11 @@ class MovieList(models.Model):
     liked_by = models.ManyToManyField(User, related_name="liked_lists", blank=True)
     frozen = models.BooleanField(default=False)
     contest = models.ForeignKey(
-        "Contest", on_delete=models.CASCADE, null=True, blank=True
+        "Contest",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="movie_lists",
     )
 
     class Meta:
@@ -197,3 +205,21 @@ class MovieRateReview(models.Model):
 
     class Meta:
         unique_together = [["movie", "author"]]
+
+
+class TopCreator(models.Model):
+    profile = models.ForeignKey("Profile", on_delete=models.CASCADE)
+    contest = models.ForeignKey(
+        "Contest", on_delete=models.CASCADE, related_name="top_creators"
+    )
+    recommend_count = models.IntegerField(default=0)
+    score = models.FloatField(default=0)
+
+
+class TopCurator(models.Model):
+    profile = models.ForeignKey("Profile", on_delete=models.CASCADE)
+    contest = models.ForeignKey(
+        "Contest", on_delete=models.CASCADE, related_name="top_curators"
+    )
+    recommend_count = models.IntegerField(default=0)
+    match = models.FloatField(default=0)

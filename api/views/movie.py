@@ -1,6 +1,7 @@
 from logging import getLogger
 
 from django.db.models import Count
+from django.utils import timezone
 
 from rest_framework import mixins, exceptions, parsers, viewsets, response, permissions
 from rest_framework.decorators import action
@@ -17,6 +18,8 @@ from api.serializers.movie import (
     CrewMemberRequestSerializer,
     MovieListDetailSerializer,
     MovieSerializerSummary,
+    TopCreatorSerializer,
+    TopCuratorSerializer,
 )
 from api.models import (
     User,
@@ -28,6 +31,7 @@ from api.models import (
     MovieList,
     CrewMemberRequest,
     Role,
+    Contest,
 )
 
 
@@ -308,3 +312,38 @@ class CrewMemberRequestView(viewsets.ModelViewSet):
 
     def perform_update(self, serializer):
         serializer.save(user=self.request.user)
+
+
+class ContestView(viewsets.GenericViewSet):
+    queryset = Contest.objects.all()
+    ordering_fields = []
+
+    def get_serializer_class(self, *args, **kwargs):
+        if self.action == "top_creators":
+            return TopCreatorSerializer
+        else:
+            return TopCuratorSerializer
+
+    @action(
+        methods=["get"], detail=True, url_path="top-creators",
+    )
+    def top_creators(self, request, pk=None, **kwargs):
+        contest = self.get_object()
+        top_creators = contest.top_creators.all()
+        return self._paginated_response(top_creators)
+
+    @action(
+        methods=["get"], detail=True, url_path="top-curators",
+    )
+    def top_curator(self, request, pk=None, **kwargs):
+        contest = self.get_object()
+        top_curators = contest.top_curators.all()
+        return self._paginated_response(top_curators)
+
+    def _paginated_response(self, queryset):
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(instance=page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(instance=queryset, many=True)
+        return response.Response(serializer.data)
