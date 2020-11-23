@@ -32,8 +32,7 @@ router.register(
     profile.FilmmakerLeaderboardView,
     basename="filmmakerleaderboard",
 )
-router.register("top-creator", profile.TopCreatorView, basename="topcreator")
-router.register("top-curator", profile.TopCuratorView, basename="topcurator")
+router.register("contest", movie.ContestView, basename="contest")
 
 urlpatterns = [
     path("", include(router.urls)),

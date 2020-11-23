@@ -22,6 +22,8 @@ from .movie import (
     CrewMemberRequest,
     ContestType,
     Contest,
+    TopCreator,
+    TopCurator,
 )
 
 __all__ = [
@@ -49,4 +51,6 @@ __all__ = [
     CrewMemberRequest,
     ContestType,
     Contest,
+    TopCreator,
+    TopCurator,
 ]

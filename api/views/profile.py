@@ -2,6 +2,7 @@ from logging import getLogger
 
 from django.db.models import Count
 from rest_framework import permissions, viewsets, mixins, parsers, response
+from rest_framework.decorators import action
 from api.serializers.movie import MovieSerializerSummary
 from api.serializers.profile import (
     ProfileDetailSerializer,
@@ -12,7 +13,7 @@ from api.serializers.profile import (
 )
 from api.constants import RECOMMENDATION
 from api.models import Profile, Role, MovieList
-from rest_framework.decorators import action
+
 
 logger = getLogger(__name__)
 
@@ -131,15 +132,3 @@ class MyRecommendedView(viewsets.GenericViewSet, mixins.ListModelMixin):
         if recommend_list:
             return recommend_list.movies.all()
         return MovieList.objects.none()
-
-
-class TopCreatorView(viewsets.GenericViewSet, mixins.ListModelMixin):
-    queryset = Profile.objects.all()
-    serializer_class = ProfileSerializer
-    ordering = ["rank"]
-
-
-class TopCuratorView(viewsets.GenericViewSet, mixins.ListModelMixin):
-    queryset = Profile.objects.all()
-    serializer_class = ProfileSerializer
-    ordering = ["rank"]
