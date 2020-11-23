@@ -329,7 +329,7 @@ class ContestView(viewsets.GenericViewSet):
     )
     def top_creators(self, request, pk=None, **kwargs):
         contest = self.get_object()
-        top_creators = contest.top_creators.all()
+        top_creators = contest.top_creators.order_by("-score").all()
         return self._paginated_response(top_creators)
 
     @action(
@@ -337,7 +337,7 @@ class ContestView(viewsets.GenericViewSet):
     )
     def top_curator(self, request, pk=None, **kwargs):
         contest = self.get_object()
-        top_curators = contest.top_curators.all()
+        top_curators = contest.top_curators.order_by("-match").all()
         return self._paginated_response(top_curators)
 
     def _paginated_response(self, queryset):

@@ -602,6 +602,18 @@ class TopCreatorSerializer(serializers.ModelSerializer):
 
 
 class TopCuratorSerializer(serializers.ModelSerializer):
+    
+    profile = ProfileSerializer()
+
     class Meta:
         model = TopCurator
-        fields = ["title"]
+        fields = [
+            "match",
+            "recommend_count",
+            "profile",
+        ]
+
+    def to_representation(self, value):
+        value = super().to_representation(value)
+        value.update(value.pop("profile"))
+        return value
