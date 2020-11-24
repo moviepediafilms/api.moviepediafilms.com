@@ -1,3 +1,4 @@
+from api.models.movie import CrewMember
 from logging import getLogger
 
 from django.db.models import Count
@@ -63,7 +64,7 @@ class MovieView(
     queryset = Movie.objects.filter(state=MOVIE_STATE.PUBLISHED)
 
     def get_serializer_class(self):
-        if self.action == "list":
+        if self.action in ("list", "my"):
             return MovieSerializerSummary
         return MovieSerializer
 
@@ -73,6 +74,20 @@ class MovieView(
         except Exception as ex:
             logger.exception(ex)
             raise exceptions.ParseError(dict(error=str(ex)))
+
+    @action(methods=["get"], detail=False)
+    def my(self, request, pk=None, **kwargs):
+        if not request.user.is_authenticated:
+            return response.Response(status=401)
+        profile = self.request.user.profile
+        director_membership = CrewMember.objects.filter(profile=profile, role__name="Director").all()
+        queryset = Movie.objects.filter(id__in=[dm.movie_id for dm in director_membership])
+        page = self.paginate_queryset(queryset)
+        if page:
+            serializer = self.get_serializer(instance=page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(instance=queryset, many=True)
+        return response.Response(serializer.data)
 
 
 class MoviePosterView(viewsets.ModelViewSet):

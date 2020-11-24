@@ -1,7 +1,9 @@
+from rest_framework.exceptions import ValidationError
 from api.models.movie import TopCreator, TopCurator
 from logging import getLogger
 import hashlib
 import os
+import re
 
 from django.conf import settings
 from django.db.models import Avg
@@ -246,6 +248,14 @@ class MovieSerializer(serializers.ModelSerializer):
             logger.warn("Invalid package selected")
             raise serializers.ValidationError("Invalid Package Selected")
         return package
+
+    def validate_title(self, title):
+        title = re.sub("[\n\t\s]+", " ", title)
+        if not title.isascii():
+            raise ValidationError(
+                "Movie title should be in English i.e., characters [A-Z] and [0-9]"
+            )
+        return title.title()
 
     def create(self, validated_data: dict):
         logger.debug(f"create::{validated_data}")
