@@ -229,11 +229,13 @@ class MovieRecommendView(
     def update(self, request, *args, **kwargs):
         user = request.user
         movie = self.get_object()
-        self._add_to_contest_recommend(movie, user)
         recommendation_list, _ = MovieList.objects.get_or_create(
             owner=user, name=RECOMMENDATION
         )
         logger.debug(f"{recommendation_list}")
+        if movie in recommendation_list.movies.all():
+            return response.Response(dict(success=False))
+        self._add_to_contest_recommend(movie, user)
         recommendation_list.movies.add(movie)
         recommendation_list.save()
         return response.Response(dict(success=True))
@@ -241,11 +243,14 @@ class MovieRecommendView(
     def destroy(self, request, *args, **kwargs):
         user = request.user
         movie = self.get_object()
-        self._remove_from_contest_recommend(movie, user)
         recommendation_list = MovieList.objects.get(owner=user, name=RECOMMENDATION)
         if recommendation_list:
-            recommendation_list.movies.remove(movie)
-            recommendation_list.save()
+            if movie in recommendation_list.movies.all():
+                recommendation_list.movies.remove(movie)
+                recommendation_list.save()
+                self._remove_from_contest_recommend(movie, user)
+            else:
+                return response.Response(dict(success=False))
         return response.Response(dict(success=True))
 
 
