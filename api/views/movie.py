@@ -8,6 +8,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from api.constants import MOVIE_STATE, RECOMMENDATION
 from api.serializers.movie import (
+    ContestSerializer,
     SubmissionSerializer,
     MoviePosterSerializer,
     MovieLanguageSerializer,
@@ -314,15 +315,27 @@ class CrewMemberRequestView(viewsets.ModelViewSet):
         serializer.save(user=self.request.user)
 
 
-class ContestView(viewsets.GenericViewSet):
-    queryset = Contest.objects.all()
-    ordering_fields = []
+class ContestView(viewsets.GenericViewSet, mixins.ListModelMixin):
+    ordering_fields = ["start"]
+    filterset_fields = ["type__name"]
+
+    def get_queryset(self):
+        queryset = Contest.objects.all()
+        live = self.request.query_params.get("live", None)
+        if live is not None:
+            now = timezone.now()
+            if live == "true":
+                queryset = Contest.objects.filter(start__lte=now, end__gte=now)
+            elif live == "false":
+                queryset = Contest.objects.exclude(start__lte=now, end__gte=now)
+        return queryset
 
     def get_serializer_class(self, *args, **kwargs):
-        if self.action == "top_creators":
-            return TopCreatorSerializer
-        else:
-            return TopCuratorSerializer
+        logger.debug(f"action {self.action}")
+        return {
+            "top_creators": TopCreatorSerializer,
+            "top_curators": TopCuratorSerializer,
+        }.get(self.action, ContestSerializer)
 
     @action(
         methods=["get"], detail=True, url_path="top-creators",
@@ -335,7 +348,7 @@ class ContestView(viewsets.GenericViewSet):
     @action(
         methods=["get"], detail=True, url_path="top-curators",
     )
-    def top_curator(self, request, pk=None, **kwargs):
+    def top_curators(self, request, pk=None, **kwargs):
         contest = self.get_object()
         top_curators = contest.top_curators.order_by("-match").all()
         return self._paginated_response(top_curators)

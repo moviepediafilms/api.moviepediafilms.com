@@ -151,7 +151,7 @@ class MovieSerializerSummary(serializers.ModelSerializer):
 class ContestSerializer(serializers.ModelSerializer):
     class Meta:
         model = Contest
-        fields = ["id", "name", "is_live"]
+        fields = ["id", "name", "is_live", "start", "end"]
 
 
 class MovieSerializer(serializers.ModelSerializer):
@@ -602,7 +602,6 @@ class TopCreatorSerializer(serializers.ModelSerializer):
 
 
 class TopCuratorSerializer(serializers.ModelSerializer):
-    
     profile = ProfileSerializer()
 
     class Meta:
