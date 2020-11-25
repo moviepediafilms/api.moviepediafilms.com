@@ -33,6 +33,7 @@ router.register(
     basename="filmmakerleaderboard",
 )
 router.register("contest", movie.ContestView, basename="contest")
+router.register("movies-by", movie.MoviesByView, basename="contest")
 
 urlpatterns = [
     path("", include(router.urls)),

@@ -34,6 +34,7 @@ from api.models import (
     CrewMemberRequest,
     Role,
     Contest,
+    Profile,
 )
 
 
@@ -75,19 +76,29 @@ class MovieView(
             logger.exception(ex)
             raise exceptions.ParseError(dict(error=str(ex)))
 
-    @action(methods=["get"], detail=False)
-    def my(self, request, pk=None, **kwargs):
-        if not request.user.is_authenticated:
-            return response.Response(status=401)
-        profile = self.request.user.profile
-        director_membership = CrewMember.objects.filter(profile=profile, role__name="Director").all()
-        queryset = Movie.objects.filter(id__in=[dm.movie_id for dm in director_membership])
+
+class MoviesByView(mixins.RetrieveModelMixin, viewsets.GenericViewSet):
+    queryset = Profile.objects
+    serializer_class = MovieSerializerSummary
+    permission_classes = [permissions.IsAuthenticated]
+
+    def retrieve(self, request, *args, **kwargs):
+        profile = self.get_object()
+        director_membership = CrewMember.objects.filter(
+            profile=profile, role__name="Director"
+        ).all()
+        movies_queryset = Movie.objects.filter(
+            id__in=[dm.movie_id for dm in director_membership]
+        )
+        queryset = self.filter_queryset(movies_queryset)
+
         page = self.paginate_queryset(queryset)
-        if page:
-            serializer = self.get_serializer(instance=page, many=True)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
             return self.get_paginated_response(serializer.data)
-        serializer = self.get_serializer(instance=queryset, many=True)
-        return response.Response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
 
 class MoviePosterView(viewsets.ModelViewSet):
