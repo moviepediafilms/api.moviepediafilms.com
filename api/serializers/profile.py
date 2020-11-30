@@ -51,6 +51,9 @@ class UserSerializer(serializers.ModelSerializer):
             "password",
         ]
 
+    def validate_email(self, email):
+        return email.lower()
+
 
 class RoleSerializer(serializers.ModelSerializer):
     class Meta:

@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.db.models import Count
 
 # Register your models here.
 from api.models import (
@@ -59,10 +60,21 @@ class PackageAdmin(admin.ModelAdmin):
 
 
 class CrewMemberAdmin(admin.ModelAdmin):
-    list_display = ["movie", "profile", "role"]
+    search_fields = ["profile__user__email", "movie__title"]
+    list_filter = ["role"]
+    list_display = [
+        "user",
+        "movie",
+        "role",
+    ]
+
+    def user(self, membership):
+        return membership.profile.user.email
 
 
 class CrewMemberRequestAdmin(admin.ModelAdmin):
+    search_fields = ["user__user__email", "movie__title"]
+    list_filter = ["role", "state"]
     list_display = ["requestor", "movie", "user", "role", "state", "reason"]
 
 
