@@ -1,5 +1,4 @@
-[
-    {
+[{
         "model": "auth.user",
         "pk": 1,
         "fields": {
@@ -149,6 +148,13 @@
         "pk": 3,
         "fields": {
             "name": "thrill"
+        }
+    },
+    {
+        "model": "api.contesttype",
+        "pk": 1,
+        "fields": {
+            "name": "Monthly"
         }
     }
 ]

@@ -108,7 +108,9 @@ class Movie(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     order = models.ForeignKey("Order", on_delete=models.CASCADE, null=True, blank=True)
     # crew members associated with a movie
-    crew = models.ManyToManyField("Profile", through="CrewMember")
+    crew = models.ManyToManyField(
+        "Profile", through="CrewMember", related_name="movies"
+    )
     package = models.ForeignKey(
         "Package", on_delete=models.SET_NULL, null=True, blank=True
     )

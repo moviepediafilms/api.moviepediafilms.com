@@ -105,12 +105,16 @@ class ProfileDetailSerializer(serializers.ModelSerializer):
     user = UserSerializer()
     roles = RoleSerializer(many=True, read_only=True)
     movies_directed = serializers.SerializerMethodField(read_only=True)
+    about = serializers.SerializerMethodField(read_only=True)
+    title = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Profile
         fields = [
             "profile_id",
             "user",
+            "about",
+            "title",
             "city",
             "dob",
             "gender",
@@ -148,6 +152,18 @@ class ProfileDetailSerializer(serializers.ModelSerializer):
         return CrewMember.objects.filter(
             profile=profile, role=director_role, movie__state=MOVIE_STATE.PUBLISHED
         ).count()
+
+    def get_title(self, profile):
+        if profile.is_celeb and profile.about:
+            return profile.about.split("\n", 1)[0]
+
+    def get_about(self, profile):
+        # first line of about in celeb profiles is considered as title
+        if profile.is_celeb and profile.about:
+            segs = profile.about.strip().split("\n", 1)
+            return segs[1] if len(segs) > 1 else ""
+        else:
+            return profile.about
 
 
 class FollowSerializer(serializers.ModelSerializer):

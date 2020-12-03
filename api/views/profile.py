@@ -1,3 +1,4 @@
+from api.models.movie import CrewMember
 from logging import getLogger
 
 from django.db.models import Count
@@ -47,9 +48,25 @@ class ProfileImageView(mixins.UpdateModelMixin, viewsets.GenericViewSet):
 
 class ProfileView(viewsets.ModelViewSet):
     queryset = Profile.objects.all()
-    serializer_class = ProfileDetailSerializer
     permission_classes = [IsCreateSafeOrIsOwner]
+    filterset_fields = ["is_celeb"]
     lookup_field = "user__id"
+
+    def get_serializer_class(self):
+        if self.action == "filmography":
+            return MovieSerializerSummary
+        return ProfileDetailSerializer
+
+    @action(methods=["get"], detail=True)
+    def filmography(self, pk=None, **kwargs):
+        profile = self.get_object()
+        movies = profile.movies.distinct()
+        page = self.paginate_queryset(movies)
+        if page is not None:
+            serializer = self.get_serializer(instance=page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(instance=movies, many=True)
+        return response.Response(serializer.data)
 
 
 class AudienceLeaderboardView(viewsets.GenericViewSet, mixins.ListModelMixin):

@@ -88,7 +88,8 @@ class MoviesByView(mixins.RetrieveModelMixin, viewsets.GenericViewSet):
             profile=profile, role__name="Director"
         ).all()
         movies_queryset = Movie.objects.filter(
-            id__in=[dm.movie_id for dm in director_membership]
+            id__in=[dm.movie_id for dm in director_membership],
+            state=MOVIE_STATE.PUBLISHED,
         )
         queryset = self.filter_queryset(movies_queryset)
 
