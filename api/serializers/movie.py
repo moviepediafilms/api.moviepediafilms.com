@@ -137,17 +137,42 @@ class DirectorSerializer(serializers.Serializer):
     contact = serializers.CharField(min_length=10)
 
 
-class CrewMemberSerializer(serializers.Serializer):
+class GroupedCrewMemberSerializer(serializers.Serializer):
     roles = RoleSerializer(many=True)
     profile = ProfileSerializer()
 
 
+class CrewMemberSerializer(serializers.ModelSerializer):
+    role = serializers.CharField(source="role.name")
+    profile_id = serializers.IntegerField(source="profile.id")
+    name = serializers.CharField(source="profile.user.get_full_name")
+
+    class Meta:
+        model = CrewMember
+        fields = ["role", "profile_id", "name"]
+
+
 class MovieSerializerSummary(serializers.ModelSerializer):
-    contest = serializers.CharField(source="contest.name")
+    contest = serializers.SerializerMethodField()
+    crew = CrewMemberSerializer(source="crewmember_set", many=True)
 
     class Meta:
         model = Movie
-        fields = ["id", "title", "poster", "about", "is_live", "contest"]
+        fields = [
+            "id",
+            "title",
+            "poster",
+            "about",
+            "is_live",
+            "contest",
+            "crew",
+            "state",
+        ]
+
+    def get_contest(self, obj):
+        contest = obj.contest
+        if contest:
+            return contest.name
 
 
 class ContestSerializer(serializers.ModelSerializer):
@@ -232,7 +257,7 @@ class MovieSerializer(serializers.ModelSerializer):
             {"profile": profile, "roles": roles}
             for profile, roles in group_by_user.items()
         ]
-        serializer = CrewMemberSerializer(many=True, instance=data)
+        serializer = GroupedCrewMemberSerializer(many=True, instance=data)
         return serializer.data
 
     def validate_package(self, package):
