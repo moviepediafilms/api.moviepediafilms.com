@@ -425,6 +425,7 @@ class SubmissionSerializer(serializers.Serializer):
         payload["user"] = validated_data["user"]
         movie = MovieSerializer().create(payload)
         movie.poster = self._save_poster(validated_data, movie.id)
+        movie.save()
         logger.debug("create::end")
         return movie
 
