@@ -12,7 +12,7 @@ from api.serializers.profile import (
     FollowSerializer,
     ProfileSerializer,
 )
-from api.constants import RECOMMENDATION
+from api.constants import RECOMMENDATION, MOVIE_STATE
 from api.models import Profile, Role, MovieList
 
 
@@ -60,7 +60,10 @@ class ProfileView(viewsets.ModelViewSet):
     @action(methods=["get"], detail=True)
     def filmography(self, pk=None, **kwargs):
         profile = self.get_object()
-        movies = profile.movies.distinct()
+        queryset = profile.movies
+        if self.request.user != profile.user:
+            queryset = queryset.filter(state=MOVIE_STATE.PUBLISHED)
+        movies = queryset.distinct()
         page = self.paginate_queryset(movies)
         if page is not None:
             serializer = self.get_serializer(instance=page, many=True)
