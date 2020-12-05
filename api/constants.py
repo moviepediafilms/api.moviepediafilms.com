@@ -1,9 +1,11 @@
 class MOVIE_STATE:
+    CREATED = "C"
     SUBMITTED = "S"
     PUBLISHED = "P"
+    REJECTED = "R"
+    # below states are not used
     HIDDEN = "H"
     ARCHIVED = "A"
-    REJECTED = "R"
 
 
 class REVIEW_STATE:

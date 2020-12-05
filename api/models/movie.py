@@ -10,11 +10,10 @@ from api.constants import (
 )
 
 MOVIE_STATE_CHOICES = (
+    (MOVIE_STATE.CREATED, "Created"),
     (MOVIE_STATE.SUBMITTED, "Submitted"),
     (MOVIE_STATE.REJECTED, "Rejected"),
     (MOVIE_STATE.PUBLISHED, "Published"),
-    (MOVIE_STATE.HIDDEN, "Hidden"),
-    (MOVIE_STATE.ARCHIVED, "Archived"),
 )
 
 

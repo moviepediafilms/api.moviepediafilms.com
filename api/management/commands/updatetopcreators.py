@@ -1,6 +1,6 @@
 # Updates Top creators for live contests
 
-from api.constants import RECOMMENDATION
+from api.constants import MOVIE_STATE, RECOMMENDATION
 from api.models import Contest, CrewMember, TopCreator
 from django.db import transaction
 from django.core.management.base import BaseCommand
@@ -46,7 +46,7 @@ class Command(BaseCommand):
 
     def _get_movies_by_director(self, contest):
         movies_by_director = {}
-        for movie in contest.movies.all():
+        for movie in contest.movies.filter(state=MOVIE_STATE.PUBLISHED).all():
             directors = self._get_directors(movie)
 
             for director in directors:

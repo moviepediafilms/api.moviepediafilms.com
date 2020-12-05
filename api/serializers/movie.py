@@ -294,7 +294,7 @@ class MovieSerializer(serializers.ModelSerializer):
         # creating dummy order here so that the movie entry can be tracked
         # back to the creator using movie.order.owner
         validated_data["order"] = Order.objects.create(owner=user)
-        validated_data["state"] = MOVIE_STATE.SUBMITTED
+        validated_data["state"] = MOVIE_STATE.CREATED
         movie = super().create(validated_data)
         movie.genres.set(self._get_or_create_genres(genres_data))
         self._attach_director_role(director_data, user, movie)
@@ -385,6 +385,8 @@ class MovieSerializer(serializers.ModelSerializer):
         order.amount = rzp_order.get("amount")
         order.receipt_number = rzp_order.get("receipt")
         order.save()
+        movie.state = MOVIE_STATE.SUBMITTED
+        movie.save()
 
     def _get_or_create_genres(self, genres_data):
         names = [name.get("name") for name in genres_data]

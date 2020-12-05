@@ -121,8 +121,8 @@
         "pk": 1,
         "fields": {
             "user": 1,
-            "city": "Lucknow",
-            "mobile": "8932061116",
+            "city": "Delhi",
+            "mobile": "",
             "gender": "M",
             "dob": "1993-10-07",
             "image": "https://lh3.googleusercontent.com/ogw/ADGmqu8i55s0OMJJYgU4sTI8iQ8u221B0jy0gi-k1OUnqEw=s32-c-mo",
