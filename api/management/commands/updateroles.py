@@ -8,7 +8,7 @@ logger = getLogger(__name__)
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
-        for cm in CrewMember.objects.filter(movie__state=MOVIE_STATE.PUBLISHED):
+        for cm in CrewMember.objects.filter(movie__state=MOVIE_STATE.SUBMITTED):
             if cm.role not in cm.profile.roles.all():
                 logger.info(f"{cm.profile} is {cm.role.name}")
                 cm.profile.roles.add(cm.role)

@@ -20,7 +20,16 @@ from api.models import (
 
 
 class ProfileAdmin(admin.ModelAdmin):
-    list_display = ["user", "city", "mobile", "gender", "dob", "rank", "mcoins"]
+    exclude = ["image", "follows", "user"]
+    list_display = [
+        "user",
+        "city",
+        "mobile",
+        "gender",
+        "dob",
+        "rank",
+        "mcoins",
+    ]
     list_filter = ["is_celeb", "gender"]
 
 
