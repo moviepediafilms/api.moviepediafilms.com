@@ -1,10 +1,9 @@
-from api.models.movie import CrewMember
 from logging import getLogger
 
 from django.db.models import Count
 from rest_framework import permissions, viewsets, mixins, parsers, response
 from rest_framework.decorators import action
-from api.serializers.movie import MovieSerializerSummary
+from api.serializers.movie import MovieSerializerSummary, SubmissionEntrySerializer
 from api.serializers.profile import (
     ProfileDetailSerializer,
     ProfileImageSerializer,
@@ -53,8 +52,10 @@ class ProfileView(viewsets.ModelViewSet):
     lookup_field = "user__id"
 
     def get_serializer_class(self):
-        if self.action == "filmography":
+        if self.action in ("filmography",):
             return MovieSerializerSummary
+        if self.action in ("submissions"):
+            return SubmissionEntrySerializer
         return ProfileDetailSerializer
 
     @action(methods=["get"], detail=True)
@@ -64,11 +65,27 @@ class ProfileView(viewsets.ModelViewSet):
         if self.request.user != profile.user:
             queryset = queryset.filter(state=MOVIE_STATE.PUBLISHED)
         movies = queryset.distinct()
-        page = self.paginate_queryset(movies)
+        return self._build_paginated_response(movies)
+
+    @action(methods=["get"], detail=True)
+    def submissions(self, pk=None, **kwargs):
+        profile = self.get_object()
+        if self.request.user != profile.user:
+            return response.Response(
+                {"error": "You are not authorized to view this page"}, 403
+            )
+        orders = profile.user.orders.all().prefetch_related("movies")
+        movies = []
+        for order in orders:
+            movies.extend(order.movies.all())
+        return self._build_paginated_response(movies)
+
+    def _build_paginated_response(self, queryset):
+        page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(instance=page, many=True)
             return self.get_paginated_response(serializer.data)
-        serializer = self.get_serializer(instance=movies, many=True)
+        serializer = self.get_serializer(instance=queryset, many=True)
         return response.Response(serializer.data)
 
 

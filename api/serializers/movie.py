@@ -113,7 +113,7 @@ def create_rzp_order(package, owner):
 class OrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
-        fields = ["owner", "order_id", "amount"]
+        fields = ["owner", "order_id", "amount", "payment_id"]
 
 
 class PackageSerializer(serializers.ModelSerializer):
@@ -150,6 +150,14 @@ class CrewMemberSerializer(serializers.ModelSerializer):
     class Meta:
         model = CrewMember
         fields = ["role", "profile_id", "name"]
+
+
+class SubmissionEntrySerializer(serializers.ModelSerializer):
+    order = OrderSerializer()
+
+    class Meta:
+        model = Movie
+        fields = ["id", "title", "poster", "state", "order", "created_at"]
 
 
 class MovieSerializerSummary(serializers.ModelSerializer):
