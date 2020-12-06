@@ -580,6 +580,69 @@
         }
     },
     {
+        "model": "api.movielanguage",
+        "pk": 5,
+        "fields": {
+            "name": "Kannad"
+        }
+    },
+    {
+        "model": "api.movielanguage",
+        "pk": 6,
+        "fields": {
+            "name": "Marathi"
+        }
+    },
+    {
+        "model": "api.movielanguage",
+        "pk": 7,
+        "fields": {
+            "name": "Bhojpuri"
+        }
+    },
+    {
+        "model": "api.role",
+        "pk": 1,
+        "fields": {
+            "name": "Actor"
+        }
+    },
+    {
+        "model": "api.role",
+        "pk": 2,
+        "fields": {
+            "name": "Director"
+        }
+    },
+    {
+        "model": "api.role",
+        "pk": 3,
+        "fields": {
+            "name": "Producer"
+        }
+    },
+    {
+        "model": "api.role",
+        "pk": 4,
+        "fields": {
+            "name": "Singer"
+        }
+    },
+    {
+        "model": "api.role",
+        "pk": 5,
+        "fields": {
+            "name": "Musician"
+        }
+    },
+    {
+        "model": "api.role",
+        "pk": 6,
+        "fields": {
+            "name": "Cameraman"
+        }
+    },
+    {
         "model": "api.contesttype",
         "pk": 1,
         "fields": {
@@ -631,6 +694,13 @@
         "pk": 3,
         "fields": {
             "name": "thrill"
+        }
+    },
+    {
+        "model": "api.moviegenre",
+        "pk": 4,
+        "fields": {
+            "name": "comedy"
         }
     },
     {
