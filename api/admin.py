@@ -42,6 +42,9 @@ class OrderAdmin(admin.ModelAdmin):
 
 
 class MovieAdmin(admin.ModelAdmin):
+    exclude = [
+        "poster",
+    ]
     list_display = ["title", "state", "link"]
 
 

@@ -105,7 +105,9 @@ class MoviePoster(models.Model):
 
 class Movie(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
-    order = models.ForeignKey("Order", on_delete=models.CASCADE, null=True, blank=True)
+    order = models.ForeignKey(
+        "Order", on_delete=models.CASCADE, null=True, blank=True, related_name="movies"
+    )
     # crew members associated with a movie
     crew = models.ManyToManyField(
         "Profile", through="CrewMember", related_name="movies"
@@ -115,7 +117,12 @@ class Movie(models.Model):
     )
     state = models.CharField(max_length=1, choices=MOVIE_STATE_CHOICES)
     title = models.CharField(max_length=100)
-    link = models.URLField()
+    link = models.URLField(
+        null=False,
+        blank=False,
+        unique=True,
+        error_messages={"unique": "This film already exist on our platform"},
+    )
     # in minutes
     runtime = models.FloatField()
     genres = models.ManyToManyField(MovieGenre)

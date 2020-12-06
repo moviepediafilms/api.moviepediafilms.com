@@ -16,7 +16,7 @@ class Order(models.Model):
     receipt_number = models.CharField(max_length=32, null=True, blank=True)
     amount = models.FloatField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now=True)
-    owner = models.ForeignKey(User, on_delete=models.CASCADE)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="orders")
 
     def __str__(self):
         return str(self.id)
