@@ -463,6 +463,22 @@
         }
     },
     {
+        "model": "api.package",
+        "pk": 1,
+        "fields": {
+            "name": "standard pack",
+            "amount": 37500.0
+        }
+    },
+    {
+        "model": "api.package",
+        "pk": 2,
+        "fields": {
+            "name": "premium pack",
+            "amount": 47400.0
+        }
+    },
+    {
         "model": "api.movie",
         "pk": 3,
         "fields": {
