@@ -552,6 +552,75 @@
         }
     },
     {
+        "model": "api.movielanguage",
+        "pk": 1,
+        "fields": {
+            "name": "English"
+        }
+    },
+    {
+        "model": "api.movielanguage",
+        "pk": 2,
+        "fields": {
+            "name": "Hind"
+        }
+    },
+    {
+        "model": "api.movielanguage",
+        "pk": 3,
+        "fields": {
+            "name": "Tamil"
+        }
+    },
+    {
+        "model": "api.movielanguage",
+        "pk": 4,
+        "fields": {
+            "name": "Urdu"
+        }
+    },
+    {
+        "model": "api.contesttype",
+        "pk": 1,
+        "fields": {
+            "name": "Monthly"
+        }
+    },
+    {
+        "model": "api.contest",
+        "pk": 1,
+        "fields": {
+            "name": "Nov 2020",
+            "start": "2020-11-13T09:54:36Z",
+            "end": "2021-11-13T09:54:39Z",
+            "days_per_movie": 15,
+            "type": 1,
+            "state": "L",
+            "max_recommends": 2
+        }
+    },
+    {
+        "model": "api.moviegenre",
+        "pk": 1,
+        "fields": {
+            "name": "drama"
+        }
+    },
+    {
+        "model": "api.moviegenre",
+        "pk": 2,
+        "fields": {
+            "name": "crime"
+        }
+    },
+    {
+        "model": "api.moviegenre",
+        "pk": 3,
+        "fields": {
+            "name": "thrill"
+        }
+    },
+    {
         "model": "api.movie",
         "pk": 6,
         "fields": {
