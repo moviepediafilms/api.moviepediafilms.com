@@ -600,6 +600,19 @@
         }
     },
     {
+        "model": "api.contest",
+        "pk": 2,
+        "fields": {
+            "name": "Dec 2020",
+            "start": "2020-12-06T09:54:36Z",
+            "end": "2021-12-09T09:54:39Z",
+            "days_per_movie": 15,
+            "type": 1,
+            "state": "L",
+            "max_recommends": 20
+        }
+    },
+    {
         "model": "api.moviegenre",
         "pk": 1,
         "fields": {
