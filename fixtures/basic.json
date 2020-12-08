@@ -20,14 +20,14 @@
         "model": "api.role",
         "pk": 1,
         "fields": {
-            "name": "Actor"
+            "name": "Director"
         }
     },
     {
         "model": "api.role",
         "pk": 2,
         "fields": {
-            "name": "Director"
+            "name": "Writer"
         }
     },
     {
@@ -41,21 +41,28 @@
         "model": "api.role",
         "pk": 4,
         "fields": {
-            "name": "Singer"
+            "name": "Editor"
         }
     },
     {
         "model": "api.role",
         "pk": 5,
         "fields": {
-            "name": "Musician"
+            "name": "DOP"
         }
     },
     {
         "model": "api.role",
         "pk": 6,
         "fields": {
-            "name": "Cameraman"
+            "name": "Sound"
+        }
+    },
+    {
+        "model": "api.role",
+        "pk": 7,
+        "fields": {
+            "name": "Music"
         }
     },
     {
