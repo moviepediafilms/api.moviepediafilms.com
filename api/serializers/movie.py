@@ -214,6 +214,7 @@ class MovieSerializer(serializers.ModelSerializer):
             "order",
             "title",
             "link",
+            "state",
             "runtime",
             "genres",
             "lang",
