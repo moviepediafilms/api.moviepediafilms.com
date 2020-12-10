@@ -143,12 +143,19 @@ class Movie(models.Model):
         blank=True,
         related_name="movies",
     )
+    # cached
+    recommend_count = models.IntegerField(default=0)
 
     def __str__(self):
         return self.title
 
     def is_live(self):
         return self.contest and self.contest.is_live()
+
+    def score(self):
+        score = self.audience_rating or 0
+        score += self.jury_rating or 0
+        return score / 2
 
 
 class CrewMember(models.Model):

@@ -86,6 +86,7 @@ class ProfileSerializer(serializers.ModelSerializer):
         return representation
 
 
+# TODO: not used, check and remove the class
 class WatchListMovieSerializer(serializers.ModelSerializer):
     director = serializers.SerializerMethodField()
 

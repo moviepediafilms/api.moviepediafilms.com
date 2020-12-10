@@ -134,7 +134,7 @@ class DirectorSerializer(serializers.Serializer):
     first_name = serializers.CharField()
     last_name = serializers.CharField(allow_blank=True)
     email = serializers.EmailField()
-    contact = serializers.CharField(min_length=10)
+    contact = serializers.CharField(min_length=10, required=False)
 
 
 class GroupedCrewMemberSerializer(serializers.Serializer):
@@ -175,6 +175,8 @@ class MovieSerializerSummary(serializers.ModelSerializer):
             "contest",
             "crew",
             "state",
+            "score",
+            "recommend_count",
         ]
 
     def get_contest(self, obj):
@@ -343,7 +345,7 @@ class MovieSerializer(serializers.ModelSerializer):
         director_role = Role.objects.get(name="Director")
         if director_data:
             # creator is not the director
-            contact = director_data.pop("contact")
+            contact = director_data.get("contact")
             email = director_data.get("email")
             director_data["username"] = email
             try:
