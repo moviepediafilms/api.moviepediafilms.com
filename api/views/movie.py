@@ -265,6 +265,8 @@ class MovieRecommendView(
         self._add_to_contest_recommend(movie, user)
         recommendation_list.movies.add(movie)
         recommendation_list.save()
+        movie.recommend_count += 1
+        movie.save()
         return response.Response(dict(success=True))
 
     def destroy(self, request, *args, **kwargs):
@@ -275,6 +277,8 @@ class MovieRecommendView(
             if movie in recommendation_list.movies.all():
                 recommendation_list.movies.remove(movie)
                 recommendation_list.save()
+                movie.recommend_count -= 1
+                movie.save()
                 self._remove_from_contest_recommend(movie, user)
             else:
                 return response.Response(dict(success=False))
