@@ -57,6 +57,12 @@ class UserSerializer(serializers.ModelSerializer):
     def validate_username(self, username):
         return username.lower()
 
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        name = data.get("name")
+        data["name"] = name and name.title()
+        return data
+
 
 class RoleSerializer(serializers.ModelSerializer):
     class Meta:

@@ -82,6 +82,11 @@ class RoleSerializer(serializers.ModelSerializer):
         model = Role
         fields = ["name"]
 
+    def validate_name(self, name):
+        if not Role.objects.filter(name=name).exists():
+            raise ValidationError(f"Unknow role '{name}'")
+        return name
+
 
 def create_rzp_order(package, owner):
     if not all([package, owner]):
@@ -154,10 +159,17 @@ class CrewMemberSerializer(serializers.ModelSerializer):
 
 class SubmissionEntrySerializer(serializers.ModelSerializer):
     order = OrderSerializer()
+    package = serializers.CharField(source="package.name", read_only=True)
 
     class Meta:
         model = Movie
-        fields = ["id", "title", "poster", "state", "order", "created_at"]
+        fields = ["id", "title", "poster", "state", "order", "created_at", "package"]
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        package = data.get("package")
+        data["package"] = package and package.title()
+        return data
 
 
 class MovieSerializerSummary(serializers.ModelSerializer):
@@ -291,15 +303,16 @@ class MovieSerializer(serializers.ModelSerializer):
             raise ValidationError(
                 "Movie title should be in English i.e., characters [A-Z] and [0-9]"
             )
+            pass
         return title.title()
 
     def create(self, validated_data: dict):
         logger.debug(f"create::{validated_data}")
         user = validated_data.pop("user")
         genres_data = validated_data.pop("genres")
-        creator_roles = validated_data.pop("roles")
+        creator_roles = validated_data.pop("roles", [])
         lang_data = validated_data.pop("lang")
-        director_data = validated_data.pop("director", None)
+        director_data = validated_data.pop("director", {})
 
         validated_data["lang"] = MovieLanguageSerializer().create(lang_data)
         # creating dummy order here so that the movie entry can be tracked
@@ -308,8 +321,10 @@ class MovieSerializer(serializers.ModelSerializer):
         validated_data["state"] = MOVIE_STATE.CREATED
         movie = super().create(validated_data)
         movie.genres.set(self._get_or_create_genres(genres_data))
-        self._attach_director_role(director_data, user, movie)
         self._attach_creator_roles(creator_roles, user, movie)
+        self._attach_director_role(director_data, creator_roles, user, movie)
+        if not self._is_director_present(movie):
+            raise ValidationError("Director must be provided")
         return movie
 
     def update(self, movie, validated_data):
@@ -327,11 +342,14 @@ class MovieSerializer(serializers.ModelSerializer):
             lang_data = validated_data.pop("lang")
             validated_data["lang"] = MovieLanguageSerializer().create(lang_data)
 
-        director_data = validated_data.pop("director", None)
-        self._attach_director_role(director_data, user, movie)
-        if "roles" in validated_data:
-            creator_roles = validated_data.pop("roles")
+        director_data = validated_data.pop("director", {})
+        creator_roles = validated_data.pop("roles", [])
+
+        if creator_roles:
             self._attach_creator_roles(creator_roles, user, movie)
+        if director_data:
+            self._attach_director_role(director_data, creator_roles, user, movie)
+
         genres_data = None
         if "genres" in validated_data:
             genres_data = validated_data.pop("genres")
@@ -340,13 +358,27 @@ class MovieSerializer(serializers.ModelSerializer):
 
         if genres_data:
             movie.genres.set(self._get_or_create_genres(genres_data))
+
+        if not self._is_director_present(movie):
+            raise ValidationError("Director must be provided")
         return movie
 
-    def _attach_director_role(self, director_data: dict, creator: User, movie: Movie):
+    def _is_director_present(self, movie):
         director_role = Role.objects.get(name="Director")
+        return CrewMember.objects.filter(movie=movie, role=director_role).exists()
+
+    def _attach_director_role(
+        self, director_data: dict, creator_roles: list, creator: User, movie: Movie
+    ):
+        creator_is_director = any(
+            role.get("name") == "Director" for role in creator_roles
+        )
+        if creator_is_director:
+            director_data["email"] = creator.email
+
         if director_data:
             # creator is not the director
-            contact = director_data.get("contact")
+            contact = director_data.pop("contact", None)
             email = director_data.get("email")
             director_data["username"] = email
             try:
@@ -356,13 +388,13 @@ class MovieSerializer(serializers.ModelSerializer):
                 # creating a new profile
                 user = User.objects.create(**director_data)
                 director_profile = Profile.objects.create(user=user, mobile=contact)
-        else:
-            director_profile = Profile.objects.get(user__id=creator.id)
-        # remove existing director relation on movie
-        CrewMember.objects.filter(role=director_role, movie=movie).delete()
-        CrewMember.objects.create(
-            profile=director_profile, movie=movie, role=director_role
-        )
+
+            # remove existing director relation on movie
+            director_role = Role.objects.get(name="Director")
+            CrewMember.objects.filter(role=director_role, movie=movie).delete()
+            CrewMember.objects.create(
+                profile=director_profile, movie=movie, role=director_role
+            )
 
     def _attach_creator_roles(
         self, creator_roles_data: list, creator: User, movie: Movie
