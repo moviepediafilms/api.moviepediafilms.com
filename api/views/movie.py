@@ -3,6 +3,8 @@ from logging import getLogger
 
 from django.db.models import Count
 from django.utils import timezone
+from django.db import transaction
+
 
 from rest_framework import mixins, exceptions, parsers, viewsets, response, permissions
 from rest_framework.decorators import action
@@ -42,17 +44,23 @@ logger = getLogger(__name__)
 
 
 class SubmissionView(
-    mixins.CreateModelMixin, mixins.UpdateModelMixin, viewsets.GenericViewSet,
+    mixins.RetrieveModelMixin,
+    mixins.CreateModelMixin,
+    mixins.UpdateModelMixin,
+    viewsets.GenericViewSet,
 ):
     parser_classes = (parsers.MultiPartParser, parsers.FormParser)
     queryset = Movie.objects.all()
     serializer_class = SubmissionSerializer
+    # TODO: check user before updating the submissions
 
+    @transaction.atomic
     def perform_create(self, serializer):
         logger.info(f"perform_create::{self.request.user.email}")
         serializer.save(user=self.request.user)
         logger.info("perform_create::end")
 
+    @transaction.atomic
     def perform_update(self, serializer):
         logger.info(f"perform_update::{self.request.user.email}")
         serializer.save(user=self.request.user)
