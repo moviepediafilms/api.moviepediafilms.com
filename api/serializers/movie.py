@@ -232,7 +232,7 @@ class MovieSerializer(serializers.ModelSerializer):
             "contest",
             "about",
         ]
-        read_only_fields = ["about"]
+        read_only_fields = ["about", "state"]
 
     def get_requestor_rating(self, movie):
         request = self.context.get("request")
