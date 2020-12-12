@@ -70,7 +70,7 @@ class SendgridEmailBackend(BaseEmailBackend):
         if hasattr(email, "template_id"):
             sendgrid_mail["template_id"] = email.template_id
             if hasattr(email, "template_data"):
-                personalization["dynamic_template_data"].update(email.template_data)
+                personalization["dynamic_template_data"] = dict(email.template_data)
         if personalization:
             sendgrid_mail["personalizations"] = [personalization]
         return sendgrid_mail
