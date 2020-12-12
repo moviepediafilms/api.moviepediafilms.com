@@ -43,6 +43,8 @@ def on_user_registration(sender, **kwargs):
     profile = kwargs.get("instance")
     logger.debug(kwargs)
     logger.debug(sender)
+    if kwargs.get("raw"):
+        return
     if kwargs.get("created"):
         # send welcome and confirm email to activate account
         logger.info(f"new user registered! {profile.user.email}")
