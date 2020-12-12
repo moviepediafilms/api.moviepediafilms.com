@@ -15,26 +15,25 @@ def get_welcome_mail(profile):
     return build_email(
         [profile.user.email],
         template_id=WELCOME_MAIL_TEMPLATE,
-        substitutions={"user": profile.user.get_full_name()},
+        template_data={"user": profile.user.get_full_name()},
     )
 
 
 def get_email_verification_mail(profile):
     token, _ = Token.objects.get_or_create(user=profile.user)
-    print(token.key)
     return build_email(
         [profile.user.email],
         template_id=VERIFY_EMAIL_TEMPLATE,
-        substitutions={"token": token.key},
+        template_data={"token": token.key},
     )
 
 
-def build_email(to, subject=None, body=None, template_id=None, substitutions=None):
+def build_email(to, subject=None, body=None, template_id=None, template_data=None):
     email = EmailMessage(subject, body, to=to,)
     if template_id:
         email.template_id = template_id
-    if substitutions:
-        email.substitutions = substitutions
+    if template_data:
+        email.template_data = template_data
     return email
 
 
