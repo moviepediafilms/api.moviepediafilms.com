@@ -171,6 +171,28 @@ USE_TZ = True
 
 STATIC_URL = "/static/"
 
+MEDIA_URL = "/media/"
+
+STATIC_ROOT = "static"
+
+MEDIA_ROOT = os.getenv("MEDIA_ROOT", os.path.join(BASE_DIR, "media"))
+
+MEDIA_POSTERS = "posters"
+
+MEDIA_PROFILE = "profile"
+# square dimension 1:1 aspect ratio
+THUMB_DIMENS = [150, 80]
+
+ADMINS = [("Zeeshan", "zkhan1093@gmail.com")]
+
+# Email Settings
+
+EMAIL_BACKEND = "backends.sendgrid.SendgridEmailBackend"
+DEFAULT_FROM_EMAIL = "Moviepedia Films <info@moviepediafilms.com>"
+SERVER_EMAIL = "root@moviepediafilms.com"
+
+# DRF settings
+
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework.authentication.TokenAuthentication",
@@ -187,6 +209,8 @@ REST_FRAMEWORK = {
     "PAGE_SIZE": 10,
 }
 
+# Security and CORS settings
+
 CSRF_COOKIE_SECURE = PRODUCTION
 SECURE_SSL_REDIRECT = PRODUCTION
 CORS_ALLOW_CREDENTIALS = True
@@ -199,38 +223,20 @@ CORS_ORIGIN_WHITELIST = [
     "https://api.moviepediafilms.com",
 ]
 
-STATIC_URL = "/static/"
-STATIC_ROOT = "static"
-
-MEDIA_URL = "/media/"
-MEDIA_ROOT = os.getenv("MEDIA_ROOT", os.path.join(BASE_DIR, "media"))
-MEDIA_POSTERS = "posters"
-MEDIA_PROFILE = "profile"
-# square dimension 1:1 aspect ratio
-THUMB_DIMENS = [150, 80]
-
 if PRODUCTION:
     SESSION_COOKIE_SECURE = True
     SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
 
-
-GOOGLE_ANALYTICS = os.getenv("GOOGLE_ANALYTICS")
-
 FIXTURE_DIRS = (os.path.join(BASE_DIR, "fixtures/",),)
 
+# Third party API and Secret Keys
 
+GOOGLE_ANALYTICS = os.getenv("GOOGLE_ANALYTICS")
 RECAPTCHA_SECRET_KEY = os.getenv("RECAPTCHA_SECRET_KEY")
-
 RAZORPAY_API_KEY = os.getenv("RAZORPAY_API_KEY")
 RAZORPAY_API_SECRET = os.getenv("RAZORPAY_API_SECRET")
 
-
-# sendgrid API
+# Sendgrid secrets
 SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
-SENDGRID_EMAIL = "info@moviepediafilms.com"
 SENDGRID_NAME = "Moviepedia Films"
 SENDGRID_REPLY_TO = "moviepedia14@gmail.com"
-
-SENDGRID_TEMPLATE_WELCOME = "d-a7a0fd0e3fe84e13bae1625541d2db35"
-SENDGRID_TEMPLATE_FILM_REG = "d-8867252c6af04c39827cbdb35a3320f3"
-SENDGRID_TEMPLATE_PASSWORD_RESET = "d-06e58c74df7f43a787511fefff9a06b6"

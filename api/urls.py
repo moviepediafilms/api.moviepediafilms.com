@@ -39,4 +39,5 @@ urlpatterns = [
     path("", include(router.urls)),
     path("auth/", auth.AuthTokenView.as_view()),
     path("payment/verify/", payment.VerifyPayment.as_view()),
+    path("account/verify/<token>/", auth.VerifyEmail.as_view()),
 ]

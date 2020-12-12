@@ -21,8 +21,7 @@ class UserSerializer(serializers.ModelSerializer):
     name = serializers.CharField(source="get_full_name", read_only=True)
     first_name = serializers.CharField(write_only=True)
     last_name = serializers.CharField(write_only=True, allow_blank=True)
-    password = serializers.CharField(write_only=True)
-    username = serializers.CharField(
+    username = serializers.EmailField(
         validators=[
             validators.UniqueValidator(
                 queryset=User.objects.all(), message="This email is already in use.",
@@ -30,7 +29,7 @@ class UserSerializer(serializers.ModelSerializer):
         ],
         write_only=True,
     )
-    email = serializers.CharField(
+    email = serializers.EmailField(
         validators=[
             validators.UniqueValidator(
                 queryset=User.objects.all(), message="This email is already in use.",
@@ -62,6 +61,14 @@ class UserSerializer(serializers.ModelSerializer):
         name = data.get("name")
         data["name"] = name and name.title()
         return data
+
+    def create(self, validated_data):
+        password = validated_data.pop("password")
+        user = super().create(validated_data)
+        user.is_active = False
+        user.set_password(password)
+        user.save()
+        return user
 
 
 class RoleSerializer(serializers.ModelSerializer):
@@ -146,8 +153,6 @@ class ProfileDetailSerializer(serializers.ModelSerializer):
         user_data = validated_data.pop("user")
         with transaction.atomic():
             user = UserSerializer().create(validated_data=user_data)
-            user.set_password(user_data.pop("password"))
-            user.save()
             profile = Profile.objects.create(user=user, **validated_data)
         logger.debug(f"profile::create successful {profile.id}")
         return profile
