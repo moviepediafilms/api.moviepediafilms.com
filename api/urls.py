@@ -34,10 +34,10 @@ router.register(
 )
 router.register("contest", movie.ContestView, basename="contest")
 router.register("movies-by", movie.MoviesByView, basename="contest")
+router.register("account", auth.AccountVerifyView, basename="account")
 
 urlpatterns = [
     path("", include(router.urls)),
     path("auth/", auth.AuthTokenView.as_view()),
     path("payment/verify/", payment.VerifyPayment.as_view()),
-    path("account/verify/<token>/", auth.VerifyEmail.as_view()),
 ]

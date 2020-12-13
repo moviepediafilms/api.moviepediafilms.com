@@ -38,7 +38,6 @@ class SendgridEmailBackend(BaseEmailBackend):
                 logger.debug(f"sending mail {sg_mail}")
                 if self.dry_run:
                     logger.debug("mail not sent! it was a dry run")
-                    self.sg.client.mail.send.post(request_body=sg_mail)
                 else:
                     self.sg.client.mail.send.post(request_body=sg_mail)
                 count += 1
