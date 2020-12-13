@@ -195,6 +195,8 @@ SERVER_EMAIL = "root@moviepediafilms.com"
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
+        # https://stackoverflow.com/a/21507720/3937119 check the link for adding expiring tokens
+        # TODO: use JWT or OAuth2.0 instead
         "rest_framework.authentication.TokenAuthentication",
         "rest_framework.authentication.SessionAuthentication",
     ],
