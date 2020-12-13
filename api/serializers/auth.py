@@ -45,7 +45,6 @@ class ActivationResentSerializer(Serializer):
     )
 
     def save(self, **kwargs):
-        print("save")
         email = self.validated_data["email"]
         try:
             user = User.objects.get(email=email.lower())

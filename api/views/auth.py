@@ -62,4 +62,8 @@ class AccountVerifyView(viewsets.GenericViewSet, mixins.UpdateModelMixin):
 
     @action(methods=["post"], detail=True)
     def reset(self, request, *args, **kwargs):
-        return self.update(request, *args, **kwargs)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response({"success": True})
