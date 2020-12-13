@@ -81,11 +81,13 @@ class ForgotPasswordSerializer(Serializer):
             )
         except Exception as ex:
             logger.error(ex)
-            raise ValidationError("Couldn't verify captcha")
+            raise ValidationError("Couldn't verify Captcha, please try again later!")
         else:
             logger.debug(f"google reply: {res.json()}")
             if not res.json().get("success"):
-                raise ValidationError("Capcha verification failed")
+                raise ValidationError(
+                    "Captcha verification failed, please try again later!"
+                )
         return recaptcha
 
     def save(self, **kwargs):
@@ -106,4 +108,5 @@ class ResetPasswordSerializer(Serializer):
     def save(self, **kwargs):
         token = self.instance
         token.user.set_password(self.validated_data["password"])
+        token.user.save()
         token.delete()
