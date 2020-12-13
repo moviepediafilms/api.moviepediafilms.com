@@ -130,21 +130,21 @@
         }
     },
     {
-        "model": "api.moviegenre",
+        "model": "api.genre",
         "pk": 1,
         "fields": {
             "name": "drama"
         }
     },
     {
-        "model": "api.moviegenre",
+        "model": "api.genre",
         "pk": 2,
         "fields": {
             "name": "crime"
         }
     },
     {
-        "model": "api.moviegenre",
+        "model": "api.genre",
         "pk": 3,
         "fields": {
             "name": "thrill"

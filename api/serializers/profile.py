@@ -56,11 +56,11 @@ class UserSerializer(serializers.ModelSerializer):
     def validate_username(self, username):
         return username.lower()
 
-    def to_representation(self, instance):
-        data = super().to_representation(instance)
-        name = data.get("name")
-        data["name"] = name and name.title()
-        return data
+    def validate_first_name(self, first_name):
+        return first_name and first_name.title()
+
+    def validate_last_name(self, last_name):
+        return last_name and last_name.title()
 
     def create(self, validated_data):
         password = validated_data.pop("password")

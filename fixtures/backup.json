@@ -167,7 +167,6 @@
                 2
             ],
             "follows": [],
-            "badges": [],
             "watchlist": []
         }
     },
@@ -190,7 +189,6 @@
             "engagement_score": 0.0,
             "roles": [],
             "follows": [],
-            "badges": [],
             "watchlist": []
         }
     },
@@ -219,7 +217,6 @@
                 5
             ],
             "follows": [],
-            "badges": [],
             "watchlist": []
         }
     },
@@ -244,7 +241,6 @@
                 2
             ],
             "follows": [],
-            "badges": [],
             "watchlist": []
         }
     },
@@ -267,7 +263,6 @@
             "engagement_score": 0.0,
             "roles": [],
             "follows": [],
-            "badges": [],
             "watchlist": []
         }
     },
@@ -290,7 +285,6 @@
             "engagement_score": 0.0,
             "roles": [],
             "follows": [],
-            "badges": [],
             "watchlist": []
         }
     },
@@ -676,28 +670,28 @@
         }
     },
     {
-        "model": "api.moviegenre",
+        "model": "api.genre",
         "pk": 1,
         "fields": {
             "name": "drama"
         }
     },
     {
-        "model": "api.moviegenre",
+        "model": "api.genre",
         "pk": 2,
         "fields": {
             "name": "crime"
         }
     },
     {
-        "model": "api.moviegenre",
+        "model": "api.genre",
         "pk": 3,
         "fields": {
             "name": "thrill"
         }
     },
     {
-        "model": "api.moviegenre",
+        "model": "api.genre",
         "pk": 4,
         "fields": {
             "name": "comedy"

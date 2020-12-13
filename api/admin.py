@@ -7,7 +7,7 @@ from api.models import (
     Role,
     Order,
     Movie,
-    MovieGenre,
+    Genre,
     MovieLanguage,
     MovieRateReview,
     MovieList,
@@ -20,7 +20,7 @@ from api.models import (
 
 
 class ProfileAdmin(admin.ModelAdmin):
-    exclude = ["image", "follows", "user"]
+    exclude = ["image", "follows"]
     list_display = [
         "user",
         "city",
@@ -48,7 +48,7 @@ class MovieAdmin(admin.ModelAdmin):
     list_display = ["title", "state", "link"]
 
 
-class MovieGenreAdmin(admin.ModelAdmin):
+class GenreAdmin(admin.ModelAdmin):
     list_display = ["name"]
 
 
@@ -102,7 +102,7 @@ admin.site.register(Profile, ProfileAdmin)
 admin.site.register(Role, RoleAdmin)
 admin.site.register(Order, OrderAdmin)
 admin.site.register(Movie, MovieAdmin)
-admin.site.register(MovieGenre, MovieGenreAdmin)
+admin.site.register(Genre, GenreAdmin)
 admin.site.register(MovieLanguage, MovieLanguageAdmin)
 admin.site.register(MovieRateReview, MovieRateReviewAdmin)
 admin.site.register(Package, PackageAdmin)

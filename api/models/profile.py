@@ -37,8 +37,6 @@ class Profile(models.Model):
     # will get updated after a defined interval of time
     rank = models.IntegerField(default=-1)
     level = models.IntegerField(default=1)
-    # insert a badge here after the attempt, so that user can claim it
-    badges = models.ManyToManyField("Badge", blank=True)
 
     watchlist = models.ManyToManyField(
         "Movie", blank=True, related_name="watchlisted_by"
@@ -49,6 +47,12 @@ class Profile(models.Model):
 
     # content consumers attributes
     engagement_score = models.FloatField(default=0)
+
+    # TODO: update via signals
+    # cached
+    reviews_given = models.IntegerField(default=0)
+
+    titles = models.ManyToManyField("Title", blank=True, related_name="title_holders")
 
     def __str__(self):
         return str(self.id)

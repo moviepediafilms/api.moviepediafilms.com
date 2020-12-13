@@ -35,15 +35,11 @@ CONTEST_STATE_CHOICES = [
 ]
 
 
-class MovieGenre(models.Model):
+class Genre(models.Model):
     name = models.CharField(max_length=50, unique=True)
 
     def __str__(self):
         return self.name.title()
-
-
-class MovieFrame(models.Model):
-    url = models.URLField()
 
 
 class MovieLanguage(models.Model):
@@ -60,7 +56,7 @@ class Title(models.Model):
 class ContestWinner(models.Model):
     contest = models.ForeignKey("Contest", on_delete=models.CASCADE)
     profile = models.ForeignKey("Profile", on_delete=models.CASCADE)
-    position = models.IntegerField()
+    position = models.IntegerField(null=True, blank=True)
     title = models.ForeignKey("Title", on_delete=CASCADE)
 
     def __str__(self):
@@ -125,7 +121,7 @@ class Movie(models.Model):
     )
     # in minutes
     runtime = models.FloatField()
-    genres = models.ManyToManyField(MovieGenre)
+    genres = models.ManyToManyField(Genre)
     about = models.TextField()
     lang = models.ForeignKey(MovieLanguage, on_delete=models.CASCADE)
     # to be uploaded by user (Poster)
@@ -143,8 +139,11 @@ class Movie(models.Model):
         blank=True,
         related_name="movies",
     )
-    # cached
+
+    # cached attributes
+    # TODO: update via signals
     recommend_count = models.IntegerField(default=0)
+    review_count = models.IntegerField(default=0)
 
     def __str__(self):
         return self.title

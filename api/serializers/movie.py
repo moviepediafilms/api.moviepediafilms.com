@@ -17,7 +17,7 @@ from api.constants import MOVIE_STATE, CREW_MEMBER_REQUEST_STATE, RECOMMENDATION
 from api.models import (
     User,
     Movie,
-    MovieGenre,
+    Genre,
     MovieLanguage,
     MoviePoster,
     Order,
@@ -39,9 +39,9 @@ rzp_client = razorpay.Client(
 )
 
 
-class MovieGenreSerializer(serializers.ModelSerializer):
+class GenreSerializer(serializers.ModelSerializer):
     class Meta:
-        model = MovieGenre
+        model = Genre
         fields = ["id", "name"]
 
     def to_representation(self, instance):
@@ -206,7 +206,7 @@ class ContestSerializer(serializers.ModelSerializer):
 class MovieSerializer(serializers.ModelSerializer):
     order = OrderSerializer(required=False)
     lang = MovieLanguageSerializer()
-    genres = MovieGenreSerializer(many=True)
+    genres = GenreSerializer(many=True)
     package = PackageSerializer(required=False)
     director = DirectorSerializer(write_only=True, required=False)
     # Roles of the user(Profile) who submitted the movie (Creator roles)
@@ -434,11 +434,11 @@ class MovieSerializer(serializers.ModelSerializer):
     def _get_or_create_genres(self, genres_data):
         names = [name.get("name") for name in genres_data]
         names = [name.strip().lower() for name in names if name]
-        existing_genres = list(MovieGenre.objects.filter(name__in=names).all())
+        existing_genres = list(Genre.objects.filter(name__in=names).all())
         existing_genre_names = [genre.name for genre in existing_genres]
         for name in names:
             if name not in existing_genre_names:
-                genre = MovieGenre.objects.create(name=name)
+                genre = Genre.objects.create(name=name)
                 logger.debug(f"Creating Genre `{name}`")
                 existing_genres.append(genre)
         return existing_genres
