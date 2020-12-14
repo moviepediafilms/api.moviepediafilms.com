@@ -340,7 +340,6 @@ class IsDirectorCreatorOrRequestor(permissions.BasePermission):
                     role__name="Director", profile__user=me
                 ).exists()
             )
-            return True
 
         director = Role.objects.get(name="Director")
         return Movie.objects.filter(
@@ -356,6 +355,7 @@ class CrewMemberRequestView(viewsets.ModelViewSet):
     filterset_fields = ["requestor__id"]
 
     def get_queryset(self):
+        # either you are director or you are the crew
         return CrewMemberRequest.objects
 
     def perform_create(self, serializer):
