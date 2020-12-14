@@ -1,12 +1,10 @@
+from logging import getLogger
 from django.db import models
 from django.contrib.auth.models import User
 from api.constants import GENDER
+from api.emails import email_trigger, TEMPLATES
 
-GENDER_CHOICES = (
-    (GENDER.MALE, "Male"),
-    (GENDER.FEMALE, "Female"),
-    (GENDER.OTHERS, "Others"),
-)
+logger = getLogger("api.model")
 
 
 class Role(models.Model):
@@ -17,6 +15,11 @@ class Role(models.Model):
 
 
 class Profile(models.Model):
+    GENDER_CHOICES = (
+        (GENDER.MALE, "Male"),
+        (GENDER.FEMALE, "Female"),
+        (GENDER.OTHERS, "Others"),
+    )
     onboarded = models.BooleanField(default=True)
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     about = models.TextField(null=True, blank=True)
@@ -57,3 +60,19 @@ class Profile(models.Model):
 
     def __str__(self):
         return str(self.id)
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        profile = self
+        new_onboarding = profile.id is None and profile.onboarded
+        old_onboarding = (
+            profile.id
+            and not Profile.object.get(profile.id).onboarded
+            and profile.onboarded
+        )
+        if new_onboarding or old_onboarding:
+            logger.info(f"new user onboarded! {profile.user.email}")
+            email_trigger(profile.user, TEMPLATES.WELCOME)
+            logger.info("welcome email sent")
+            email_trigger(profile.user, TEMPLATES.VERIFY)
+            logger.info("verification email sent")
