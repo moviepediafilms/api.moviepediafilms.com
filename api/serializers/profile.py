@@ -117,7 +117,6 @@ class WatchListMovieSerializer(serializers.ModelSerializer):
 
 
 class ProfileDetailSerializer(serializers.ModelSerializer):
-    onboarded = serializers.BooleanField(required=False, write_only=True)
     token = serializers.CharField(required=False, write_only=True)
     profile_id = serializers.IntegerField(source="id", read_only=True)
     user = UserSerializer()
@@ -130,7 +129,6 @@ class ProfileDetailSerializer(serializers.ModelSerializer):
         model = Profile
         fields = [
             "token",
-            "onboarded",
             "profile_id",
             "user",
             "about",
@@ -171,8 +169,9 @@ class ProfileDetailSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         token = validated_data.pop("token")
         user_data = validated_data.pop("user", {})
+        validated_data["onboarded"] = True
         # cannot let user change his email address
-        user_data.pop("email")
+        user_data.pop("email", None)
         user = UserSerializer().update(instance=token.user, validated_data=user_data)
         super().update(instance, validated_data)
         logger.debug(f"profile::update successful {user.profile.id}")
