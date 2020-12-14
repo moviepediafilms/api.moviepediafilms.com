@@ -6,4 +6,4 @@ class DefaultConfig(AppConfig):
 
     def ready(self):
         # importing singnals to register them
-        from .signals import profile  # noqa: F401
+        from .signals import profile, movie  # noqa: F401
