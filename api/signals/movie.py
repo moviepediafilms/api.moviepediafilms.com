@@ -36,6 +36,7 @@ def on_movie_submission(sender, **kwargs):
 @receiver(post_save, sender=CrewMemberRequest)
 @ignore_raw
 def crew_membership_approved(sender, **kwargs):
+    logger.info("crew_membership_approved")
     cmr = kwargs.get("instance")
     if cmr.state == CREW_MEMBER_REQUEST_STATE.APPROVED:
         cm, _ = CrewMember.objects.get_or_create(
