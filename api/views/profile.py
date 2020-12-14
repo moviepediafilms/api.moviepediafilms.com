@@ -28,7 +28,7 @@ class IsCreateSafeOrIsOwner(IsOwnProfile):
     def has_object_permission(self, request, view, object: Profile):
         if request.method in permissions.SAFE_METHODS:
             return True
-        if request.method == "POST":
+        if request.method in ("POST", "PATCH"):
             return True
         return super().has_object_permission(request, view, object)
 

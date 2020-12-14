@@ -1,3 +1,4 @@
+from api.views.profile import IsCreateSafeOrIsOwner
 from api.models.movie import CrewMember
 from logging import getLogger
 
@@ -15,7 +16,7 @@ from api.serializers.movie import (
     SubmissionSerializer,
     MoviePosterSerializer,
     MovieLanguageSerializer,
-    MovieGenreSerializer,
+    GenreSerializer,
     MovieSerializer,
     MovieReviewDetailSerializer,
     MovieListSerializer,
@@ -30,7 +31,7 @@ from api.models import (
     Movie,
     MoviePoster,
     MovieLanguage,
-    MovieGenre,
+    Genre,
     MovieRateReview,
     MovieList,
     CrewMemberRequest,
@@ -43,6 +44,11 @@ from api.models import (
 logger = getLogger(__name__)
 
 
+class IsMovieOrderOwner(permissions.BasePermission):
+    def has_object_permission(self, request, view, object: Movie):
+        return object.order.owner == request.user
+
+
 class SubmissionView(
     mixins.RetrieveModelMixin,
     mixins.CreateModelMixin,
@@ -52,7 +58,7 @@ class SubmissionView(
     parser_classes = (parsers.MultiPartParser, parsers.FormParser)
     queryset = Movie.objects.all()
     serializer_class = SubmissionSerializer
-    # TODO: check user before updating the submissions
+    permission_classes = [IsMovieOrderOwner]
 
     @transaction.atomic
     def perform_create(self, serializer):
@@ -120,9 +126,9 @@ class MovieLanguageView(viewsets.GenericViewSet, mixins.ListModelMixin):
     serializer_class = MovieLanguageSerializer
 
 
-class MovieGenreView(viewsets.GenericViewSet, mixins.ListModelMixin):
-    queryset = MovieGenre.objects.all()
-    serializer_class = MovieGenreSerializer
+class GenreView(viewsets.GenericViewSet, mixins.ListModelMixin):
+    queryset = Genre.objects.all()
+    serializer_class = GenreSerializer
 
 
 class IsMovieRateReviewOwner(permissions.BasePermission):

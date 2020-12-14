@@ -7,7 +7,7 @@ from rest_framework import serializers
 from rest_framework.authtoken.serializers import AuthTokenSerializer
 from rest_framework.exceptions import ValidationError
 from rest_framework.serializers import Serializer
-from api.emails import get_email_verification_mail, get_password_reset_mail
+from api.emails import email_trigger, TEMPLATES
 
 logger = getLogger("api.serializer")
 
@@ -41,7 +41,7 @@ class VerifyEmailSerializer(Serializer):
 
 class ActivationResentSerializer(Serializer):
     email = serializers.EmailField(
-        required=True, error_messages={"required": _("You must provide email"),}
+        required=True, error_messages={"required": _("You must provide email")}
     )
 
     def save(self, **kwargs):
@@ -58,13 +58,14 @@ class ActivationResentSerializer(Serializer):
             if not profile:
                 logger.error("User does  not have a profile associated with him")
                 return
-            email = get_email_verification_mail(profile)
-            email.send(fail_silently=False)
+            email_trigger(
+                profile.user, TEMPLATES.VERIFY, fail_silently=False,
+            )
 
 
 class ForgotPasswordSerializer(Serializer):
     email = serializers.EmailField(
-        required=True, error_messages={"required": _("You must provide email"),}
+        required=True, error_messages={"required": _("You must provide email")}
     )
     recaptcha = serializers.CharField(
         required=True, error_messages={"required": _("You must check this")}
@@ -99,7 +100,7 @@ class ForgotPasswordSerializer(Serializer):
             # fail silently for security reasons
             pass
         else:
-            get_password_reset_mail(user).send()
+            email_trigger(user, TEMPLATES.PASSWORD_REST)
 
 
 class ResetPasswordSerializer(Serializer):
