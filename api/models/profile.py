@@ -17,6 +17,7 @@ class Role(models.Model):
 
 
 class Profile(models.Model):
+    onboarded = models.BooleanField(default=True)
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     about = models.TextField(null=True, blank=True)
     city = models.CharField(max_length=100, null=True, blank=True)

@@ -14,8 +14,8 @@ class TEMPLATES:
 
 
 template_register = {
-    TEMPLATES.WELCOME: ("user"),
-    TEMPLATES.VERIFY: ("token"),
+    TEMPLATES.WELCOME: ("user",),
+    TEMPLATES.VERIFY: ("token",),
     TEMPLATES.PASSWORD_REST: ("name", "token"),
     TEMPLATES.DIRECTOR_APPROVAL: ("profile_aware_link",),
     TEMPLATES.SUBMIT_CONFIRM_DIRECTOR: ("user",),
@@ -24,8 +24,8 @@ template_register = {
 
 
 class TemplateVariables:
-    def __ini__(self, **kwrags):
-        self.kwargs = kwrags
+    def __init__(self, **kwargs):
+        self.kwargs = kwargs
 
     @property
     def user(self):
@@ -49,7 +49,7 @@ class TemplateVariables:
         user = self.kwargs["user"]
         if user.is_active:
             # the director profile is not complete, send link to complete the profile
-            return f"sign-up?token={self.token}&email={user.email}"
+            return f"sign-up?token={self.token}&email={user.email}&id={user.profile.id}"
         return "notification"
 
 
@@ -59,7 +59,9 @@ def email_trigger(user, template_id, fail_silently=True, **kwargs):
     args_needed = template_register[template_id]
     template_variables = TemplateVariables(**kwargs)
     template_data = {arg: getattr(template_variables, arg) for arg in args_needed}
-    email = build_email([user.email], template_id, template_data=template_data)
+    email = build_email(
+        to=[user.email], template_id=template_id, template_data=template_data
+    )
     return email.send(fail_silently=fail_silently)
 
 

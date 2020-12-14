@@ -1,7 +1,8 @@
+from api.constants import CREW_MEMBER_REQUEST_STATE
 from logging import getLogger
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from api.models import Movie, CrewMember
+from api.models import Movie, CrewMember, CrewMemberRequest
 from api.decorators import ignore_raw
 
 from api.emails import email_trigger, TEMPLATES
@@ -29,3 +30,15 @@ def on_movie_submission(sender, **kwargs):
             email_trigger(director.owner, TEMPLATES.DIRECTOR_APPROVAL)
             # d-9937bf56a2a34301ab7ae37a94bc5a0c to the crew member
             email_trigger(movie.order.owner, TEMPLATES.SUBMIT_CONFIRM_CREW)
+            # add notification to director's profile
+
+
+@receiver(post_save, sender=CrewMemberRequest)
+@ignore_raw
+def crew_membership_approved(sender, **kwargs):
+    cmr = kwargs.get("instance")
+    if cmr.state == CREW_MEMBER_REQUEST_STATE.APPROVED:
+        cm, _ = CrewMember.objects.get_or_create(
+            movie=cmr.movie, profile=cmr.user.profile, role=cmr.role
+        )
+        logger.info(f"{cm} a crew membership was approved and added to movie")

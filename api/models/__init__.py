@@ -1,6 +1,10 @@
 from .payment import Order, Package
 from .profile import Role, Profile, User
 from .others import Notification
+from .contest import (
+    ContestType,
+    Contest,
+)
 from .movie import (
     Genre,
     MovieLanguage,
@@ -10,8 +14,6 @@ from .movie import (
     CrewMember,
     MovieList,
     CrewMemberRequest,
-    ContestType,
-    Contest,
     TopCreator,
     TopCurator,
 )

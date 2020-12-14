@@ -1,3 +1,5 @@
+from django.core.exceptions import ValidationError
+from rest_framework.authtoken.models import Token
 from api.models.movie import CrewMember
 import os
 import uuid
@@ -8,7 +10,7 @@ from django.db import transaction
 from django.conf import settings
 from django.core.files.storage import default_storage
 
-from rest_framework import serializers, validators
+from rest_framework import serializers
 from PIL import Image
 
 from api.models import Profile, Role, Movie
@@ -21,21 +23,7 @@ class UserSerializer(serializers.ModelSerializer):
     name = serializers.CharField(source="get_full_name", read_only=True)
     first_name = serializers.CharField(write_only=True)
     last_name = serializers.CharField(write_only=True, allow_blank=True)
-    username = serializers.EmailField(
-        validators=[
-            validators.UniqueValidator(
-                queryset=User.objects.all(), message="This email is already in use.",
-            )
-        ],
-        write_only=True,
-    )
-    email = serializers.EmailField(
-        validators=[
-            validators.UniqueValidator(
-                queryset=User.objects.all(), message="This email is already in use.",
-            )
-        ]
-    )
+    email = serializers.EmailField(required=True)
     password = serializers.CharField(min_length=6, write_only=True)
 
     class Meta:
@@ -45,16 +33,19 @@ class UserSerializer(serializers.ModelSerializer):
             "first_name",
             "last_name",
             "email",
-            "username",
             "name",
             "password",
         ]
 
     def validate_email(self, email):
-        return email.lower()
-
-    def validate_username(self, username):
-        return username.lower()
+        email = email.lower()
+        print(self.instance)
+        if self.instance:
+            email = self.instance.email
+        else:
+            if User.objects.filter(email=email).exists():
+                raise ValidationError("This email is already in use.")
+        return email
 
     def validate_first_name(self, first_name):
         return first_name and first_name.title()
@@ -64,11 +55,19 @@ class UserSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         password = validated_data.pop("password")
+        validated_data["username"] = validated_data.get("email")
+        validated_data["is_active"] = False
         user = super().create(validated_data)
-        user.is_active = False
         user.set_password(password)
         user.save()
         return user
+
+    def update(self, instance, validated_data):
+        password = validated_data.pop("password", None)
+        super().update(instance, validated_data)
+        instance.set_password(password)
+        instance.save()
+        return instance
 
 
 class RoleSerializer(serializers.ModelSerializer):
@@ -118,6 +117,8 @@ class WatchListMovieSerializer(serializers.ModelSerializer):
 
 
 class ProfileDetailSerializer(serializers.ModelSerializer):
+    onboarded = serializers.BooleanField(required=False, write_only=True)
+    token = serializers.CharField(required=False, write_only=True)
     profile_id = serializers.IntegerField(source="id", read_only=True)
     user = UserSerializer()
     roles = RoleSerializer(many=True, read_only=True)
@@ -128,6 +129,8 @@ class ProfileDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
         fields = [
+            "token",
+            "onboarded",
             "profile_id",
             "user",
             "about",
@@ -148,14 +151,40 @@ class ProfileDetailSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["level", "rank", "score", "mcoins", "pop_score", "follows"]
 
+    def get_fields(self, *args, **kwargs):
+        fields = super().get_fields(*args, **kwargs)
+        request = self.context.get("request", None)
+        if request and getattr(request, "method", None) == "PATCH":
+            fields["token"].required = True
+        return fields
+
     def create(self, validated_data: dict):
         logger.debug(f"profile::create {validated_data}")
         user_data = validated_data.pop("user")
+        profile = None
         with transaction.atomic():
             user = UserSerializer().create(validated_data=user_data)
             profile = Profile.objects.create(user=user, **validated_data)
         logger.debug(f"profile::create successful {profile.id}")
         return profile
+
+    def update(self, instance, validated_data):
+        token = validated_data.pop("token")
+        user_data = validated_data.pop("user", {})
+        # cannot let user change his email address
+        user_data.pop("email")
+        user = UserSerializer().update(instance=token.user, validated_data=user_data)
+        super().update(instance, validated_data)
+        logger.debug(f"profile::update successful {user.profile.id}")
+        return user.profile
+
+    def validate_token(self, token):
+        try:
+            token = Token.objects.get(key=token)
+        except Token.DoesNotExist:
+            raise ValidationError("Invalid Token!")
+        else:
+            return token
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
