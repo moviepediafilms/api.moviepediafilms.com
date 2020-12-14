@@ -67,7 +67,7 @@ class Profile(models.Model):
         new_onboarding = profile.id is None and profile.onboarded
         old_onboarding = (
             profile.id
-            and not Profile.objects.get(profile.id).onboarded
+            and not Profile.objects.get(pk=profile.id).onboarded
             and profile.onboarded
         )
         if new_onboarding or old_onboarding:
