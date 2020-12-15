@@ -1,7 +1,4 @@
 from django.contrib import admin
-from django.db.models import Count
-
-# Register your models here.
 from api.models import (
     Profile,
     Role,
@@ -16,6 +13,7 @@ from api.models import (
     CrewMemberRequest,
     ContestType,
     Contest,
+    Notification,
 )
 
 
@@ -42,10 +40,25 @@ class OrderAdmin(admin.ModelAdmin):
 
 
 class MovieAdmin(admin.ModelAdmin):
-    exclude = [
-        "poster",
+    search_fields = ["title"]
+    list_filter = ["approved", "state", "created_at"]
+    list_display = [
+        "title",
+        "state",
+        "link",
+        "approved",
+        "created_at",
+        "director",
+        "submited_by",
     ]
-    list_display = ["title", "state", "link"]
+    ordering = ["-created_at", "title"]
+    readonly_fields = ["approved", "poster"]
+
+    def submited_by(self, movie):
+        return movie.order.owner
+
+    def director(self, movie):
+        return movie.crewmember_set.get(role__name="Director").profile.user
 
 
 class GenreAdmin(admin.ModelAdmin):
@@ -98,6 +111,10 @@ class ContestAdmin(admin.ModelAdmin):
     list_display = ["name", "start", "end", "days_per_movie", "state"]
 
 
+class NotificationAdmin(admin.ModelAdmin):
+    list_display = ["title", "profile", "content"]
+
+
 admin.site.register(Profile, ProfileAdmin)
 admin.site.register(Role, RoleAdmin)
 admin.site.register(Order, OrderAdmin)
@@ -111,3 +128,4 @@ admin.site.register(CrewMember, CrewMemberAdmin)
 admin.site.register(CrewMemberRequest, CrewMemberRequestAdmin)
 admin.site.register(ContestType, ContestTypeAdmin)
 admin.site.register(Contest, ContestAdmin)
+admin.site.register(Notification, NotificationAdmin)

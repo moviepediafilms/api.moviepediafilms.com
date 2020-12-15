@@ -2,7 +2,7 @@ from logging import getLogger
 from django.db import models
 from django.contrib.auth.models import User
 from api.emails import email_trigger, TEMPLATES
-
+from django.utils.translation import gettext_lazy as _
 
 from api.constants import (
     MOVIE_STATE,
@@ -83,7 +83,10 @@ class Movie(models.Model):
     # cached attributes
     recommend_count = models.IntegerField(default=0)
     review_count = models.IntegerField(default=0)
-    verified = models.BooleanField(null=True, blank=True)
+    # approved by director
+    approved = models.BooleanField(
+        "Approved by Director", null=True, blank=True, default=None
+    )
 
     def __str__(self):
         return self.title
@@ -97,28 +100,28 @@ class Movie(models.Model):
         return score / 2
 
     def save(self, *args, **kwargs):
+        is_new = self.id is None
         super().save(*args, **kwargs)
-        # new submission
-        movie = self
-        cm = CrewMember.objects.filter(movie=movie, role__name="Director").first()
-        director = cm and cm.profile.user
-        if not director:
-            logger.debug("No director found on movie")
-            return
-        if director == movie.order.owner:
-            logger.debug("Submission by Director")
-            # d-a2b26474eff54ca98154f1ac24cae8c0
-            email_trigger(director, TEMPLATES.SUBMIT_CONFIRM_DIRECTOR)
-        else:
-            # either director is not yet set (very unlikely to happen)
-            # or a crew member made this submission
-            logger.debug("Submission by crew member")
-            # 2 emails to send, one to director, another to the crew member who made the submission
-            # d-f7a6a234d110411ea140e9a43fcd3fe8 to director, handle full/partial/full profile
-            email_trigger(director, TEMPLATES.DIRECTOR_APPROVAL)
-            # d-9937bf56a2a34301ab7ae37a94bc5a0c to the crew member
-            email_trigger(movie.order.owner, TEMPLATES.SUBMIT_CONFIRM_CREW)
-            # add notification to director's profile
+        if is_new:
+            cm = CrewMember.objects.filter(movie=self, role__name="Director").first()
+            director = cm and cm.profile.user
+            if not director:
+                logger.debug("No director found on movie")
+                return
+            if director == self.order.owner:
+                logger.debug("Submission by Director")
+                # d-a2b26474eff54ca98154f1ac24cae8c0
+                email_trigger(director, TEMPLATES.SUBMIT_CONFIRM_DIRECTOR)
+            else:
+                # either director is not yet set (very unlikely to happen)
+                # or a crew member made this submission
+                logger.debug("Submission by crew member")
+                # 2 emails to send, one to director, another to the crew member who made the submission
+                # d-f7a6a234d110411ea140e9a43fcd3fe8 to director, handle full/partial/full profile
+                email_trigger(director, TEMPLATES.DIRECTOR_APPROVAL)
+                # d-9937bf56a2a34301ab7ae37a94bc5a0c to the crew member
+                email_trigger(self.order.owner, TEMPLATES.SUBMIT_CONFIRM_CREW)
+                # add notification to director's profile
 
 
 class CrewMember(models.Model):

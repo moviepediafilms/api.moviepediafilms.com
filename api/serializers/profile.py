@@ -13,7 +13,7 @@ from django.core.files.storage import default_storage
 from rest_framework import serializers
 from PIL import Image
 
-from api.models import Profile, Role, Movie
+from api.models import Profile, Role, Movie, Notification
 from api.constants import MOVIE_STATE
 
 logger = getLogger(__name__)
@@ -25,6 +25,7 @@ class UserSerializer(serializers.ModelSerializer):
     last_name = serializers.CharField(write_only=True, allow_blank=True)
     email = serializers.EmailField(required=True)
     password = serializers.CharField(min_length=6, write_only=True)
+    image = serializers.URLField(source="profile.image", read_only=True)
 
     class Meta:
         model = User
@@ -35,11 +36,11 @@ class UserSerializer(serializers.ModelSerializer):
             "email",
             "name",
             "password",
+            "image",
         ]
 
     def validate_email(self, email):
         email = email.lower()
-        print(self.instance)
         if self.instance:
             email = self.instance.email
         else:
@@ -299,3 +300,9 @@ class ProfileImageSerializer(serializers.Serializer):
 
     def to_representation(self, instance):
         return ProfileDetailSerializer(instance=instance).data
+
+
+class NotificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Notification
+        fields = ["id", "title", "content", "created_at"]

@@ -74,21 +74,22 @@ class SubmissionView(
 
 
 class MovieView(
-    mixins.RetrieveModelMixin, mixins.ListModelMixin, viewsets.GenericViewSet,
+    mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet,
 ):
-    queryset = Movie.objects.filter(state=MOVIE_STATE.PUBLISHED)
+    def get_queryset(self):
+        if self.action == "partial_update":
+            return Movie.objects.filter(
+                crewmember__role__name="Director", crewmember__profile=self.request.user.profile
+            ).distinct()
+        return Movie.objects.filter(state=MOVIE_STATE.PUBLISHED)
 
     def get_serializer_class(self):
         if self.action in ("list", "my"):
             return MovieSerializerSummary
         return MovieSerializer
-
-    def perform_update(self, serializer):
-        try:
-            serializer.save()
-        except Exception as ex:
-            logger.exception(ex)
-            raise exceptions.ParseError(dict(error=str(ex)))
 
 
 class MoviesByView(mixins.RetrieveModelMixin, viewsets.GenericViewSet):
@@ -350,12 +351,12 @@ class IsDirectorCreatorOrRequestor(permissions.BasePermission):
 
 
 class CrewMemberRequestView(viewsets.ModelViewSet):
+    # either you are director or you are a crew member
     permission_classes = [permissions.IsAuthenticated, IsDirectorCreatorOrRequestor]
     serializer_class = CrewMemberRequestSerializer
     filterset_fields = ["requestor__id"]
 
     def get_queryset(self):
-        # either you are director or you are the crew
         return CrewMemberRequest.objects
 
     def perform_create(self, serializer):

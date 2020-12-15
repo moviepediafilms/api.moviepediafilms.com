@@ -63,19 +63,18 @@ class Profile(models.Model):
 
     def save(self, *args, **kwargs):
         is_new = self.id is None
-        profile = self
-        new_onboarding = is_new and profile.onboarded
+        new_onboarding = is_new and self.onboarded
         old_onboarding = (
             not is_new
-            and not Profile.objects.get(pk=profile.id).onboarded
+            and not Profile.objects.get(pk=self.id).onboarded
             and self.onboarded
         )
         super().save(*args, **kwargs)
 
         logger.info(f"new_onboarding/old_onboarding: {new_onboarding}/{old_onboarding}")
         if new_onboarding or old_onboarding:
-            logger.info(f"user onboarded! {profile.user.email}")
-            email_trigger(profile.user, TEMPLATES.WELCOME)
+            logger.info(f"user onboarded! {self.user.email}")
+            email_trigger(self.user, TEMPLATES.WELCOME)
             logger.info("welcome email sent")
-            email_trigger(profile.user, TEMPLATES.VERIFY)
+            email_trigger(self.user, TEMPLATES.VERIFY)
             logger.info("verification email sent")

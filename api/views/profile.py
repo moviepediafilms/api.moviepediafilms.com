@@ -1,18 +1,23 @@
 from logging import getLogger
 
-from django.db.models import Count
+from django.db.models import Count, Q
 from rest_framework import permissions, viewsets, mixins, parsers, response
 from rest_framework.decorators import action
-from api.serializers.movie import MovieSerializerSummary, SubmissionEntrySerializer
+from api.serializers.movie import (
+    CrewMemberRequestSerializer,
+    MovieSerializerSummary,
+    SubmissionEntrySerializer,
+)
 from api.serializers.profile import (
     ProfileDetailSerializer,
     ProfileImageSerializer,
     RoleSerializer,
     FollowSerializer,
     ProfileSerializer,
+    NotificationSerializer,
 )
-from api.constants import RECOMMENDATION, MOVIE_STATE
-from api.models import Profile, Role, MovieList
+from api.constants import CREW_MEMBER_REQUEST_STATE, RECOMMENDATION, MOVIE_STATE
+from api.models import Profile, Role, MovieList, CrewMemberRequest
 
 
 logger = getLogger(__name__)
@@ -52,10 +57,14 @@ class ProfileView(viewsets.ModelViewSet):
     lookup_field = "user__id"
 
     def get_serializer_class(self):
-        if self.action in ("filmography",):
+        if self.action in ("filmography", "movie_approvals"):
             return MovieSerializerSummary
         if self.action in ("submissions"):
             return SubmissionEntrySerializer
+        if self.action == "notifications":
+            return NotificationSerializer
+        if self.action == "crew_approvals":
+            return CrewMemberRequestSerializer
         return ProfileDetailSerializer
 
     @action(methods=["get"], detail=True)
@@ -63,11 +72,13 @@ class ProfileView(viewsets.ModelViewSet):
         profile = self.get_object()
         queryset = profile.movies
         if self.request.user != profile.user:
-            queryset = queryset.filter(state=MOVIE_STATE.PUBLISHED)
+            queryset = queryset.filter(
+                Q(state=MOVIE_STATE.PUBLISHED) | Q(crewmember__role__name="Director")
+            )
         movies = queryset.distinct()
         return self._build_paginated_response(movies)
 
-    @action(methods=["get"], detail=True)
+    @action(methods=["get"], detail=True, permission_classes=[IsOwnProfile])
     def submissions(self, pk=None, **kwargs):
         profile = self.get_object()
         if self.request.user != profile.user:
@@ -79,6 +90,39 @@ class ProfileView(viewsets.ModelViewSet):
         for order in orders:
             movies.extend(order.movies.all())
         return self._build_paginated_response(movies)
+
+    @action(methods=["get"], detail=True, permission_classes=[IsOwnProfile])
+    def notifications(self, pk=None, **kwargs):
+        profile = self.get_object()
+        notifications = profile.notifications.all()
+        return self._build_paginated_response(notifications)
+
+    @action(
+        methods=["get"],
+        detail=True,
+        permission_classes=[IsOwnProfile],
+        url_path="movie-approvals",
+    )
+    def movie_approvals(self, pk=None, **kwargs):
+        profile = self.get_object()
+        movies = profile.movies.filter(
+            crewmember__role__name="Director", approved__isnull=True
+        ).all()
+        return self._build_paginated_response(movies)
+
+    @action(
+        methods=["get"],
+        detail=True,
+        permission_classes=[IsOwnProfile],
+        url_path="crew-approvals",
+    )
+    def crew_approvals(self, pk=None, **kwargs):
+        profile = self.get_object()
+        my_movies = profile.movies.filter(crewmember__role__name="Director").all()
+        crew_requests = CrewMemberRequest.objects.filter(
+            movie__in=my_movies, state=CREW_MEMBER_REQUEST_STATE.SUBMITTED
+        ).all()
+        return self._build_paginated_response(crew_requests)
 
     def _build_paginated_response(self, queryset):
         page = self.paginate_queryset(queryset)
