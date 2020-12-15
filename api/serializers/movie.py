@@ -188,6 +188,7 @@ class MovieSerializerSummary(serializers.ModelSerializer):
             "crew",
             "state",
             "score",
+            "created_at",
             "recommend_count",
         ]
 
@@ -243,6 +244,7 @@ class MovieSerializer(serializers.ModelSerializer):
             "publish_on",
             "contest",
             "about",
+            "approved",
         ]
         read_only_fields = ["about", "state"]
 
@@ -322,7 +324,8 @@ class MovieSerializer(serializers.ModelSerializer):
         creator_is_director = any(
             role.get("name") == "Director" for role in creator_roles
         )
-        validated_data["verified"] = creator_is_director
+        if creator_is_director:
+            validated_data["approved"] = creator_is_director
         movie = super().create(validated_data)
         movie.genres.set(self._get_or_create_genres(genres_data))
         self._attach_creator_roles(creator_roles, user, movie, creator_is_director)
@@ -333,7 +336,7 @@ class MovieSerializer(serializers.ModelSerializer):
 
     def update(self, movie, validated_data):
         logger.debug(f"update::{validated_data}")
-        user = validated_data.pop("user")
+        user = validated_data.pop("user", None)
         package_data = None
         if "package" in validated_data:
             package_data = validated_data.pop("package")
@@ -351,7 +354,8 @@ class MovieSerializer(serializers.ModelSerializer):
         creator_is_director = any(
             role.get("name") == "Director" for role in creator_roles
         )
-        validated_data["verified"] = creator_is_director
+        if creator_is_director and 'approved' not in validated_data:
+            validated_data["approved"] = creator_is_director
 
         if creator_roles:
             self._attach_creator_roles(creator_roles, user, movie, creator_is_director)
@@ -629,8 +633,9 @@ class CrewMemberRequestSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
     role = RoleSerializer(read_only=True)
     requestor = UserSerializer(read_only=True)
-    movie_detail = MovieSerializerSummary(read_only=True)
+    movie_title = serializers.CharField(source="movie.title", read_only=True)
 
+    # write only
     name = serializers.CharField(write_only=True)
     email = serializers.EmailField(write_only=True)
     roles = serializers.PrimaryKeyRelatedField(
@@ -648,10 +653,16 @@ class CrewMemberRequestSerializer(serializers.ModelSerializer):
             "requestor",
             "user",
             "role",
-            "movie_detail",
+            "movie_title",
             "state",
         ]
-        read_only_fields = ["id", "requestor", "role", "user", "movie_detail", "state"]
+        read_only_fields = [
+            "id",
+            "requestor",
+            "role",
+            "user",
+            "movie_title",
+        ]
 
     def _create_new_user(self, name, email):
         email = email.strip().lower()
