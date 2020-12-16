@@ -354,7 +354,7 @@ class MovieSerializer(serializers.ModelSerializer):
         creator_is_director = any(
             role.get("name") == "Director" for role in creator_roles
         )
-        if creator_is_director and 'approved' not in validated_data:
+        if creator_is_director and "approved" not in validated_data:
             validated_data["approved"] = creator_is_director
 
         if creator_roles:
@@ -673,7 +673,10 @@ class CrewMemberRequestSerializer(serializers.ModelSerializer):
             user = User.objects.get(email=email)
         except User.DoesNotExist:
             user = User.objects.create_user(
-                first_name=first_name, last_name=last_name, username=email, email=email,
+                first_name=first_name,
+                last_name=last_name,
+                username=email,
+                email=email,
             )
         return user
 

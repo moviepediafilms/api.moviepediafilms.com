@@ -53,7 +53,7 @@ class TemplateVariables:
         return "notification"
 
 
-def email_trigger(user, template_id, fail_silently=True, **kwargs):
+def email_trigger(user, template_id, fail_silently=False, **kwargs):
     if "user" not in kwargs:
         kwargs["user"] = user
     args_needed = template_register[template_id]
@@ -66,7 +66,11 @@ def email_trigger(user, template_id, fail_silently=True, **kwargs):
 
 
 def build_email(to, subject=None, body=None, template_id=None, template_data=None):
-    email = EmailMessage(subject, body, to=to,)
+    email = EmailMessage(
+        subject,
+        body,
+        to=to,
+    )
     if template_id:
         email.template_id = template_id
     if template_data:

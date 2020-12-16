@@ -214,7 +214,9 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-            options={"unique_together": {("owner", "name")},},
+            options={
+                "unique_together": {("owner", "name")},
+            },
         ),
         migrations.CreateModel(
             name="Package",
@@ -654,7 +656,9 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-            options={"unique_together": {("movie", "author")},},
+            options={
+                "unique_together": {("movie", "author")},
+            },
         ),
         migrations.CreateModel(
             name="CrewMemberRequest",
@@ -710,9 +714,12 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-            options={"unique_together": {("requestor", "movie", "user", "role")},},
+            options={
+                "unique_together": {("requestor", "movie", "user", "role")},
+            },
         ),
         migrations.AlterUniqueTogether(
-            name="crewmember", unique_together={("movie", "profile", "role")},
+            name="crewmember",
+            unique_together={("movie", "profile", "role")},
         ),
     ]

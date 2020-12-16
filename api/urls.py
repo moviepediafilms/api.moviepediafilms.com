@@ -2,6 +2,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from api.views import auth, profile, movie, payment
 
+app_name = "api"
 
 router = DefaultRouter()
 router.register("profile", profile.ProfileView, basename="profile")
@@ -36,8 +37,9 @@ router.register("contest", movie.ContestView, basename="contest")
 router.register("movies-by", movie.MoviesByView, basename="contest")
 router.register("account", auth.AccountVerifyView, basename="account")
 
+
 urlpatterns = [
     path("", include(router.urls)),
-    path("auth/", auth.AuthTokenView.as_view()),
+    path("auth/", auth.AuthTokenView.as_view(), name="login"),
     path("payment/verify/", payment.VerifyPayment.as_view()),
 ]

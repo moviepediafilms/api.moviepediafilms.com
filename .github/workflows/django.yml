@@ -27,9 +27,17 @@ jobs:
         pipenv install --dev
     - name: Run Tests
       run: |
-        pipenv run python manage.py test
+        pipenv run coverage run --source='.' manage.py test api.tests
+        pipenv run coverage xml --omit=moviepedia/*,manage.py
       env:
         SECRET_KEY: testingsecretkey
         IN_TEST: true
         DEBUG: true
         LOG_PATH: moviepedia.log
+        LOG_PATH_JOB: jobs.moviepedia.log
+    - name: Upload Unittest Coverage Report
+      - uses: codecov/codecov-action@v1
+      with:
+        file: ./coverage.xml
+        fail_ci_if_error: false
+        verbose: true 

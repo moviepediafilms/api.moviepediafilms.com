@@ -82,7 +82,8 @@ class MovieView(
     def get_queryset(self):
         if self.action == "partial_update":
             return Movie.objects.filter(
-                crewmember__role__name="Director", crewmember__profile=self.request.user.profile
+                crewmember__role__name="Director",
+                crewmember__profile=self.request.user.profile,
             ).distinct()
         return Movie.objects.filter(state=MOVIE_STATE.PUBLISHED)
 
@@ -208,7 +209,9 @@ class MovieWatchlistView(
 
 
 class MovieRecommendView(
-    viewsets.GenericViewSet, mixins.DestroyModelMixin, mixins.UpdateModelMixin,
+    viewsets.GenericViewSet,
+    mixins.DestroyModelMixin,
+    mixins.UpdateModelMixin,
 ):
     serializer = MovieSerializerSummary
 
@@ -389,7 +392,9 @@ class ContestView(viewsets.GenericViewSet, mixins.ListModelMixin):
         }.get(self.action, ContestSerializer)
 
     @action(
-        methods=["get"], detail=True, url_path="top-creators",
+        methods=["get"],
+        detail=True,
+        url_path="top-creators",
     )
     def top_creators(self, request, pk=None, **kwargs):
         contest = self.get_object()
@@ -397,7 +402,9 @@ class ContestView(viewsets.GenericViewSet, mixins.ListModelMixin):
         return self._paginated_response(top_creators)
 
     @action(
-        methods=["get"], detail=True, url_path="top-curators",
+        methods=["get"],
+        detail=True,
+        url_path="top-curators",
     )
     def top_curators(self, request, pk=None, **kwargs):
         contest = self.get_object()
