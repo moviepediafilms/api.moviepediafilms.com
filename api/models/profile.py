@@ -74,7 +74,7 @@ class Profile(models.Model):
         logger.info(f"new_onboarding/old_onboarding: {new_onboarding}/{old_onboarding}")
         if new_onboarding or old_onboarding:
             logger.info(f"user onboarded! {self.user.email}")
-            email_trigger(self.user, TEMPLATES.WELCOME)
-            logger.info("welcome email sent")
-            email_trigger(self.user, TEMPLATES.VERIFY)
-            logger.info("verification email sent")
+            success = email_trigger(self.user, TEMPLATES.WELCOME)
+            logger.info(f"welcome email sent: {success}")
+            success = email_trigger(self.user, TEMPLATES.VERIFY)
+            logger.info(f"verification email sent: {success}")

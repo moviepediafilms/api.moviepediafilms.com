@@ -1,3 +1,4 @@
+from api.models.profile import Profile
 from logging import getLogger
 import requests
 from django.contrib.auth.models import User
@@ -44,22 +45,48 @@ class ActivationResentSerializer(Serializer):
         required=True, error_messages={"required": _("You must provide email")}
     )
 
+    def validate_email(self, email):
+        return email.lower()
+
+    def validate(self, validated_data):
+        email = validated_data["email"]
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            # fail silently for security reasons
+            logger.error(f"{email}: Accont activation requested for unregistered email")
+            pass
+        else:
+            if user.is_active:
+                logger.info(
+                    f"{email}: Accont activation requested for already active user email"
+                )
+                raise ValidationError(
+                    "The account is already active. Please login or click on forgot password"
+                )
+        return validated_data
+
     def save(self, **kwargs):
         email = self.validated_data["email"]
         try:
             user = User.objects.get(email=email.lower())
         except User.DoesNotExist:
             # fail silently for security reasons
-            logger.error(f"Accont activation requested for unregistered email: {email}")
             pass
         else:
             profile = getattr(user, "profile", None)
-            logger.info(f"Accont activation requested for registered email: {email}")
+            logger.info(f"{email}:Accont activation requested for registered email")
             if not profile:
-                logger.error("User does  not have a profile associated with him")
-                return
+                logger.warn(
+                    f"{email}: User does not have a profile associated with him! creating a profile for him"
+                )
+                profile = Profile.objects.create(user=user)
+                profile.save()
+                logger.warn(f"{email}: Empty profile created!")
             email_trigger(
-                profile.user, TEMPLATES.VERIFY, fail_silently=False,
+                profile.user,
+                TEMPLATES.VERIFY,
+                fail_silently=False,
             )
 
 

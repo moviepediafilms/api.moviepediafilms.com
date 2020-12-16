@@ -18,7 +18,7 @@ class SendgridEmailBackend(BaseEmailBackend):
             self.api_key = kwargs["api_key"]
         else:
             self.api_key = getattr(settings, "SENDGRID_API_KEY", None)
-
+        print(self.api_key)
         if not self.api_key:
             raise ImproperlyConfigured(
                 """
@@ -26,6 +26,9 @@ class SendgridEmailBackend(BaseEmailBackend):
             )
         self.sg = sendgrid.SendGridAPIClient(api_key=self.api_key)
         self.dry_run = not getattr(settings, "PRODUCTION", False)
+        logger.info(
+            f"sendgrid initialized with key: {bool(self.api_key)} and dry_run: {self.dry_run}"
+        )
 
     def send_messages(self, emails):
         if not emails:

@@ -18,6 +18,10 @@ import dj_database_url
 DEBUG = os.getenv("DEBUG") == "true"
 PRODUCTION = os.getenv("PRODUCTION") == "true"
 
+LOG_PATH = os.getenv("LOG_PATH", "api.moviepediafilms.log")
+LOG_PATH_JOB = os.getenv("LOG_PATH", "jobs.moviepediafilms.log")
+handlers = ["console"] if DEBUG else ["file"]
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": True,
@@ -36,35 +40,35 @@ LOGGING = {
             "class": "logging.handlers.RotatingFileHandler",
             "maxBytes": 1024 * 1024 * 5,
             "backupCount": 5,
-            "filename": os.getenv("LOG_PATH"),
+            "filename": LOG_PATH,
             "formatter": "simple_format",
         },
         "job_file": {
             "class": "logging.handlers.RotatingFileHandler",
             "maxBytes": 1024 * 1024 * 5,
             "backupCount": 5,
-            "filename": os.getenv("LOG_PATH_JOB"),
+            "filename": LOG_PATH_JOB,
             "formatter": "simple_format",
         },
     },
     "loggers": {
         "django": {
-            "handlers": ["console"] if DEBUG else ["file"],
+            "handlers": handlers,
             "level": "INFO",
             "propagate": True,
         },
         "app": {
-            "handlers": ["console"] if DEBUG else ["file"],
+            "handlers": handlers,
             "level": "DEBUG",
             "propagate": False,
         },
         "api": {
-            "handlers": ["console"] if DEBUG else ["file"],
+            "handlers": handlers,
             "level": "DEBUG",
             "propagate": False,
         },
         "api.management": {
-            "handlers": ["console"] if DEBUG else ["job_file"],
+            "handlers": handlers,
             "level": "DEBUG",
             "propagate": False,
         },
@@ -213,6 +217,7 @@ REST_FRAMEWORK = {
     ],
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
     "PAGE_SIZE": 10,
+    "TEST_REQUEST_DEFAULT_FORMAT": "json",
 }
 
 # Security and CORS settings
@@ -233,7 +238,12 @@ if PRODUCTION:
     SESSION_COOKIE_SECURE = True
     SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
 
-FIXTURE_DIRS = (os.path.join(BASE_DIR, "fixtures/",),)
+FIXTURE_DIRS = (
+    os.path.join(
+        BASE_DIR,
+        "fixtures/",
+    ),
+)
 
 # Third party API and Secret Keys
 

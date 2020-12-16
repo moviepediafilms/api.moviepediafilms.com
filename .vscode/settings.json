@@ -1,9 +1,19 @@
 {
+    "python.testing.pytestEnabled": false,
+    "python.testing.unittestEnabled": true,
+    "python.testing.unittestArgs": [
+        "-v",
+        "-s",
+        "./api",
+        "-p",
+        "test_*.py"
+    ],
     "python.pythonPath": "/home/zeeshan/.local/share/virtualenvs/api.moviepediafilms.com-IjVdr9Jv/bin/python",
     "python.autoComplete.extraPaths": [
         "/home/zeeshan/.local/share/virtualenvs/api.moviepediafilms.com-IjVdr9Jv/lib/python3.8/site-packages/"
     ],
     "python.linting.flake8Args": [
         "--ignore=W503,E501"
-    ]
+    ],
+    "python.testing.nosetestsEnabled": false
 }
