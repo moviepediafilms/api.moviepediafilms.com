@@ -36,7 +36,7 @@ jobs:
         LOG_PATH: moviepedia.log
         LOG_PATH_JOB: jobs.moviepedia.log
     - name: Upload Unittest Coverage Report
-      - uses: codecov/codecov-action@v1
+      uses: codecov/codecov-action@v1
       with:
         file: ./coverage.xml
         fail_ci_if_error: false
