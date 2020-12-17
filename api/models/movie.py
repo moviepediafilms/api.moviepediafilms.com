@@ -120,7 +120,7 @@ class CrewMember(models.Model):
             else:
                 logger.debug("Submission by crew member")
                 email_trigger(director, TEMPLATES.DIRECTOR_APPROVAL)
-                email_trigger(self.order.owner, TEMPLATES.SUBMIT_CONFIRM_CREW)
+                email_trigger(self.movie.order.owner, TEMPLATES.SUBMIT_CONFIRM_CREW)
 
 
 class CrewMemberRequest(models.Model):
