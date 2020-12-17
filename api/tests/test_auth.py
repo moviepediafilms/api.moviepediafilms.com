@@ -1,21 +1,11 @@
-from logging import getLogger
-from functools import partial
-
 from django.test import TestCase
 from django.core import mail
 from unittest import mock
-from rest_framework.reverse import reverse
-from rest_framework.test import APIClient
+
 
 from api.models import User
 from api.emails import TEMPLATES
-
-logger = getLogger("tests")
-reverse = partial(reverse, args=["v1"])
-
-
-class APITestCaseMixin:
-    client_class = APIClient
+from .base import reverse, APITestCaseMixin
 
 
 class WithPayloadMixin:
@@ -54,11 +44,6 @@ class WithPayloadMixin:
         }
 
 
-class LoggedInTestCaseMixin:
-    def setUp(self):
-        super().setUp()
-
-
 class SignUpTestCase(APITestCaseMixin, WithPayloadMixin, TestCase):
     def test_signup_ok(self):
         res = self.client.post(reverse("api:profile-list"), data=self.payload)
@@ -80,7 +65,7 @@ class SignUpTestCase(APITestCaseMixin, WithPayloadMixin, TestCase):
 
 
 class SignInTestCase(APITestCaseMixin, WithPayloadMixin, TestCase):
-    fixtures = ["test_partial_profile"]
+    fixtures = ["test_auth"]
 
     def test_signup_partial(self):
         profile_id = 1

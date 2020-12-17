@@ -99,30 +99,6 @@ class Movie(models.Model):
         score += self.jury_rating or 0
         return score / 2
 
-    def save(self, *args, **kwargs):
-        is_new = self.id is None
-        super().save(*args, **kwargs)
-        if is_new:
-            cm = CrewMember.objects.filter(movie=self, role__name="Director").first()
-            director = cm and cm.profile.user
-            if not director:
-                logger.debug("No director found on movie")
-                return
-            if director == self.order.owner:
-                logger.debug("Submission by Director")
-                # d-a2b26474eff54ca98154f1ac24cae8c0
-                email_trigger(director, TEMPLATES.SUBMIT_CONFIRM_DIRECTOR)
-            else:
-                # either director is not yet set (very unlikely to happen)
-                # or a crew member made this submission
-                logger.debug("Submission by crew member")
-                # 2 emails to send, one to director, another to the crew member who made the submission
-                # d-f7a6a234d110411ea140e9a43fcd3fe8 to director, handle full/partial/full profile
-                email_trigger(director, TEMPLATES.DIRECTOR_APPROVAL)
-                # d-9937bf56a2a34301ab7ae37a94bc5a0c to the crew member
-                email_trigger(self.order.owner, TEMPLATES.SUBMIT_CONFIRM_CREW)
-                # add notification to director's profile
-
 
 class CrewMember(models.Model):
     movie = models.ForeignKey("Movie", on_delete=models.CASCADE)
@@ -132,6 +108,19 @@ class CrewMember(models.Model):
     class Meta:
         # one person(profile) cannot be a Director(Role) multiple times in a movie
         unique_together = [["movie", "profile", "role"]]
+
+    def save(self, *args, **kwargs):
+        is_new = self.id is None
+        super().save(*args, **kwargs)
+        if is_new and self.role.name == "Director":
+            director = self.profile.user
+            if director == self.movie.order.owner:
+                logger.debug("Submission by Director")
+                email_trigger(director, TEMPLATES.SUBMIT_CONFIRM_DIRECTOR)
+            else:
+                logger.debug("Submission by crew member")
+                email_trigger(director, TEMPLATES.DIRECTOR_APPROVAL)
+                email_trigger(self.order.owner, TEMPLATES.SUBMIT_CONFIRM_CREW)
 
 
 class CrewMemberRequest(models.Model):
@@ -159,11 +148,12 @@ class CrewMemberRequest(models.Model):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
+
         logger.debug("crew_membership changed")
-        cmr = self
-        if cmr.state == CREW_MEMBER_REQUEST_STATE.APPROVED:
+
+        if self.state == CREW_MEMBER_REQUEST_STATE.APPROVED:
             cm, _ = CrewMember.objects.get_or_create(
-                movie=cmr.movie, profile=cmr.user.profile, role=cmr.role
+                movie=self.movie, profile=self.user.profile, role=self.role
             )
             logger.info(f"{cm} a crew membership was approved and added to movie")
 

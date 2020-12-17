@@ -25,7 +25,6 @@ logger = getLogger(__name__)
 
 class IsOwnProfile(permissions.BasePermission):
     def has_object_permission(self, request, view, object: Profile):
-        logger.debug(f"{object.user} == {request.user}")
         return object.user == request.user
 
 
@@ -71,10 +70,14 @@ class ProfileView(viewsets.ModelViewSet):
     def filmography(self, pk=None, **kwargs):
         profile = self.get_object()
         queryset = profile.movies
-        if self.request.user != profile.user:
+        is_private_view = self.request.user == profile.user
+        if is_private_view:
             queryset = queryset.filter(
-                Q(state=MOVIE_STATE.PUBLISHED) | Q(crewmember__role__name="Director")
+                Q(state=MOVIE_STATE.PUBLISHED)
+                | (Q(crewmember__role__name="Director") & Q(approved=True))
             )
+        else:
+            queryset = queryset.filter(state=MOVIE_STATE.PUBLISHED)
         movies = queryset.distinct()
         return self._build_paginated_response(movies)
 

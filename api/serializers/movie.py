@@ -681,7 +681,7 @@ class CrewMemberRequestSerializer(serializers.ModelSerializer):
         return user
 
     def create(self, validated_data):
-        requestor = validated_data.pop("user")
+        requestor = validated_data.pop("logged_in_user")
         movie = validated_data.get("movie")
         validated_data["requestor"] = requestor
         email = validated_data.pop("email")
