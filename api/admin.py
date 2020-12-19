@@ -50,9 +50,10 @@ class MovieAdmin(admin.ModelAdmin):
         "created_at",
         "director",
         "submited_by",
+        "poster",
     ]
     ordering = ["-created_at", "title"]
-    readonly_fields = ["approved", "poster"]
+    readonly_fields = ["poster"]
 
     def submited_by(self, movie):
         return movie.order.owner

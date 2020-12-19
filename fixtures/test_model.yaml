@@ -1,0 +1,231 @@
+- model: auth.user
+  pk: 1
+  fields:
+    password: ''
+    last_login: null
+    is_superuser: false
+    username: test@example.com
+    first_name: Test
+    last_name: User
+    email: test@example.com
+    is_staff: false
+    is_active: true
+    date_joined: 2020-12-15 03:13:40.410560+00:00
+    groups: []
+    user_permissions: []
+- model: api.profile
+  pk: 1
+  fields:
+    onboarded: true
+    user: 1
+    about: null
+    city: null
+    mobile: null
+    gender: null
+    dob: null
+    image: null
+    is_celeb: false
+    mcoins: 0.0
+    rank: -1
+    level: 1
+    pop_score: 0.0
+    engagement_score: 0.0
+    reviews_given: 0
+    roles: []
+    follows: []
+    watchlist: []
+    titles: []
+- model: auth.user
+  pk: 2
+  fields:
+    password: ''
+    last_login: null
+    is_superuser: false
+    username: test2@example.com
+    first_name: Test2
+    last_name: User
+    email: test2@example.com
+    is_staff: false
+    is_active: true
+    date_joined: 2020-12-15 03:13:40.410560+00:00
+    groups: []
+    user_permissions: []
+- model: api.profile
+  pk: 2
+  fields:
+    onboarded: true
+    user: 2
+    about: null
+    city: null
+    mobile: null
+    gender: null
+    dob: null
+    image: null
+    is_celeb: false
+    mcoins: 0.0
+    rank: -1
+    level: 1
+    pop_score: 0.0
+    engagement_score: 0.0
+    reviews_given: 0
+    roles: []
+    follows: []
+    watchlist: []
+    titles: []
+- model: auth.user
+  pk: 3
+  fields:
+    password: ''
+    last_login: null
+    is_superuser: false
+    username: test3@example.com
+    first_name: Test3
+    last_name: User
+    email: test3@example.com
+    is_staff: false
+    is_active: true
+    date_joined: 2020-12-15 03:13:40.410560+00:00
+    groups: []
+    user_permissions: []
+- model: api.profile
+  pk: 3
+  fields:
+    onboarded: true
+    user: 3
+    about: null
+    city: null
+    mobile: null
+    gender: null
+    dob: null
+    image: null
+    is_celeb: false
+    mcoins: 0.0
+    rank: -1
+    level: 1
+    pop_score: 0.0
+    engagement_score: 0.0
+    reviews_given: 0
+    roles: []
+    follows: []
+    watchlist: []
+    titles: []
+- model: api.role
+  pk: 1
+  fields:
+    name: Director
+- model: api.role
+  pk: 2
+  fields:
+    name: Actor
+- model: api.movielanguage
+  pk: 1
+  fields:
+    name: English
+- model: api.genre
+  pk: 1
+  fields:
+    name: drama
+- model: api.movie
+  pk: 1
+  fields:
+    created_at: 2020-12-15 05:23:15.167332+00:00
+    order: 1
+    package: null
+    state: S
+    title: Submitted Movie
+    link: http://facebook.com
+    runtime: 100.0
+    about: ''
+    lang: 1
+    poster: null
+    month: null
+    publish_on: null
+    jury_rating: 0.0
+    audience_rating: 0.0
+    contest: null
+    recommend_count: 0
+    review_count: 0
+    approved: true
+    genres:
+    - 1
+- model: api.movie
+  pk: 2
+  fields:
+    created_at: 2020-12-15 05:23:15.167332+00:00
+    order: 1
+    package: null
+    state: A
+    title: Approved by Moviepedia Movie
+    link: http://facebook.com
+    runtime: 100.0
+    about: ''
+    lang: 1
+    poster: null
+    month: null
+    publish_on: null
+    jury_rating: 0.0
+    audience_rating: 0.0
+    contest: null
+    recommend_count: 0
+    review_count: 0
+    approved: true
+    genres:
+    - 1
+- model: api.movie
+  pk: 3
+  fields:
+    created_at: 2020-12-15 05:23:15.167332+00:00
+    order: 1
+    package: null
+    state: S
+    title: Declined by Director
+    link: http://facebook.com
+    runtime: 100.0
+    about: ''
+    lang: 1
+    poster: null
+    month: null
+    publish_on: null
+    jury_rating: 0.0
+    audience_rating: 0.0
+    contest: null
+    recommend_count: 0
+    review_count: 0
+    approved: false
+    genres:
+    - 1
+- model: api.movie
+  pk: 3
+  fields:
+    created_at: 2020-12-15 05:23:15.167332+00:00
+    order: 1
+    package: null
+    state: S
+    title: Pending Approval
+    link: http://facebook.com
+    runtime: 100.0
+    about: ''
+    lang: 1
+    poster: null
+    month: null
+    publish_on: null
+    jury_rating: 0.0
+    audience_rating: 0.0
+    contest: null
+    recommend_count: 0
+    review_count: 0
+    approved: null
+    genres:
+    - 1
+- model: api.crewmember
+  pk: 1
+  fields:
+    movie: 1
+    profile: 1
+    role: 1
+- model: api.crewmember
+  pk: 2
+  fields:
+    movie: 1
+    profile: 2
+    role: 2
