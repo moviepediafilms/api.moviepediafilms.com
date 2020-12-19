@@ -108,13 +108,13 @@ class Command(BaseCommand):
         movies = (
             Movie.objects.filter(id__in=[m.id for m in directed_movies])
             .annotate(rating_count=ratings_count)
-            .annotate(review_count=reviews_count)
+            .annotate(actual_review_count=reviews_count)
         )
         review_count = 0
         rating_count = 0
         for movie in movies:
             rating_count += min(RATING_LIMIT, movie.rating_count)
-            review_count += min(REVIEW_LIMIT, movie.review_count)
+            review_count += min(REVIEW_LIMIT, movie.actual_review_count)
         logger.debug(f"rating: {rating_count}, review: {review_count}")
         return rating_count * RATING_MULTIPYER + review_count * REVIEW_MULTIPYER
 
