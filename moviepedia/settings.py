@@ -141,7 +141,11 @@ WSGI_APPLICATION = "moviepedia.wsgi.application"
 
 
 DATABASES = {"default": dj_database_url.config(conn_max_age=600)}
-
+if "test" in sys.argv:
+    DATABASES["default"] = {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": "test.sqlite3",
+    }
 
 # Password validation
 # https://docs.djangoproject.com/en/3.0/ref/settings/#auth-password-validators

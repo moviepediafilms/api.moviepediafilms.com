@@ -1,4 +1,3 @@
-from api.views.profile import IsCreateSafeOrIsOwner
 from api.models.movie import CrewMember
 from logging import getLogger
 
@@ -7,7 +6,7 @@ from django.utils import timezone
 from django.db import transaction
 
 
-from rest_framework import mixins, exceptions, parsers, viewsets, response, permissions
+from rest_framework import mixins, parsers, viewsets, response, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from api.constants import MOVIE_STATE, RECOMMENDATION
@@ -27,7 +26,6 @@ from api.serializers.movie import (
     TopCuratorSerializer,
 )
 from api.models import (
-    User,
     Movie,
     MoviePoster,
     MovieLanguage,
@@ -213,22 +211,8 @@ class MovieRecommendView(
     mixins.DestroyModelMixin,
     mixins.UpdateModelMixin,
 ):
-    serializer = MovieSerializerSummary
-
-    def get_queryset(self):
-        if self.action == "movies":
-            return User.objects
-        return Movie.objects
-
-    @action(methods=["get"], detail=True)
-    def movies(self, request, pk=None, **kwargs):
-        user = self.get_object()
-        movie_list = MovieList.objects.filter(owner=user, name=RECOMMENDATION).first()
-        movies = []
-        if movie_list:
-            movies = movie_list.movies.all()
-        logger.debug(f"{pk} {user} {movies}")
-        return Response(data=MovieSerializerSummary(instance=movies, many=True).data)
+    ordering_fields = []
+    queryset = Movie.objects.filter(state=MOVIE_STATE.PUBLISHED)
 
     def _is_movie_live(self, movie):
         return (

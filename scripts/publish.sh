@@ -9,6 +9,7 @@ GITHUB_TOKEN=$GITHUB_TOKEN
 TMP_REQ=/tmp/create_pr_req.json
 TMP_RES=/tmp/create_pr_res.json
 TMP_MERGE_RES=/tmp/merge_res.json
+PR_TITLE=$(git show -s --format=%s)
 
 clean() {
 
@@ -37,7 +38,7 @@ merge() {
 raise_pr() {
     DATA="{\"base\": \"master\",
        \"head\":\"${CURR_BRANCH}\",
-       \"title\":\"Automatic PR\",
+       \"title\":\"${PR_TITLE}\",
        \"body\":\"PR raised by publish.sh\"}"
     echo $DATA >$TMP_REQ
     GITHUB_PR_LINK=https://api.github.com/repos/$GITHUB_REPO/pulls

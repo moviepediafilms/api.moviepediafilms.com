@@ -2,7 +2,6 @@ from logging import getLogger
 from django.db import models
 from django.contrib.auth.models import User
 from api.emails import email_trigger, TEMPLATES
-from django.utils.translation import gettext_lazy as _
 
 from api.constants import (
     MOVIE_STATE,
@@ -63,7 +62,9 @@ class Movie(models.Model):
     runtime = models.FloatField()
     genres = models.ManyToManyField(Genre)
     about = models.TextField()
-    lang = models.ForeignKey(MovieLanguage, on_delete=models.CASCADE)
+    lang = models.ForeignKey(
+        MovieLanguage, on_delete=models.SET_NULL, null=True, blank=True
+    )
     # to be uploaded by user (Poster)
     poster = models.URLField(null=True, blank=True)
     month = models.DateField(null=True, blank=True)
@@ -74,7 +75,7 @@ class Movie(models.Model):
     audience_rating = models.FloatField(null=True, blank=True, default=0)
     contest = models.ForeignKey(
         "Contest",
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name="movies",

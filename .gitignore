@@ -6,3 +6,4 @@ testdb
 *.log
 coverage.xml
 .coverage
+buglist.yaml

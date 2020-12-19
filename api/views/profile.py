@@ -1,6 +1,8 @@
+from api.models.movie import Movie
 from logging import getLogger
 
 from django.db.models import Count, Q
+from django.db.models.query import QuerySet
 from rest_framework import permissions, viewsets, mixins, parsers, response
 from rest_framework.decorators import action
 from api.serializers.movie import (
@@ -56,7 +58,7 @@ class ProfileView(viewsets.ModelViewSet):
     lookup_field = "user__id"
 
     def get_serializer_class(self):
-        if self.action in ("filmography", "movie_approvals"):
+        if self.action in ("filmography", "movie_approvals", "recommends"):
             return MovieSerializerSummary
         if self.action in ("submissions"):
             return SubmissionEntrySerializer
@@ -127,6 +129,18 @@ class ProfileView(viewsets.ModelViewSet):
         ).all()
         return self._build_paginated_response(crew_requests)
 
+    @action(methods=["get"], detail=True)
+    def recommends(self, pk=None, **kwargs):
+        profile = self.get_object()
+        movie_list = MovieList.objects.filter(
+            owner=profile.user, name=RECOMMENDATION
+        ).first()
+        movies = Movie.objects.none()
+        if movie_list:
+            movies = movie_list.movies.all()
+        logger.debug(f"{pk} {profile} {movies}")
+        return self._build_paginated_response(movies)
+
     def _build_paginated_response(self, queryset):
         page = self.paginate_queryset(queryset)
         if page is not None:
@@ -137,13 +151,13 @@ class ProfileView(viewsets.ModelViewSet):
 
 
 class AudienceLeaderboardView(viewsets.GenericViewSet, mixins.ListModelMixin):
-    queryset = Profile.objects.all()
+    queryset = Profile.objects.filter(is_celeb=False, rank__gte=0, onboarded=True)
     serializer_class = ProfileSerializer
     ordering = ["rank"]
 
 
 class FilmmakerLeaderboardView(viewsets.GenericViewSet, mixins.ListModelMixin):
-    queryset = Profile.objects.all()
+    queryset = Profile.objects.filter(is_celeb=False, onboarded=True)
     serializer_class = ProfileSerializer
     ordering = ["pop_score"]
 
