@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django import forms
 from api.models import (
     Profile,
     Role,
@@ -18,7 +19,7 @@ from api.models import (
 
 
 class ProfileAdmin(admin.ModelAdmin):
-    exclude = ["image", "follows"]
+    exclude = ["follows"]
     list_display = [
         "user",
         "city",
@@ -29,6 +30,7 @@ class ProfileAdmin(admin.ModelAdmin):
         "mcoins",
     ]
     list_filter = ["is_celeb", "gender"]
+    readonly_fields = ["image"]
 
 
 class RoleAdmin(admin.ModelAdmin):
@@ -37,6 +39,29 @@ class RoleAdmin(admin.ModelAdmin):
 
 class OrderAdmin(admin.ModelAdmin):
     list_display = ["order_id", "payment_id"]
+
+
+class MovieModelForm(forms.ModelForm):
+
+    poster = forms.ImageField(required=False)
+
+    fields = "__all__"
+
+    def clean_poster(self):
+        print("clean poster called")
+        print(self.cleaned_data)
+        # save poster for the film and return the URL for the same
+        return self.cleaned_data["poster"]
+
+    def save(self, commit=True):
+        print("save called")
+        poster = self.cleaned_data.pop("poster", None)
+        print(poster)
+        return super().save(commit=commit)
+
+    class Meta:
+        model = Movie
+        exclude = []
 
 
 class MovieAdmin(admin.ModelAdmin):

@@ -16,7 +16,7 @@ router.register("movie", movie.MovieView, basename="movie")
 router.register("review", movie.MovieReviewView, basename="review")
 router.register("review-like", movie.MovieReviewLikeView, basename="reviewlike")
 router.register("watchlist", movie.MovieWatchlistView, basename="watchlist")
-router.register("recommend", movie.MovieRecommendView, basename="recommen")
+router.register("recommend", movie.MovieRecommendView, basename="recommend")
 router.register("movie-list", movie.MovieListView, basename="movielist")
 router.register(
     "crew-member-request", movie.CrewMemberRequestView, basename="crewmemberrequest"
