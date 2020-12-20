@@ -269,6 +269,13 @@ class MovieSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["about", "state"]
 
+    def validate(self, attrs):
+        logger.debug("validating movie")
+        attrs.pop("genres")
+        attrs = super().validate(attrs)
+        logger.debug("validated")
+        return attrs
+
     def get_requestor_rating(self, movie):
         request = self.context.get("request")
         if request and request.user.is_authenticated:
@@ -524,6 +531,7 @@ class SubmissionSerializer(serializers.Serializer):
             data=payload, partial=self.partial, instance=self.instance
         )
         serializer.is_valid(raise_exception=True)
+        logger.debug("validate_payload:: is valid")
         return payload
 
     def create(self, validated_data):
