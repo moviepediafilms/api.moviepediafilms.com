@@ -49,11 +49,11 @@ class GenreSerializer(serializers.ModelSerializer):
         representation["name"] = representation["name"].title()
         return representation
 
-    def create(self, validated_data):
-        logger.info("="*100)
-        logger.info("validating genre ")
-        validated_data["name"] = validated_data["name"].lower()
-        return Genre.objects.get_or_create(**validated_data)
+    def validate_name(self, name):
+        name = name and name.lower()
+        if not Genre.objects.filter(name=name).exists():
+            raise ValidationError(f"Unknown genre '{name}'")
+        return name
 
 
 class MovieLanguageSerializer(serializers.ModelSerializer):
@@ -90,7 +90,7 @@ class RoleSerializer(serializers.ModelSerializer):
 
     def validate_name(self, name):
         if not Role.objects.filter(name=name).exists():
-            raise ValidationError(f"Unknow role '{name}'")
+            raise ValidationError(f"Unknown role '{name}'")
         return name
 
 
@@ -332,7 +332,9 @@ class MovieSerializer(serializers.ModelSerializer):
         )
         if creator_is_director:
             validated_data["approved"] = creator_is_director
+        logger.debug("before movie created")
         movie = super().create(validated_data)
+        logger.debug("after movie created")
         movie.genres.set(self._get_or_create_genres(genres_data))
         self._attach_creator_roles(creator_roles, user, movie, creator_is_director)
         self._attach_director_role(director_data, user, movie, creator_is_director)
