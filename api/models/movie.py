@@ -1,7 +1,6 @@
 from logging import getLogger
 from django.db import models
 from django.contrib.auth.models import User
-from api.emails import email_trigger, TEMPLATES
 
 from api.constants import (
     MOVIE_STATE,
@@ -100,6 +99,10 @@ class Movie(models.Model):
         score += self.jury_rating or 0
         return score / 2
 
+    # TODO: override save to check the change in approved attribute,
+    # and send email to owner of the order to inform them that the director
+    # has approved the movie submission.
+
 
 class CrewMember(models.Model):
     movie = models.ForeignKey("Movie", on_delete=models.CASCADE)
@@ -109,19 +112,6 @@ class CrewMember(models.Model):
     class Meta:
         # one person(profile) cannot be a Director(Role) multiple times in a movie
         unique_together = [["movie", "profile", "role"]]
-
-    def save(self, *args, **kwargs):
-        is_new = self.id is None
-        super().save(*args, **kwargs)
-        if is_new and self.role.name == "Director":
-            director = self.profile.user
-            if director == self.movie.order.owner:
-                logger.debug("Submission by Director")
-                email_trigger(director, TEMPLATES.SUBMIT_CONFIRM_DIRECTOR)
-            else:
-                logger.debug("Submission by crew member")
-                email_trigger(director, TEMPLATES.DIRECTOR_APPROVAL)
-                email_trigger(self.movie.order.owner, TEMPLATES.SUBMIT_CONFIRM_CREW)
 
 
 class CrewMemberRequest(models.Model):
