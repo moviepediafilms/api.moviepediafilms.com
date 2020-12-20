@@ -48,6 +48,9 @@ class GenreSerializer(serializers.ModelSerializer):
     class Meta:
         model = Genre
         fields = ["id", "name"]
+        extra_kwargs = {
+            "name": {"validators": []},
+        }
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
@@ -55,20 +58,7 @@ class GenreSerializer(serializers.ModelSerializer):
         return representation
 
     def validate_name(self, name):
-        name = name and name.lower()
-        if not Genre.objects.filter(name=name).exists():
-            raise ValidationError(f"Unknown genre '{name}'")
-        return name
-
-    def create(self, validated_data):
-        name = validated_data.get("name")
-        try:
-            genre = Genre.objects.get(name=name)
-            logger.debug(f"genre `{name}` exists")
-        except MovieLanguage.DoesNotExist:
-            genre = Genre.objects.create(name=name)
-            logger.debug(f"New genre `{name}` added")
-        return genre
+        return name and name.lower()
 
 
 class MovieLanguageSerializer(serializers.ModelSerializer):
@@ -269,13 +259,6 @@ class MovieSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["about", "state"]
 
-    def validate(self, attrs):
-        logger.debug("validating movie")
-        attrs.pop("genres")
-        attrs = super().validate(attrs)
-        logger.debug("validated")
-        return attrs
-
     def get_requestor_rating(self, movie):
         request = self.context.get("request")
         if request and request.user.is_authenticated:
@@ -357,7 +340,7 @@ class MovieSerializer(serializers.ModelSerializer):
         logger.debug("before movie created")
         movie = super().create(validated_data)
         logger.debug("after movie created")
-        movie.genres.set(GenreSerializer().create(genres_data, many=True))
+        movie.genres.set(self._get_or_create_genres(genres_data))
         self._attach_creator_roles(creator_roles, user, movie, creator_is_director)
         self._attach_director_role(director_data, user, movie, creator_is_director)
         if not self._is_director_present(movie):
@@ -399,7 +382,7 @@ class MovieSerializer(serializers.ModelSerializer):
         movie = super().update(movie, validated_data)
 
         if genres_data:
-            movie.genres.set(GenreSerializer().create(genres_data, many=True))
+            movie.genres.set(self._get_or_create_genres(genres_data))
 
         if not self._is_director_present(movie):
             raise ValidationError("Director must be provided")
@@ -498,18 +481,6 @@ class MovieSerializer(serializers.ModelSerializer):
         names = [name.strip().lower() for name in names if name]
         existing_genres = list(Genre.objects.filter(name__in=names).all())
         logger.info(f"existing genres: {existing_genres}")
-        existing_genre_names = [genre.name for genre in existing_genres]
-        for name in names:
-            if name not in existing_genre_names:
-                try:
-                    genre, _ = Genre.objects.get_or_create(name=name)
-                except Exception as ex:
-                    logger.error(f"Error getting ot creating Genre `{name}`")
-                    logger.error(str(ex))
-                    logger.exception(ex)
-                else:
-                    logger.info(f"Creating Genre `{name}`")
-                    existing_genres.append(genre)
         return existing_genres
 
     def to_representation(self, instance):
