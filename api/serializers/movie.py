@@ -50,6 +50,8 @@ class GenreSerializer(serializers.ModelSerializer):
         return representation
 
     def create(self, validated_data):
+        logger.info("="*100)
+        logger.info("validating genre ")
         validated_data["name"] = validated_data["name"].lower()
         return Genre.objects.get_or_create(**validated_data)
 
