@@ -38,6 +38,11 @@ rzp_client = razorpay.Client(
     auth=(settings.RAZORPAY_API_KEY, settings.RAZORPAY_API_SECRET)
 )
 
+logger.info("testing info")
+logger.warning("testing warning")
+logger.error("testing error")
+logger.debug("testing debug")
+
 
 class GenreSerializer(serializers.ModelSerializer):
     class Meta:
@@ -49,9 +54,21 @@ class GenreSerializer(serializers.ModelSerializer):
         representation["name"] = representation["name"].title()
         return representation
 
+    def validate_name(self, name):
+        name = name and name.lower()
+        if not Genre.objects.filter(name=name).exists():
+            raise ValidationError(f"Unknown genre '{name}'")
+        return name
+
     def create(self, validated_data):
-        validated_data["name"] = validated_data["name"].lower()
-        return Genre.objects.get_or_create(**validated_data)
+        name = validated_data.get("name")
+        try:
+            genre = Genre.objects.get(name=name)
+            logger.debug(f"genre `{name}` exists")
+        except MovieLanguage.DoesNotExist:
+            genre = Genre.objects.create(name=name)
+            logger.debug(f"New genre `{name}` added")
+        return genre
 
 
 class MovieLanguageSerializer(serializers.ModelSerializer):
@@ -88,7 +105,7 @@ class RoleSerializer(serializers.ModelSerializer):
 
     def validate_name(self, name):
         if not Role.objects.filter(name=name).exists():
-            raise ValidationError(f"Unknow role '{name}'")
+            raise ValidationError(f"Unknown role '{name}'")
         return name
 
 
@@ -330,8 +347,10 @@ class MovieSerializer(serializers.ModelSerializer):
         )
         if creator_is_director:
             validated_data["approved"] = creator_is_director
+        logger.debug("before movie created")
         movie = super().create(validated_data)
-        movie.genres.set(self._get_or_create_genres(genres_data))
+        logger.debug("after movie created")
+        movie.genres.set(GenreSerializer().create(genres_data, many=True))
         self._attach_creator_roles(creator_roles, user, movie, creator_is_director)
         self._attach_director_role(director_data, user, movie, creator_is_director)
         if not self._is_director_present(movie):
@@ -373,7 +392,7 @@ class MovieSerializer(serializers.ModelSerializer):
         movie = super().update(movie, validated_data)
 
         if genres_data:
-            movie.genres.set(self._get_or_create_genres(genres_data))
+            movie.genres.set(GenreSerializer().create(genres_data, many=True))
 
         if not self._is_director_present(movie):
             raise ValidationError("Director must be provided")
@@ -471,12 +490,19 @@ class MovieSerializer(serializers.ModelSerializer):
         names = [name.get("name") for name in genres_data]
         names = [name.strip().lower() for name in names if name]
         existing_genres = list(Genre.objects.filter(name__in=names).all())
+        logger.info(f"existing genres: {existing_genres}")
         existing_genre_names = [genre.name for genre in existing_genres]
         for name in names:
             if name not in existing_genre_names:
-                genre, _ = Genre.objects.get_or_create(name=name)
-                logger.debug(f"Creating Genre `{name}`")
-                existing_genres.append(genre)
+                try:
+                    genre, _ = Genre.objects.get_or_create(name=name)
+                except Exception as ex:
+                    logger.error(f"Error getting ot creating Genre `{name}`")
+                    logger.error(str(ex))
+                    logger.exception(ex)
+                else:
+                    logger.info(f"Creating Genre `{name}`")
+                    existing_genres.append(genre)
         return existing_genres
 
     def to_representation(self, instance):
