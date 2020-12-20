@@ -473,8 +473,6 @@ class MovieSerializer(serializers.ModelSerializer):
         order.amount = rzp_order.get("amount")
         order.receipt_number = rzp_order.get("receipt")
         order.save()
-        movie.state = MOVIE_STATE.SUBMITTED
-        movie.save()
 
     def _get_or_create_genres(self, genres_data):
         names = [name.get("name") for name in genres_data]
