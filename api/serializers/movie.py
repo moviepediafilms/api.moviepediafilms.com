@@ -470,7 +470,7 @@ class MovieSerializer(serializers.ModelSerializer):
         existing_genre_names = [genre.name for genre in existing_genres]
         for name in names:
             if name not in existing_genre_names:
-                genre = Genre.objects.create(name=name)
+                genre = Genre.objects.get_or_create(name=name)
                 logger.debug(f"Creating Genre `{name}`")
                 existing_genres.append(genre)
         return existing_genres
