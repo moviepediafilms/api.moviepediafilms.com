@@ -49,6 +49,10 @@ class GenreSerializer(serializers.ModelSerializer):
         representation["name"] = representation["name"].title()
         return representation
 
+    def create(self, validated_data):
+        validated_data["name"] = validated_data["name"].lower()
+        return Genre.objects.get_or_create(**validated_data)
+
 
 class MovieLanguageSerializer(serializers.ModelSerializer):
     name = serializers.CharField(max_length=50)
