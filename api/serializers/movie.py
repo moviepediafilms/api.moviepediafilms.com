@@ -471,12 +471,19 @@ class MovieSerializer(serializers.ModelSerializer):
         names = [name.get("name") for name in genres_data]
         names = [name.strip().lower() for name in names if name]
         existing_genres = list(Genre.objects.filter(name__in=names).all())
+        logger.info(f"existing genres: {existing_genres}")
         existing_genre_names = [genre.name for genre in existing_genres]
         for name in names:
             if name not in existing_genre_names:
-                genre, _ = Genre.objects.get_or_create(name=name)
-                logger.debug(f"Creating Genre `{name}`")
-                existing_genres.append(genre)
+                try:
+                    genre, _ = Genre.objects.get_or_create(name=name)
+                except Exception as ex:
+                    logger.error(f"Error getting ot creating Genre `{name}`")
+                    logger.error(str(ex))
+                    logger.exception(ex)
+                else:
+                    logger.info(f"Creating Genre `{name}`")
+                    existing_genres.append(genre)
         return existing_genres
 
     def to_representation(self, instance):
