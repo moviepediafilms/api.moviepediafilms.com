@@ -38,11 +38,6 @@ rzp_client = razorpay.Client(
     auth=(settings.RAZORPAY_API_KEY, settings.RAZORPAY_API_SECRET)
 )
 
-logger.info("testing info")
-logger.warning("testing warning")
-logger.error("testing error")
-logger.debug("testing debug")
-
 
 class GenreSerializer(serializers.ModelSerializer):
     class Meta:
