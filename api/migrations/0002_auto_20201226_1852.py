@@ -7,33 +7,44 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0001_initial'),
+        ("api", "0001_initial"),
     ]
 
     operations = [
         migrations.RenameField(
-            model_name='profile',
-            old_name='rank',
-            new_name='creator_rank',
+            model_name="profile",
+            old_name="rank",
+            new_name="creator_rank",
         ),
         migrations.AddField(
-            model_name='profile',
-            name='curator_rank',
+            model_name="profile",
+            name="curator_rank",
             field=models.IntegerField(default=-1),
         ),
         migrations.AlterField(
-            model_name='movie',
-            name='about',
+            model_name="movie",
+            name="about",
             field=models.TextField(blank=True),
         ),
         migrations.AlterField(
-            model_name='movie',
-            name='contest',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='movies', to='api.contest'),
+            model_name="movie",
+            name="contest",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="movies",
+                to="api.contest",
+            ),
         ),
         migrations.AlterField(
-            model_name='movie',
-            name='lang',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='api.movielanguage'),
+            model_name="movie",
+            name="lang",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to="api.movielanguage",
+            ),
         ),
     ]
