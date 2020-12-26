@@ -1,7 +1,7 @@
 MAILTO=""
-HOME=/home/zeeshan/api.moviepediafilms.com
-30 18 * * * /home/zeeshan/api.moviepediafilms.com/scripts/execute.sh updateengagementscore 2>&1 | /usr/bin/logger -t ENGAGEMENTSCORE
-35 18 * * * /home/zeeshan/api.moviepediafilms.com/scripts/execute.sh updatepopscore 2>&1 | /usr/bin/logger -t POPSCORE
-40 18 * * * /home/zeeshan/api.moviepediafilms.com/scripts/execute.sh updateroles 2>&1 | /usr/bin/logger -t ROLES
-45 18 * * * /home/zeeshan/api.moviepediafilms.com/scripts/execute.sh updatetopcreators 2>&1 | /usr/bin/logger -t TOPCREATOR
-50 18 * * * /home/zeeshan/api.moviepediafilms.com/scripts/execute.sh updatetopcurators 2>&1 | /usr/bin/logger -t TOPCURATOR
+HOME=/home/zeeshan
+10 18 * * * /home/zeeshan/api.moviepediafilms.com/scripts/execute.sh updateengagementscore 2>&1 | /usr/bin/logger -t ENGAGEMENTSCORE
+15 18 * * * /home/zeeshan/api.moviepediafilms.com/scripts/execute.sh updatepopscore 2>&1 | /usr/bin/logger -t POPSCORE
+20 18 * * * /home/zeeshan/api.moviepediafilms.com/scripts/execute.sh updateroles 2>&1 | /usr/bin/logger -t ROLES
+25 18 * * * /home/zeeshan/api.moviepediafilms.com/scripts/execute.sh updatetopcreators 2>&1 | /usr/bin/logger -t TOPCREATOR
+30 18 * * * /home/zeeshan/api.moviepediafilms.com/scripts/execute.sh updatetopcurators 2>&1 | /usr/bin/logger -t TOPCURATOR

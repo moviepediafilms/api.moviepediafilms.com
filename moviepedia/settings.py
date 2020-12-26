@@ -68,7 +68,7 @@ LOGGING = {
             "propagate": False,
         },
         "api.management": {
-            "handlers": handlers,
+            "handlers": ["job_file"],
             "level": "DEBUG",
             "propagate": False,
         },

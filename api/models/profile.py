@@ -38,8 +38,11 @@ class Profile(models.Model):
 
     # content consumers attributes
     mcoins = models.FloatField(default=0)
-    # will get updated after a defined interval of time
-    rank = models.IntegerField(default=-1)
+    # cached, will get updated by updatetopcurator job
+    curator_rank = models.IntegerField(default=-1)
+    # cached, will get updated by updatetopcreator job
+    creator_rank = models.IntegerField(default=-1)
+
     level = models.IntegerField(default=1)
 
     watchlist = models.ManyToManyField(
@@ -76,5 +79,6 @@ class Profile(models.Model):
             logger.info(f"user onboarded! {self.user.email}")
             success = email_trigger(self.user, TEMPLATES.WELCOME)
             logger.info(f"welcome email sent: {success}")
-            success = email_trigger(self.user, TEMPLATES.VERIFY)
-            logger.info(f"verification email sent: {success}")
+            # FIXME: enable verification after changing Email provider
+            # success = email_trigger(self.user, TEMPLATES.VERIFY)
+            # logger.info(f"verification email sent: {success}")

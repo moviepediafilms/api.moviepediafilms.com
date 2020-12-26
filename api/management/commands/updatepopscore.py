@@ -1,4 +1,5 @@
 from django.core.management.base import BaseCommand
+from django.db import transaction
 from django.db.models import Q, Count
 from api.models import Role, CrewMember, Movie
 from api.constants import MOVIE_STATE
@@ -18,33 +19,34 @@ PART_B_LEVELS = [128, 320, 640, 960, 1280]
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
-        self.director_role = Role.objects.filter(name="Director").first()
-        directors = self.director_role.profiles.all()
-        logger.debug(f"updating {len(directors)} directors")
-        for profile in directors:
-            logger.info(f"{profile.user.username} => {profile.pop_score}")
-            directed_movies = [
-                cm.movie
-                for cm in CrewMember.objects.filter(
-                    role=self.director_role, profile=profile
-                )
-                if cm.movie.state == MOVIE_STATE.PUBLISHED
-            ]
-            logger.info(f"movies directed:  {len(directed_movies)}")
-            followers_points = self.get_follower_points(profile)
-            jury_points = self.get_jury_rating_points(directed_movies)
-            recommend_points = self.get_recommend_points(directed_movies)
-            rating_review_points = self.get_review_points(directed_movies)
+        with transaction.atomic():
+            self.director_role = Role.objects.filter(name="Director").first()
+            directors = self.director_role.profiles.all()
+            logger.debug(f"updating {len(directors)} directors")
+            for profile in directors:
+                logger.info(f"{profile.user.username} => {profile.pop_score}")
+                directed_movies = [
+                    cm.movie
+                    for cm in CrewMember.objects.filter(
+                        role=self.director_role, profile=profile
+                    )
+                    if cm.movie.state == MOVIE_STATE.PUBLISHED
+                ]
+                logger.info(f"movies directed:  {len(directed_movies)}")
+                followers_points = self.get_follower_points(profile)
+                jury_points = self.get_jury_rating_points(directed_movies)
+                recommend_points = self.get_recommend_points(directed_movies)
+                rating_review_points = self.get_review_points(directed_movies)
 
-            part_b = recommend_points + rating_review_points + jury_points
-            part_a = followers_points
+                part_b = recommend_points + rating_review_points + jury_points
+                part_a = followers_points
 
-            capped_points = self._get_capped_points(part_a, part_b)
+                capped_points = self._get_capped_points(part_a, part_b)
 
-            profile.pop_score = capped_points
-            logger.info(f"{profile.user.username} => {profile.pop_score}")
-            profile.save()
-        self.update_rank(directors)
+                profile.pop_score = capped_points
+                logger.info(f"{profile.user.username} => {profile.pop_score}")
+                profile.save()
+            self.update_rank(directors)
 
     def _get_capped_points(self, part_a, part_b):
         level_a = self._get_part_a_level(part_a)
@@ -71,7 +73,7 @@ class Command(BaseCommand):
         directors = list(directors)
         directors.sort(key=lambda profile: profile.pop_score)
         for rank, profile in enumerate(directors):
-            profile.rank = rank + 1
+            profile.creator_rank = rank + 1
             profile.save()
 
     def get_jury_rating_points(self, directed_movies):

@@ -26,7 +26,8 @@ class ProfileAdmin(admin.ModelAdmin):
         "mobile",
         "gender",
         "dob",
-        "rank",
+        "curator_rank",
+        "creator_rank",
         "mcoins",
     ]
     list_filter = ["is_celeb", "gender"]

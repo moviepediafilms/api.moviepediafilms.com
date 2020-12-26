@@ -57,7 +57,8 @@ class UserSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         password = validated_data.pop("password")
         validated_data["username"] = validated_data.get("email")
-        validated_data["is_active"] = False
+        # FIXME: automatically approve users as of now, will enable email verification after selecting sendgrid alternative
+        validated_data["is_active"] = True
         user = super().create(validated_data)
         user.set_password(password)
         user.save()
@@ -87,7 +88,8 @@ class ProfileSerializer(serializers.ModelSerializer):
             "profile_id",
             "user",
             "image",
-            "rank",
+            "creator_rank",
+            "curator_rank",
             "level",
             "engagement_score",
             "city",
@@ -141,7 +143,8 @@ class ProfileDetailSerializer(serializers.ModelSerializer):
             "roles",
             "image",
             "level",
-            "rank",
+            "creator_rank",
+            "curator_rank",
             "engagement_score",
             "mcoins",
             "pop_score",

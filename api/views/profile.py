@@ -151,15 +151,19 @@ class ProfileView(viewsets.ModelViewSet):
 
 
 class AudienceLeaderboardView(viewsets.GenericViewSet, mixins.ListModelMixin):
-    queryset = Profile.objects.filter(is_celeb=False, rank__gte=0, onboarded=True)
+    queryset = Profile.objects.filter(
+        is_celeb=False, curator_rank__gte=0, onboarded=True
+    )
     serializer_class = ProfileSerializer
-    ordering = ["rank"]
+    ordering = ["curator_rank"]
 
 
 class FilmmakerLeaderboardView(viewsets.GenericViewSet, mixins.ListModelMixin):
-    queryset = Profile.objects.filter(is_celeb=False, onboarded=True)
+    queryset = Profile.objects.filter(
+        is_celeb=False, creator_rank__gte=0, onboarded=True
+    )
     serializer_class = ProfileSerializer
-    ordering = ["pop_score"]
+    ordering = ["creator_rank"]
 
 
 class RoleView(viewsets.ModelViewSet):

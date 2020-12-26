@@ -1,7 +1,7 @@
 from logging import getLogger
 
+from django.db import transaction
 from django.core.management.base import BaseCommand
-from django.db.models import F
 from api.models import Profile, MovieList
 from collections import defaultdict
 import itertools
@@ -12,12 +12,14 @@ logger = getLogger(__name__)
 # TODO: compare recommend list and celeb recommend and assign points accordingly
 class Command(BaseCommand):
     def handle(self, *args, **options):
-        for profile in Profile.objects.all():
-            logger.info(f"{profile.user}: {profile.engagement_score}")
-            engg_score = self._calculate_score(profile)
-            profile.engagement_score = engg_score
-            profile.save()
-            logger.info(f"{profile.user}: {profile.engagement_score}")
+        with transaction.atomic():
+            for profile in Profile.objects.all():
+                logger.info(f"{profile.user}: {profile.engagement_score}")
+                engg_score = self._calculate_score(profile)
+                profile.engagement_score = engg_score
+                profile.save()
+                logger.info(f"{profile.user}: {profile.engagement_score}")
+            # TODO: update curator rank here
 
     def _calculate_score(self, profile):
         reviews = profile.user.movieratereview_set.all()
