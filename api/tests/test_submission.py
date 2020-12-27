@@ -1,4 +1,4 @@
-from api.models.payment import Package
+from unittest import mock
 import os
 import json
 
@@ -6,7 +6,7 @@ from django.conf import settings
 from django.test import TestCase
 from django.core import mail
 
-from api.models import CrewMember, Movie, Genre, MovieLanguage, User, Order
+from api.models import CrewMember, Movie, Genre, MovieLanguage, User, Package
 from .base import reverse, APITestCaseMixin, LoggedInMixin, for_all_methods, log_runtime
 
 
@@ -206,7 +206,14 @@ class SubmissionPackageSelectionTestCase(
         super().setUp()
         self.movie = self._submit_movie().json()
 
-    def test_package_attached_to_movie(self):
+    @mock.patch("api.serializers.movie.rzp_client")
+    def test_package_attached_to_movie(self, rzp_client):
+        rzp_client.order.create.return_value = {
+            "status": "created",
+            "id": "order_123",
+            "amount": 100,
+            "receipt": "receipt_123",
+        }
         movie = Movie.objects.get(id=self.movie["id"])
         self.assertIsNone(movie.package)
         res = self._select_package()
