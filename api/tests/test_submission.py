@@ -1,3 +1,4 @@
+from api.models.payment import Package
 import os
 import json
 
@@ -5,17 +6,17 @@ from django.conf import settings
 from django.test import TestCase
 from django.core import mail
 
-from api.models import CrewMember, Movie, Genre, MovieLanguage, User
-from .base import reverse, APITestCaseMixin, LoggedInMixin
+from api.models import CrewMember, Movie, Genre, MovieLanguage, User, Order
+from .base import reverse, APITestCaseMixin, LoggedInMixin, for_all_methods, log_runtime
 
 
-class BasicMovieTestMixin:
+class MovieSubmitTestMixin:
     genres = [dict(name="Drama")]
     lang = dict(name="English")
     runtime = 12
     director = None
 
-    def _do_post_request(self):
+    def _submit_movie(self, check_success=True):
         res = None
         poster_file_path = "api/tests/test_poster.png"
         self.assertTrue(os.path.exists(poster_file_path))
@@ -35,16 +36,19 @@ class BasicMovieTestMixin:
             data["poster"] = poster_fh
             data["payload"] = json.dumps(data["payload"])
             res = self.client.post(reverse("api:submit-list"), data, format="multipart")
-        self.assertEquals(201, res.status_code, res.content)
+        if check_success:
+            self.assertEquals(201, res.status_code, res.content)
         return res
 
+
+class BasicMovieTestMixin(MovieSubmitTestMixin):
     def test_no_emails_sent(self):
-        self._do_post_request()
+        self._submit_movie()
         self.assertEqual(0, len(mail.outbox))
 
     def test_poster_saved(self):
         poster_file_path = "api/tests/test_poster.png"
-        res = self._do_post_request()
+        res = self._submit_movie()
         movie_json = res.json()
         uploaded_poster_rel_path = movie_json["poster"]
         uploaded_poster_abs_path = os.path.join(
@@ -60,7 +64,7 @@ class BasicMovieTestMixin:
         )
 
     def test_genres_added(self):
-        res = self._do_post_request()
+        res = self._submit_movie()
         movie_id = res.json()["id"]
         movie = Movie.objects.get(pk=movie_id)
         for genre in self.genres:
@@ -70,7 +74,7 @@ class BasicMovieTestMixin:
             )
 
     def test_lang_added(self):
-        res = self._do_post_request()
+        res = self._submit_movie()
         movie_id = res.json()["id"]
         movie = Movie.objects.get(pk=movie_id)
         self.assertEquals(
@@ -78,12 +82,13 @@ class BasicMovieTestMixin:
         )
 
     def test_runtime(self):
-        res = self._do_post_request()
+        res = self._submit_movie()
         movie_id = res.json()["id"]
         movie = Movie.objects.get(pk=movie_id)
         self.assertEquals(movie.runtime, self.runtime)
 
 
+@for_all_methods(log_runtime)
 class SubmissionByDirectorTestCase(
     LoggedInMixin, APITestCaseMixin, TestCase, BasicMovieTestMixin
 ):
@@ -91,13 +96,13 @@ class SubmissionByDirectorTestCase(
     roles = [dict(name="Director"), dict(name="Actor")]
 
     def test_is_approved(self):
-        res = self._do_post_request()
+        res = self._submit_movie()
         movie_id = res.json()["id"]
         movie = Movie.objects.get(pk=movie_id)
         self.assertTrue(movie.approved)
 
     def test_roles_added(self):
-        res = self._do_post_request()
+        res = self._submit_movie()
         movie_id = res.json()["id"]
         movie = Movie.objects.get(pk=movie_id)
         for role in self.roles:
@@ -108,6 +113,7 @@ class SubmissionByDirectorTestCase(
             )
 
 
+@for_all_methods(log_runtime)
 class SubmissionUnregisteredDirectorTestCase(
     LoggedInMixin, APITestCaseMixin, TestCase, BasicMovieTestMixin
 ):
@@ -123,23 +129,24 @@ class SubmissionUnregisteredDirectorTestCase(
 
     def test_director_profile_created(self):
         users_count = User.objects.count()
-        self._do_post_request()
+        self._submit_movie()
         self.assertEquals(User.objects.count(), users_count + 1)
 
     def test_director_not_onboarded(self):
-        res = self._do_post_request()
+        res = self._submit_movie()
         movie_id = res.json()["id"]
         movie = Movie.objects.get(id=movie_id)
         crewmember = CrewMember.objects.get(movie=movie, role__name="Director")
         self.assertFalse(crewmember.profile.onboarded)
 
-    def test_is_not_approved(self):
-        res = self._do_post_request()
+    def test_movie_not_approved(self):
+        res = self._submit_movie()
         movie_id = res.json()["id"]
         movie = Movie.objects.get(id=movie_id)
         self.assertFalse(movie.approved)
 
 
+@for_all_methods(log_runtime)
 class SubmissionRegisteredDirectorTestCase(
     LoggedInMixin, APITestCaseMixin, TestCase, BasicMovieTestMixin
 ):
@@ -152,3 +159,58 @@ class SubmissionRegisteredDirectorTestCase(
         email="test2@example.com",
         contact="1234567890",
     )
+
+    def test_no_new_profiles_created(self):
+        before_users_count = User.objects.count()
+        self._submit_movie()
+        after_users_count = User.objects.count()
+        self.assertEquals(before_users_count, after_users_count)
+
+    def test_movie_not_approved(self):
+        res = self._submit_movie()
+        movie_id = res.json()["id"]
+        movie = Movie.objects.get(id=movie_id)
+        self.assertFalse(movie.approved)
+
+
+@for_all_methods(log_runtime)
+class SubmissionNoDirectorTestCase(
+    LoggedInMixin, APITestCaseMixin, TestCase, MovieSubmitTestMixin
+):
+    fixtures = ["test_submission.yaml"]
+    roles = [dict(name="Actor")]
+
+    def test_error_if_no_director(self):
+        res = self._submit_movie(check_success=False)
+        self.assertEquals(400, res.status_code)
+        self.assertIn("Director must be provided", res.content.decode())
+
+
+@for_all_methods(log_runtime)
+class SubmissionPackageSelectionTestCase(
+    LoggedInMixin, APITestCaseMixin, TestCase, MovieSubmitTestMixin
+):
+    fixtures = ["test_submission.yaml"]
+    roles = [dict(name="Director")]
+    package = dict(name="pack1")
+
+    def _select_package(self):
+        data = dict(payload=json.dumps(dict(package=self.package)))
+        return self.client.patch(
+            reverse("api:submit-detail", args=["v1", self.movie["id"]]),
+            data,
+            format="multipart",
+        )
+
+    def setUp(self):
+        super().setUp()
+        self.movie = self._submit_movie().json()
+
+    def test_package_attached_to_movie(self):
+        movie = Movie.objects.get(id=self.movie["id"])
+        self.assertIsNone(movie.package)
+        res = self._select_package()
+        self.assertEquals(200, res.status_code)
+        movie.refresh_from_db()
+        self.assertIsNotNone(movie.package)
+        self.assertEquals(movie.package, Package.objects.filter(**self.package).first())

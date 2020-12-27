@@ -158,7 +158,6 @@ class SignInTestCase(APITestCaseMixin, WithPayloadMixin, TestCase):
                 reverse("api:account-forgot"),
                 {"email": "test2@example.com", "recaptcha": "recaptcha-1234"},
             )
-            print(res.content)
         self.assertEquals(len(mail.outbox), 1)
         self.assertEquals(mail.outbox[0].template_id, TEMPLATES.PASSWORD_REST)
         self.assertEquals(["test2@example.com"], mail.outbox[0].to)
@@ -170,7 +169,6 @@ class SignInTestCase(APITestCaseMixin, WithPayloadMixin, TestCase):
             reverse("api:account-reset", args=["v1", "token2-abcd"]),
             {"password": "xxyyzz"},
         )
-        print(res.content)
         self.assertEqual(200, res.status_code)
         user.refresh_from_db()
         self.assertTrue(user.check_password("xxyyzz"))

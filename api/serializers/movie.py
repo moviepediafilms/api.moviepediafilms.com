@@ -124,7 +124,7 @@ def create_rzp_order(package, owner):
 class OrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
-        fields = ["owner", "order_id", "amount", "payment_id"]
+        fields = ["id", "owner", "order_id", "amount", "payment_id"]
 
 
 class PackageSerializer(serializers.ModelSerializer):
