@@ -6,4 +6,4 @@ logger = getLogger(__name__)
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
-        print("Update")
+        pass

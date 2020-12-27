@@ -18,7 +18,6 @@ class SendgridEmailBackend(BaseEmailBackend):
             self.api_key = kwargs["api_key"]
         else:
             self.api_key = getattr(settings, "SENDGRID_API_KEY", None)
-        print(self.api_key)
         if not self.api_key:
             raise ImproperlyConfigured(
                 """
