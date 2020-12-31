@@ -67,14 +67,21 @@ class MovieModelForm(forms.ModelForm):
 
 class MovieAdmin(admin.ModelAdmin):
     search_fields = ["title"]
-    list_filter = ["approved", "state", "created_at"]
+    list_filter = [
+        "approved",
+        "state",
+        "created_at",
+        ("order__payment_id", admin.EmptyFieldListFilter),
+    ]
     list_display = [
         "title",
         "state",
         "link",
         "approved",
+        "is_paid",
         "created_at",
         "director",
+        "director_name",
         "submited_by",
         "poster",
     ]
@@ -86,6 +93,14 @@ class MovieAdmin(admin.ModelAdmin):
 
     def director(self, movie):
         return movie.crewmember_set.get(role__name="Director").profile.user
+
+    def director_name(self, movie):
+        return movie.crewmember_set.get(
+            role__name="Director"
+        ).profile.user.get_full_name()
+
+    def is_paid(self, movie):
+        return movie.order.payment_id is not None
 
 
 class GenreAdmin(admin.ModelAdmin):
