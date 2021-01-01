@@ -1,18 +1,14 @@
-name: Deploy
-
+name: Deploy on UAT
 on:
   push:
-    branches: [ master ]
-
+    branches: [ uat ]
 jobs:
   build:
-
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-
     - name: Executing remote command
-      uses: appleboy/ssh-action@master
+      uses: appleboy/ssh-action@uat
       with:
         host: ${{ secrets.HOST }}
         USERNAME: ${{ secrets.USERNAME }}
