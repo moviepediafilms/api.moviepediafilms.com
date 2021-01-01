@@ -1,0 +1,17 @@
+name: Deploy On Production
+on:
+  push:
+    branches: [ master ]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Executing remote command
+      uses: appleboy/ssh-action@prod
+      with:
+        host: ${{ secrets.HOST }}
+        USERNAME: ${{ secrets.USERNAME }}
+        PORT: ${{ secrets.PORT }}
+        KEY: ${{ secrets.SSHKEY }}
+        script: cat /home/zeeshan/api.moviepediafilms.com/README.md
