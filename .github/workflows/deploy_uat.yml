@@ -12,6 +12,5 @@ jobs:
       with:
         host: ${{ secrets.HOST }}
         USERNAME: ${{ secrets.USERNAME }}
-        PORT: ${{ secrets.PORT }}
         KEY: ${{ secrets.SSHKEY }}
-        script: cat /home/zeeshan/api.moviepediafilms.com/README.md
+        script: whoami
