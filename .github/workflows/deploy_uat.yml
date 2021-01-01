@@ -8,7 +8,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Executing remote command
-      uses: appleboy/ssh-action@uat
+      uses: appleboy/ssh-action@v0.1.4
       with:
         host: ${{ secrets.HOST }}
         USERNAME: ${{ secrets.USERNAME }}
