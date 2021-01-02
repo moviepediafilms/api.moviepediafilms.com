@@ -4,11 +4,10 @@ on:
     branches: [ uat ]
   workflow_dispatch:
 jobs:
-  build:
+  deploy:
     environment: uat
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
     - name: Executing remote command
       uses: appleboy/ssh-action@v0.1.4
       with:
