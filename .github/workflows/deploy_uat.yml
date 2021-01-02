@@ -24,4 +24,4 @@ jobs:
           /home/zeeshan/.local/bin/pipenv run python manage.py check --deploy
           /home/zeeshan/.local/bin/pipenv run python manage.py collectstatic --noinput
           /home/zeeshan/.local/bin/pipenv run python manage.py migrate --noinput
-          sudo service api.moviepediafilms restart
+          sudo /usr/sbin/service api.moviepediafilms restart
