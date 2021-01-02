@@ -16,11 +16,11 @@ jobs:
         USERNAME: ${{ secrets.USERNAME }}
         KEY: ${{ secrets.SSHKEY }}
         debug: ${{ secrets.DEBUG }}
-        script:
-          - cd /home/zeeshan/api.moviepediafilms.com
-          - pipenv clean
-          - pipenv sync
-          - pipenv run python manage.py check --deploy
-          - pipenv run python manage.py collectstatic --noinput
-          - pipenv run python manage.py migrate --noinput
-          - service api.moviepediafilms restart
+        script: |
+          cd /home/zeeshan/api.moviepediafilms.com
+          pipenv clean
+          pipenv sync
+          pipenv run python manage.py check --deploy
+          pipenv run python manage.py collectstatic --noinput
+          pipenv run python manage.py migrate --noinput
+          service api.moviepediafilms restart
