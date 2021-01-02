@@ -15,4 +15,5 @@ jobs:
         host: ${{ secrets.HOST }}
         USERNAME: ${{ secrets.USERNAME }}
         KEY: ${{ secrets.SSHKEY }}
-        script: whoami
+        debug: ${{ secrets.DEBUG }}
+        script: pwd
