@@ -18,9 +18,10 @@ jobs:
         debug: ${{ secrets.DEBUG }}
         script: |
           cd /home/zeeshan/api.moviepediafilms.com
-          pipenv clean
-          pipenv sync
-          pipenv run python manage.py check --deploy
-          pipenv run python manage.py collectstatic --noinput
-          pipenv run python manage.py migrate --noinput
-          service api.moviepediafilms restart
+          /usr/bin/git pull
+          /home/zeeshan/.local/bin/pipenv clean
+          /home/zeeshan/.local/bin/pipenv sync
+          /home/zeeshan/.local/bin/pipenv run python manage.py check --deploy
+          /home/zeeshan/.local/bin/pipenv run python manage.py collectstatic --noinput
+          /home/zeeshan/.local/bin/pipenv run python manage.py migrate --noinput
+          sudo service api.moviepediafilms restart
