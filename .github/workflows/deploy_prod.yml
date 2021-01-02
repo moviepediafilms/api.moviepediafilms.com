@@ -4,11 +4,10 @@ on:
     branches: [ master ]
   workflow_dispatch:
 jobs:
-  build:
+  deploy:
     environment: prod
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
     - name: Executing remote command
       uses: appleboy/ssh-action@v0.1.4
       with:
@@ -16,5 +15,13 @@ jobs:
         USERNAME: ${{ secrets.USERNAME }}
         KEY: ${{ secrets.SSHKEY }}
         debug: ${{ secrets.DEBUG }}
-        script: pwd
+        script: |
+          cd /home/zeeshan/api.moviepediafilms.com
+          /usr/bin/git pull
+          /home/zeeshan/.local/bin/pipenv clean
+          /home/zeeshan/.local/bin/pipenv sync
+          /home/zeeshan/.local/bin/pipenv run python manage.py check --deploy
+          /home/zeeshan/.local/bin/pipenv run python manage.py collectstatic --noinput
+          /home/zeeshan/.local/bin/pipenv run python manage.py migrate --noinput
+          sudo /usr/sbin/service api.moviepediafilms restart
         
