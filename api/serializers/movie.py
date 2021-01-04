@@ -196,6 +196,7 @@ class MovieSerializerSummary(serializers.ModelSerializer):
             "score",
             "created_at",
             "recommend_count",
+            "publish_on",
         ]
 
     def get_contest(self, obj):
@@ -251,6 +252,7 @@ class MovieSerializer(serializers.ModelSerializer):
             "contest",
             "about",
             "approved",
+            "recommend_count",
         ]
         read_only_fields = ["about", "state"]
 
