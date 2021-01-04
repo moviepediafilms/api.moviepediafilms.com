@@ -36,10 +36,10 @@ merge() {
 }
 
 raise_pr() {
-    DATA="{\"base\": \"master\",
+    DATA="{\"base\": \"uat\",
        \"head\":\"${CURR_BRANCH}\",
        \"title\":\"${PR_TITLE}\",
-       \"body\":\"PR raised by publish.sh\"}"
+       \"body\":\"automatic PR raised by publish.sh\"}"
     echo $DATA >$TMP_REQ
     GITHUB_PR_LINK=https://api.github.com/repos/$GITHUB_REPO/pulls
     curl -X POST -H "Content-Type: application/json" -d @$TMP_REQ -u $GITHUB_USER:$GITHUB_TOKEN $GITHUB_PR_LINK -o $TMP_RES &>/dev/null
@@ -51,7 +51,6 @@ raise_pr() {
     else
         /usr/bin/jshon -e html_url -u <$TMP_RES
         echo 'PR Created successfully'
-        merge
     fi
 }
 
