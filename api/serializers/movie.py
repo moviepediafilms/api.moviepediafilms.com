@@ -620,12 +620,21 @@ class MovieReviewDetailSerializer(serializers.ModelSerializer):
 class MovieListSerializer(serializers.ModelSerializer):
     like_count = serializers.IntegerField(source="liked_by.count", read_only=True)
     owner = UserSerializer(read_only=True)
-    # movies_count = serializers.IntegerField(source="movies.count", read_only=True)
+    movies_count = serializers.IntegerField(source="movies.count", read_only=True)
     pages = serializers.SerializerMethodField()
 
     class Meta:
         model = MovieList
-        fields = ["id", "owner", "name", "movies", "like_count", "frozen", "pages"]
+        fields = [
+            "id",
+            "owner",
+            "name",
+            "movies",
+            "movies_count",
+            "like_count",
+            "frozen",
+            "pages",
+        ]
 
     def create(self, validated_data: dict):
         user = validated_data.pop("user")
