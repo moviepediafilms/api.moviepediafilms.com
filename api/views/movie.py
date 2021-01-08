@@ -1,10 +1,11 @@
+from datetime import timedelta, datetime
+from django.utils.timezone import make_aware
 from api.models.movie import CrewMember
 from logging import getLogger
 
 from django.db.models import Count
 from django.utils import timezone
 from django.db import transaction
-
 
 from rest_framework import mixins, parsers, viewsets, response, permissions
 from rest_framework.decorators import action
@@ -20,7 +21,6 @@ from api.serializers.movie import (
     MovieReviewDetailSerializer,
     MovieListSerializer,
     CrewMemberRequestSerializer,
-    MovieListDetailSerializer,
     MovieSerializerSummary,
     TopCreatorSerializer,
     TopCuratorSerializer,
@@ -299,15 +299,13 @@ class MovieListView(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsMovieListOwner]
     queryset = MovieList.objects.annotate(
         likes=Count("liked_by"), number_of_movies=Count("movies")
-    ).exclude(name=RECOMMENDATION)
-    filterset_fields = ["owner__id"]
+    )
     ordering_fields = ["movies", "likes"]
-    ordering = ["likes"]
+    filterset_fields = ["owner__id"]
 
     def get_serializer_class(self):
-        logger.debug(self.action)
-        if self.action == "retrieve":
-            return MovieListDetailSerializer
+        if self.action == "movies":
+            return MovieSerializerSummary
         return MovieListSerializer
 
     def perform_create(self, serializer):
@@ -315,6 +313,22 @@ class MovieListView(viewsets.ModelViewSet):
 
     def perform_update(self, serializer):
         serializer.save(user=self.request.user)
+
+    @action(methods=["get"], detail=True)
+    def movies(self, request, pk=None, **kwargs):
+        movie_list = self.get_object()
+        qs = movie_list.movies.all()
+        month = request.GET.get("month")
+        year = request.GET.get("year")
+        if month and year:
+            month = int(month)
+            year = int(year)
+            start = make_aware(datetime.strptime(f"{year}-{month}", "%Y-%m"))
+            end = make_aware(
+                datetime.strptime(f"{year}-{month+1}", "%Y-%m") - timedelta(days=1)
+            )
+            qs = qs.filter(publish_on__gte=start, publish_on__lte=end)
+        return paginated_response(self, queryset=qs)
 
 
 class IsDirectorCreatorOrRequestor(permissions.BasePermission):
@@ -383,7 +397,7 @@ class ContestView(viewsets.GenericViewSet, mixins.ListModelMixin):
     def top_creators(self, request, pk=None, **kwargs):
         contest = self.get_object()
         top_creators = contest.top_creators.order_by("-score").all()
-        return self._paginated_response(top_creators)
+        return paginated_response(self, top_creators)
 
     @action(
         methods=["get"],
@@ -393,12 +407,13 @@ class ContestView(viewsets.GenericViewSet, mixins.ListModelMixin):
     def top_curators(self, request, pk=None, **kwargs):
         contest = self.get_object()
         top_curators = contest.top_curators.order_by("-match").all()
-        return self._paginated_response(top_curators)
+        return paginated_response(self, top_curators)
 
-    def _paginated_response(self, queryset):
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer(instance=page, many=True)
-            return self.get_paginated_response(serializer.data)
-        serializer = self.get_serializer(instance=queryset, many=True)
-        return response.Response(serializer.data)
+
+def paginated_response(view, queryset):
+    page = view.paginate_queryset(queryset)
+    if page is not None:
+        serializer = view.get_serializer(instance=page, many=True)
+        return view.get_paginated_response(serializer.data)
+    serializer = view.get_serializer(instance=queryset, many=True)
+    return response.Response(serializer.data)

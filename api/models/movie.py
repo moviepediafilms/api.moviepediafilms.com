@@ -88,6 +88,9 @@ class Movie(models.Model):
         "Approved by Director", null=True, blank=True, default=None
     )
 
+    class Meta:
+        ordering = ["publish_on"]
+
     def __str__(self):
         return self.title
 

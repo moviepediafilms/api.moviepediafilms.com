@@ -1,3 +1,4 @@
+from django.db.models.functions import ExtractMonth, ExtractYear
 from rest_framework.exceptions import ValidationError
 from api.models.movie import TopCreator, TopCurator
 from logging import getLogger
@@ -6,7 +7,7 @@ import os
 import re
 
 from django.conf import settings
-from django.db.models import Avg
+from django.db.models import Avg, Count
 from django.db import transaction
 from django.core.files.storage import default_storage
 from rest_framework import serializers
@@ -589,7 +590,7 @@ class MovieReviewDetailSerializer(serializers.ModelSerializer):
     def validate(self, validated_data):
         if all([key not in validated_data for key in ["content", "rating"]]):
             raise serializers.ValidationError(
-                "Atleast one of `content` or `rating` should be provided"
+                "At least one of `content` or `rating` should be provided"
             )
         return validated_data
 
@@ -617,20 +618,27 @@ class MovieReviewDetailSerializer(serializers.ModelSerializer):
 
 
 class MovieListSerializer(serializers.ModelSerializer):
-    like_count = serializers.IntegerField(source="likes", read_only=True)
-    owner = serializers.PrimaryKeyRelatedField(source="owner.id", read_only=True)
+    like_count = serializers.IntegerField(source="liked_by.count", read_only=True)
+    owner = UserSerializer(read_only=True)
+    movies = serializers.IntegerField(source="movies.count", read_only=True)
+    pages = serializers.SerializerMethodField()
 
     class Meta:
         model = MovieList
-        fields = ["id", "owner", "name", "movies", "like_count", "frozen"]
+        fields = ["id", "owner", "name", "movies", "like_count", "frozen", "pages"]
 
     def create(self, validated_data: dict):
         user = validated_data.pop("user")
         return MovieList.objects.create(**validated_data, owner=user)
 
-
-class MovieListDetailSerializer(MovieListSerializer):
-    movies = MovieSerializerSummary(many=True)
+    def get_pages(self, movie_list):
+        return (
+            movie_list.movies.values(
+                pub_month=ExtractMonth("publish_on"), pub_year=ExtractYear("publish_on")
+            ).annotate(movies=Count("pub_month"))
+            # order_by NULL is removing the default ordering set via meta class in
+            .order_by("-pub_year", "-pub_month")
+        )
 
 
 class CrewMemberRequestSerializer(serializers.ModelSerializer):
