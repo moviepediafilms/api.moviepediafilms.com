@@ -9,6 +9,7 @@ from api.serializers.movie import (
     CrewMemberRequestSerializer,
     MovieSerializerSummary,
     SubmissionEntrySerializer,
+    MovieListSerializer,
 )
 from api.serializers.profile import (
     ProfileDetailSerializer,
@@ -66,6 +67,8 @@ class ProfileView(viewsets.ModelViewSet):
             return NotificationSerializer
         if self.action == "crew_approvals":
             return CrewMemberRequestSerializer
+        if self.action == "recommend_details":
+            return MovieListSerializer
         return ProfileDetailSerializer
 
     @action(methods=["get"], detail=True)
@@ -140,6 +143,16 @@ class ProfileView(viewsets.ModelViewSet):
             movies = movie_list.movies.all()
         logger.debug(f"{pk} {profile} {movies}")
         return self._build_paginated_response(movies)
+
+    @action(methods=["get"], detail=True, url_path="recommend-details")
+    def recommend_details(self, pk=None, **kwargs):
+        profile = self.get_object()
+        movie_list = MovieList.objects.filter(
+            owner=profile.user, name=RECOMMENDATION
+        ).first()
+        logger.debug(f"{pk} {profile} {movie_list}")
+        serializer = self.get_serializer(instance=movie_list)
+        return response.Response(serializer.data)
 
     def _build_paginated_response(self, queryset):
         page = self.paginate_queryset(queryset)
