@@ -620,7 +620,7 @@ class MovieReviewDetailSerializer(serializers.ModelSerializer):
 class MovieListSerializer(serializers.ModelSerializer):
     like_count = serializers.IntegerField(source="liked_by.count", read_only=True)
     owner = UserSerializer(read_only=True)
-    movies = serializers.IntegerField(source="movies.count", read_only=True)
+    # movies_count = serializers.IntegerField(source="movies.count", read_only=True)
     pages = serializers.SerializerMethodField()
 
     class Meta:
