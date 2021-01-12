@@ -19,7 +19,7 @@ DEBUG = os.getenv("DEBUG") == "true"
 PRODUCTION = os.getenv("PRODUCTION") == "true"
 
 LOG_PATH = os.getenv("LOG_PATH", "api.moviepediafilms.log")
-LOG_PATH_JOB = os.getenv("LOG_PATH", "jobs.moviepediafilms.log")
+LOG_PATH_JOB = os.getenv("LOG_PATH_JOB", "jobs.moviepediafilms.log")
 handlers = ["console", "file"] if DEBUG else ["file"]
 
 LOGGING = {
