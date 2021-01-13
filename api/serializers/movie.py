@@ -198,6 +198,7 @@ class MovieSerializerSummary(serializers.ModelSerializer):
             "created_at",
             "recommend_count",
             "publish_on",
+            "runtime",
         ]
 
     def get_contest(self, obj):
