@@ -304,7 +304,7 @@ class MovieListView(viewsets.ModelViewSet):
     filterset_fields = ["owner__id"]
 
     def get_serializer_class(self):
-        if self.action == "movies":
+        if self.action in ("movies", "like"):
             return MovieSerializerSummary
         return MovieListSerializer
 
@@ -329,6 +329,19 @@ class MovieListView(viewsets.ModelViewSet):
             )
             qs = qs.filter(publish_on__gte=start, publish_on__lte=end)
         return paginated_response(self, queryset=qs)
+
+    @action(methods=["post", "delete"], detail=True)
+    def like(self, request, pk=None, **kwargs):
+        movie_list = self.get_object()
+        if request.method.lower() == "post":
+            movie_list.liked_by.add(request.user)
+            movie_list.save()
+        else:
+            movie_list.liked_by.remove(request.user)
+            movie_list.save()
+        return response.Response(
+            {"success": True, "like_count": movie_list.liked_by.count()}
+        )
 
 
 class IsDirectorCreatorOrRequestor(permissions.BasePermission):
