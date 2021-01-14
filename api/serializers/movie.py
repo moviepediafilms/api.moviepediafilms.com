@@ -621,7 +621,7 @@ class MovieReviewDetailSerializer(serializers.ModelSerializer):
         rating = validated_data.get("rating")
         if rating is not None and instance.rating != rating:
             if (
-                instance.rating is not None
+                instance.rated_at is not None
                 and timezone.now() > instance.rated_at + timezone.timedelta(seconds=9)
             ):
                 raise ValidationError("Rating is now freezed")
