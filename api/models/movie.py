@@ -185,6 +185,7 @@ class MovieRateReview(models.Model):
         (REVIEW_STATE.BLOCKED, "Blocked"),
     ]
     state = models.CharField(choices=REVIEW_STATE_CHOICES, max_length=1)
+    rated_at = models.DateTimeField(null=True, blank=True)
     published_at = models.DateTimeField(auto_now_add=True)
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     movie = models.ForeignKey(Movie, on_delete=models.CASCADE)

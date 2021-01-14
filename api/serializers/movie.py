@@ -1,3 +1,4 @@
+from django.utils import timezone
 from django.db.models.functions import ExtractMonth, ExtractYear
 from rest_framework.exceptions import ValidationError
 from api.models.movie import TopCreator, TopCurator
@@ -554,7 +555,7 @@ class MoviePosterSerializer(serializers.ModelSerializer):
 class MovieReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = MovieRateReview
-        fields = ["id", "content", "rating"]
+        fields = ["id", "content", "rating", "published_at", "rated_at"]
 
 
 class MinUserSerializer(serializers.ModelSerializer):
@@ -570,6 +571,7 @@ class MovieReviewDetailSerializer(serializers.ModelSerializer):
     liked_by = MinUserSerializer(read_only=True, many=True)
     # serializers.IntegerField(source="liked_by.count", read_only=True)
     published_at = serializers.DateTimeField(read_only=True)
+    rated_at = serializers.DateTimeField(read_only=True)
     # added for my reviews page, normal reviews for a movie don't use this,
     # can be moved to a new serializer and new view
     movie = MovieSerializerSummary(read_only=True)
@@ -583,6 +585,7 @@ class MovieReviewDetailSerializer(serializers.ModelSerializer):
             "content",
             "liked_by",
             "published_at",
+            "rated_at",
             "rating",
             "movie",
             "movie_id",
@@ -608,11 +611,22 @@ class MovieReviewDetailSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         validated_data["author"] = validated_data.pop("user")
+        if validated_data.get("rating") is not None:
+            validated_data["rated_at"] = timezone.now()
         instance = super().create(validated_data)
         self._update_movie_audience_rating(instance.movie)
         return instance
 
     def update(self, instance, validated_data):
+        rating = validated_data.get("rating")
+        if rating is not None and instance.rating != rating:
+            if (
+                instance.rating is not None
+                and timezone.now() > instance.rated_at + timezone.timedelta(seconds=9)
+            ):
+                raise ValidationError("Rating is now freezed")
+            else:
+                validated_data["rated_at"] = timezone.now()
         instance = super().update(instance, validated_data)
         self._update_movie_audience_rating(instance.movie)
         return instance
