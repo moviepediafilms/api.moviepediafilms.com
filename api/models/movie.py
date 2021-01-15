@@ -100,7 +100,7 @@ class Movie(models.Model):
     def score(self):
         score = self.audience_rating or 0
         score += self.jury_rating or 0
-        return score / 2
+        return round(score / 2, 1)
 
     # TODO: override save to check the change in approved attribute,
     # and send email to owner of the order to inform them that the director
