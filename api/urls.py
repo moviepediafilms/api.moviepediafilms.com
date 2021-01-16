@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from api.views import auth, profile, movie, payment
+from api.views import auth, profile, movie, payment, contest
 
 app_name = "api"
 
@@ -33,7 +33,7 @@ router.register(
     profile.FilmmakerLeaderboardView,
     basename="filmmakerleaderboard",
 )
-router.register("contest", movie.ContestView, basename="contest")
+router.register("contest", contest.ContestView, basename="contest")
 router.register("movies-by", movie.MoviesByView, basename="contest")
 router.register("account", auth.AccountVerifyView, basename="account")
 

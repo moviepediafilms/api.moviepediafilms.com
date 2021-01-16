@@ -10,6 +10,7 @@ from api.serializers.movie import (
     MovieSerializerSummary,
     SubmissionEntrySerializer,
     MovieListSerializer,
+    MovieRecommendSerializer,
 )
 from api.serializers.profile import (
     ProfileDetailSerializer,
@@ -59,7 +60,7 @@ class ProfileView(viewsets.ModelViewSet):
     lookup_field = "user__id"
 
     def get_serializer_class(self):
-        if self.action in ("filmography", "movie_approvals", "recommends"):
+        if self.action in ("filmography", "movie_approvals"):
             return MovieSerializerSummary
         if self.action in ("submissions"):
             return SubmissionEntrySerializer
@@ -69,6 +70,11 @@ class ProfileView(viewsets.ModelViewSet):
             return CrewMemberRequestSerializer
         if self.action == "recommend_details":
             return MovieListSerializer
+        if self.action == "recommends":
+            if self.request.method in ("POST", "DELETE"):
+                return MovieRecommendSerializer
+            else:
+                return MovieSerializerSummary
         return ProfileDetailSerializer
 
     @action(methods=["get"], detail=True)
@@ -132,17 +138,29 @@ class ProfileView(viewsets.ModelViewSet):
         ).all()
         return self._build_paginated_response(crew_requests)
 
-    @action(methods=["get"], detail=True)
+    @action(methods=["get", "post", "delete"], detail=True)
     def recommends(self, pk=None, **kwargs):
         profile = self.get_object()
         movie_list = MovieList.objects.filter(
             owner=profile.user, name=RECOMMENDATION
         ).first()
-        movies = Movie.objects.none()
-        if movie_list:
-            movies = movie_list.movies.all()
-        logger.debug(f"{pk} {profile} {movies}")
-        return self._build_paginated_response(movies)
+        if self.request.method == "GET":
+            movies = Movie.objects.none()
+            if movie_list:
+                movies = movie_list.movies.all()
+            logger.debug(f"{pk} {profile} {movies}")
+            return self._build_paginated_response(movies)
+        elif self.request.method in ("POST", "DELETE"):
+            serializer = self.get_serializer(
+                instance=profile,
+                data=self.request.data,
+                context={"request": self.request},
+            )
+            serializer.is_valid(raise_exception=True)
+            serializer.save(
+                action={"POST": "add", "DELETE": "remove"}[self.request.method]
+            )
+            return response.Response(serializer.data)
 
     @action(methods=["get"], detail=True, url_path="recommend-details")
     def recommend_details(self, pk=None, **kwargs):

@@ -72,13 +72,7 @@ class Movie(models.Model):
     jury_rating = models.FloatField(null=True, blank=True, default=0)
     # cached audience rating to be updated periodically
     audience_rating = models.FloatField(null=True, blank=True, default=0)
-    contest = models.ForeignKey(
-        "Contest",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="movies",
-    )
+    contests = models.ManyToManyField("Contest", related_name="movies")
 
     # cached attributes
     recommend_count = models.IntegerField(default=0)

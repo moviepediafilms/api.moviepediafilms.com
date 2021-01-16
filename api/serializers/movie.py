@@ -181,7 +181,7 @@ class SubmissionEntrySerializer(serializers.ModelSerializer):
 
 
 class MovieSerializerSummary(serializers.ModelSerializer):
-    contest = serializers.SerializerMethodField()
+    contests = serializers.SerializerMethodField()
     crew = CrewMemberSerializer(source="crewmember_set", many=True)
 
     class Meta:
@@ -191,8 +191,7 @@ class MovieSerializerSummary(serializers.ModelSerializer):
             "title",
             "poster",
             "about",
-            "is_live",
-            "contest",
+            "contests",
             "crew",
             "state",
             "score",
@@ -202,10 +201,11 @@ class MovieSerializerSummary(serializers.ModelSerializer):
             "runtime",
         ]
 
-    def get_contest(self, obj):
-        contest = obj.contest
-        if contest:
-            return contest.name
+    def get_contests(self, obj):
+        contests = obj.contests.values(
+            "name",
+        ).all()
+        return [contest["name"] for contest in contests]
 
 
 class ContestSerializer(serializers.ModelSerializer):
@@ -775,3 +775,38 @@ class TopCuratorSerializer(serializers.ModelSerializer):
         value = super().to_representation(value)
         value.update(value.pop("profile"))
         return value
+
+
+class MovieRecommendSerializer(serializers.ModelSerializer):
+    movie = serializers.PrimaryKeyRelatedField(
+        queryset=Movie.objects.filter(state=MOVIE_STATE.PUBLISHED),
+        write_only=True,
+        error_messages={"does_not_exist": "Movie does not exist"},
+    )
+    recommended = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Profile
+        fields = ["movie", "recommended"]
+
+    def get_recommended(self, profile):
+        request = self.context["request"]
+        try:
+            movie_list = MovieList.objects.get(owner=request.user, name=RECOMMENDATION)
+        except MovieList.DoesNotExist:
+            return 0
+        else:
+            return movie_list.movies.count()
+
+    def update(self, profile, validated_data):
+        movie = validated_data["movie"]
+        action = validated_data["action"]
+        movie_list, _ = MovieList.objects.get_or_create(
+            name=RECOMMENDATION,
+            owner=profile.user,
+        )
+        if action == "add":
+            movie_list.movies.add(movie)
+        elif action == "remove":
+            movie_list.movies.remove(movie)
+        return profile

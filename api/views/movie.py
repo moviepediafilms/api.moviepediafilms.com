@@ -4,7 +4,7 @@ from api.models.movie import CrewMember
 from logging import getLogger
 
 from django.db.models import Count
-from django.utils import timezone
+
 from django.db import transaction
 
 from rest_framework import mixins, parsers, viewsets, response, permissions
@@ -12,7 +12,6 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from api.constants import MOVIE_STATE, RECOMMENDATION
 from api.serializers.movie import (
-    ContestSerializer,
     SubmissionSerializer,
     MoviePosterSerializer,
     MovieLanguageSerializer,
@@ -22,8 +21,6 @@ from api.serializers.movie import (
     MovieListSerializer,
     CrewMemberRequestSerializer,
     MovieSerializerSummary,
-    TopCreatorSerializer,
-    TopCuratorSerializer,
 )
 from api.models import (
     Movie,
@@ -37,7 +34,7 @@ from api.models import (
     Contest,
     Profile,
 )
-
+from .utils import paginated_response
 
 logger = getLogger(__name__)
 
@@ -212,7 +209,7 @@ class MovieRecommendView(
     mixins.UpdateModelMixin,
 ):
     ordering_fields = []
-    queryset = Movie.objects.filter(state=MOVIE_STATE.PUBLISHED)
+    queryset = Contest.objects.filter(state=MOVIE_STATE.PUBLISHED)
 
     def _is_movie_live(self, movie):
         return (
@@ -378,55 +375,3 @@ class CrewMemberRequestView(viewsets.ModelViewSet):
 
     def perform_update(self, serializer):
         serializer.save(logged_in_user=self.request.user)
-
-
-class ContestView(viewsets.GenericViewSet, mixins.ListModelMixin):
-    ordering_fields = ["start"]
-    filterset_fields = ["type__name"]
-
-    def get_queryset(self):
-        queryset = Contest.objects.all()
-        live = self.request.query_params.get("live", None)
-        if live is not None:
-            now = timezone.now()
-            if live == "true":
-                queryset = Contest.objects.filter(start__lte=now, end__gte=now)
-            elif live == "false":
-                queryset = Contest.objects.exclude(start__lte=now, end__gte=now)
-        return queryset
-
-    def get_serializer_class(self, *args, **kwargs):
-        logger.debug(f"action {self.action}")
-        return {
-            "top_creators": TopCreatorSerializer,
-            "top_curators": TopCuratorSerializer,
-        }.get(self.action, ContestSerializer)
-
-    @action(
-        methods=["get"],
-        detail=True,
-        url_path="top-creators",
-    )
-    def top_creators(self, request, pk=None, **kwargs):
-        contest = self.get_object()
-        top_creators = contest.top_creators.order_by("-score").all()
-        return paginated_response(self, top_creators)
-
-    @action(
-        methods=["get"],
-        detail=True,
-        url_path="top-curators",
-    )
-    def top_curators(self, request, pk=None, **kwargs):
-        contest = self.get_object()
-        top_curators = contest.top_curators.order_by("-match").all()
-        return paginated_response(self, top_curators)
-
-
-def paginated_response(view, queryset):
-    page = view.paginate_queryset(queryset)
-    if page is not None:
-        serializer = view.get_serializer(instance=page, many=True)
-        return view.get_paginated_response(serializer.data)
-    serializer = view.get_serializer(instance=queryset, many=True)
-    return response.Response(serializer.data)

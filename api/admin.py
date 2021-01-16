@@ -87,6 +87,7 @@ class MovieAdmin(admin.ModelAdmin):
     ]
     ordering = ["-created_at", "title"]
     readonly_fields = ["poster"]
+    filter_horizontal = ["contests"]
 
     def submited_by(self, movie):
         return movie.order.owner
@@ -149,8 +150,21 @@ class ContestTypeAdmin(admin.ModelAdmin):
     list_display = ["name"]
 
 
+class MoviesInContest(admin.TabularInline):
+    model = Contest.movies.through
+
+
 class ContestAdmin(admin.ModelAdmin):
-    list_display = ["name", "start", "end", "days_per_movie", "state"]
+    list_display = [
+        "name",
+        "start",
+        "end",
+        "days_per_movie",
+        "state",
+    ]
+    inlines = [
+        MoviesInContest,
+    ]
 
 
 class NotificationAdmin(admin.ModelAdmin):
