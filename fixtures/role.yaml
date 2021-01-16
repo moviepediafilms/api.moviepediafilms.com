@@ -1,0 +1,8 @@
+- model: api.role
+  pk: 1
+  fields:
+    name: Director
+- model: api.role
+  pk: 2
+  fields:
+    name: Actor

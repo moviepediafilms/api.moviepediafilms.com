@@ -181,7 +181,7 @@ class SubmissionEntrySerializer(serializers.ModelSerializer):
 
 
 class MovieSerializerSummary(serializers.ModelSerializer):
-    contest = serializers.SerializerMethodField()
+    contests = serializers.SerializerMethodField()
     crew = CrewMemberSerializer(source="crewmember_set", many=True)
 
     class Meta:
@@ -191,8 +191,7 @@ class MovieSerializerSummary(serializers.ModelSerializer):
             "title",
             "poster",
             "about",
-            "is_live",
-            "contest",
+            "contests",
             "crew",
             "state",
             "score",
@@ -202,16 +201,27 @@ class MovieSerializerSummary(serializers.ModelSerializer):
             "runtime",
         ]
 
-    def get_contest(self, obj):
-        contest = obj.contest
-        if contest:
-            return contest.name
+    def get_contests(self, obj):
+        contests = obj.contests.values(
+            "name",
+        ).all()
+        return [contest["name"] for contest in contests]
 
 
 class ContestSerializer(serializers.ModelSerializer):
+    # requestor recommended movies
+    recommended_movies = serializers.SerializerMethodField()
+
     class Meta:
         model = Contest
-        fields = ["id", "name", "is_live", "start", "end"]
+        fields = ["id", "name", "is_live", "start", "end", "recommended_movies"]
+
+    def get_recommended_movies(self, contest):
+        request = self.context.get("request")
+        if not request:
+            return []
+        else:
+            return contest.movie_lists.get(owner=request.user).movies.values("id").all()
 
 
 class MovieSerializer(serializers.ModelSerializer):
@@ -228,7 +238,7 @@ class MovieSerializer(serializers.ModelSerializer):
     is_watchlisted = serializers.SerializerMethodField(read_only=True)
     # is recommended by the requestor if he is authenticated
     is_recommended = serializers.SerializerMethodField(read_only=True)
-    contest = ContestSerializer(read_only=True)
+    contests = serializers.SerializerMethodField()
 
     class Meta:
         model = Movie
@@ -252,12 +262,20 @@ class MovieSerializer(serializers.ModelSerializer):
             "is_watchlisted",
             "is_recommended",
             "publish_on",
-            "contest",
             "about",
             "approved",
             "recommend_count",
+            "contests",
         ]
         read_only_fields = ["about", "state"]
+
+    def get_contests(self, movie):
+        return ContestSerializer(
+            instance=[contest for contest in movie.contests.all() if contest.is_live()],
+            context=self.context,
+            read_only=True,
+            many=True,
+        ).data
 
     def get_requestor_rating(self, movie):
         request = self.context.get("request")
@@ -775,3 +793,38 @@ class TopCuratorSerializer(serializers.ModelSerializer):
         value = super().to_representation(value)
         value.update(value.pop("profile"))
         return value
+
+
+class MovieRecommendSerializer(serializers.ModelSerializer):
+    movie = serializers.PrimaryKeyRelatedField(
+        queryset=Movie.objects.filter(state=MOVIE_STATE.PUBLISHED),
+        write_only=True,
+        error_messages={"does_not_exist": "Movie does not exist"},
+    )
+    recommended = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Profile
+        fields = ["movie", "recommended"]
+
+    def get_recommended(self, profile):
+        request = self.context["request"]
+        try:
+            movie_list = MovieList.objects.get(owner=request.user, name=RECOMMENDATION)
+        except MovieList.DoesNotExist:
+            return []
+        else:
+            return movie_list.movies.values("id").all()
+
+    def update(self, profile, validated_data):
+        movie = validated_data["movie"]
+        action = validated_data["action"]
+        movie_list, _ = MovieList.objects.get_or_create(
+            name=RECOMMENDATION,
+            owner=profile.user,
+        )
+        if action == "add":
+            movie_list.movies.add(movie)
+        elif action == "remove":
+            movie_list.movies.remove(movie)
+        return profile
