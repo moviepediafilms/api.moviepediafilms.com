@@ -7,7 +7,7 @@ from django.test import TestCase
 from django.core import mail
 
 from api.models import CrewMember, Movie, Genre, MovieLanguage, User, Package
-from .base import reverse, APITestCaseMixin, LoggedInMixin, for_all_methods, log_runtime
+from .base import reverse, APITestCaseMixin, LoggedInMixin
 
 
 class MovieSubmitTestMixin:
@@ -88,7 +88,6 @@ class BasicMovieTestMixin(MovieSubmitTestMixin):
         self.assertEquals(movie.runtime, self.runtime)
 
 
-@for_all_methods(log_runtime)
 class SubmissionByDirectorTestCase(
     LoggedInMixin, APITestCaseMixin, TestCase, BasicMovieTestMixin
 ):
@@ -113,7 +112,6 @@ class SubmissionByDirectorTestCase(
             )
 
 
-@for_all_methods(log_runtime)
 class SubmissionUnregisteredDirectorTestCase(
     LoggedInMixin, APITestCaseMixin, TestCase, BasicMovieTestMixin
 ):
@@ -146,7 +144,6 @@ class SubmissionUnregisteredDirectorTestCase(
         self.assertFalse(movie.approved)
 
 
-@for_all_methods(log_runtime)
 class SubmissionRegisteredDirectorTestCase(
     LoggedInMixin, APITestCaseMixin, TestCase, BasicMovieTestMixin
 ):
@@ -173,7 +170,6 @@ class SubmissionRegisteredDirectorTestCase(
         self.assertFalse(movie.approved)
 
 
-@for_all_methods(log_runtime)
 class SubmissionNoDirectorTestCase(
     LoggedInMixin, APITestCaseMixin, TestCase, MovieSubmitTestMixin
 ):
@@ -186,7 +182,6 @@ class SubmissionNoDirectorTestCase(
         self.assertIn("Director must be provided", res.content.decode())
 
 
-@for_all_methods(log_runtime)
 class SubmissionPackageSelectionTestCase(
     LoggedInMixin, APITestCaseMixin, TestCase, MovieSubmitTestMixin
 ):

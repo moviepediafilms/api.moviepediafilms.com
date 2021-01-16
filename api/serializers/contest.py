@@ -21,7 +21,9 @@ class ContestRecommendListSerializer(serializers.ModelSerializer):
     def get_recommended(self, contest):
         request = self.context["request"]
         try:
-            movie_list = MovieList.objects.get(contest=contest, owner=request.user)
+            movie_list = MovieList.objects.get(
+                name=contest.name, contest=contest, owner=request.user
+            )
         except MovieList.DoesNotExist:
             return 0
         else:

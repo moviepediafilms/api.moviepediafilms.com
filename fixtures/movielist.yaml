@@ -1,0 +1,18 @@
+- model: api.movielist
+  pk: 1
+  fields:
+    owner: 1
+    name: January
+    frozen: false
+    contest: 1
+    movies:
+    - 1
+    liked_by: []
+- model: api.movielist
+  pk: 2
+  fields:
+    owner: 1
+    name: Recommendation
+    frozen: false
+    contest:
+    liked_by: []
