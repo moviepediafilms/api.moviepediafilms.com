@@ -25,9 +25,7 @@ class RecommendTestCase(APITestCaseMixin, LoggedInMixin, TestCase):
 
     def _create_movie_list_for_contest(self):
         contest = Contest.objects.get(pk=1)
-        return MovieList.objects.create(
-            contest=contest, name=contest.name, owner_id=1
-        )
+        return MovieList.objects.create(contest=contest, name=contest.name, owner_id=1)
 
     def test_recommend_non_participating_movie_in_live_contest(self):
         url = reverse("api:contest-recommend", args=["v1", 1])
