@@ -1,5 +1,5 @@
 from api.constants import MOVIE_STATE, RECOMMENDATION
-from api.models import MovieList, Contest, Movie, User
+from api.models import MovieList, Movie, User
 from django.test import TestCase
 from .base import reverse, APITestCaseMixin, LoggedInMixin
 

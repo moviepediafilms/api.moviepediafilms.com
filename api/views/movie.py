@@ -1,15 +1,16 @@
 from datetime import timedelta, datetime
-from django.utils.timezone import make_aware
-from api.models.movie import CrewMember
 from logging import getLogger
 
+from django.utils.timezone import make_aware
 from django.db.models import Count
-
 from django.db import transaction
 
+import django_filters as filters
 from rest_framework import mixins, parsers, viewsets, response, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
+
+from api.models.movie import CrewMember
 from api.constants import MOVIE_STATE, RECOMMENDATION
 from api.serializers.movie import (
     SubmissionSerializer,
@@ -297,13 +298,23 @@ class IsMovieListOwner(permissions.BasePermission):
         return object.owner == me
 
 
+class MovieListFilter(filters.FilterSet):
+    contest__isnull = filters.BooleanFilter(
+        field_name="contest", lookup_expr="isnull", label="Contest is null"
+    )
+
+    class Meta:
+        model = MovieList
+        fields = ["contest__isnull", "owner__id", "name"]
+
+
 class MovieListView(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsMovieListOwner]
     queryset = MovieList.objects.annotate(
         likes=Count("liked_by"), number_of_movies=Count("movies")
     )
+    filter_class = MovieListFilter
     ordering_fields = ["movies", "likes"]
-    filterset_fields = ["owner__id"]
 
     def get_serializer_class(self):
         if self.action in ("movies", "like"):

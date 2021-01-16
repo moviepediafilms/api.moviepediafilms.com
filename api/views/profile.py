@@ -2,7 +2,6 @@ from api.models.movie import Movie
 from logging import getLogger
 
 from django.db.models import Count, Q
-from django.db.models.query import QuerySet
 from rest_framework import permissions, viewsets, mixins, parsers, response
 from rest_framework.decorators import action
 from api.serializers.movie import (
@@ -68,8 +67,6 @@ class ProfileView(viewsets.ModelViewSet):
             return NotificationSerializer
         if self.action == "crew_approvals":
             return CrewMemberRequestSerializer
-        if self.action == "recommend_details":
-            return MovieListSerializer
         if self.action == "recommends":
             if self.request.method in ("POST", "DELETE"):
                 return MovieRecommendSerializer
@@ -140,6 +137,12 @@ class ProfileView(viewsets.ModelViewSet):
 
     @action(methods=["get", "post", "delete"], detail=True)
     def recommends(self, pk=None, **kwargs):
+        """
+        manages user's personal recommendations list.
+        POST and DELETE methods are used to add movies where as GET
+        is used to fetch all the movies in personal recommend list
+        """
+
         profile = self.get_object()
         movie_list = MovieList.objects.filter(
             owner=profile.user, name=RECOMMENDATION
@@ -151,6 +154,8 @@ class ProfileView(viewsets.ModelViewSet):
             logger.debug(f"{pk} {profile} {movies}")
             return self._build_paginated_response(movies)
         elif self.request.method in ("POST", "DELETE"):
+            # FIXME: handle allow modification to self profile only via permission classes
+            profile = self.request.user.profile
             serializer = self.get_serializer(
                 instance=profile,
                 data=self.request.data,
@@ -161,16 +166,6 @@ class ProfileView(viewsets.ModelViewSet):
                 action={"POST": "add", "DELETE": "remove"}[self.request.method]
             )
             return response.Response(serializer.data)
-
-    @action(methods=["get"], detail=True, url_path="recommend-details")
-    def recommend_details(self, pk=None, **kwargs):
-        profile = self.get_object()
-        movie_list = MovieList.objects.filter(
-            owner=profile.user, name=RECOMMENDATION
-        ).first()
-        logger.debug(f"{pk} {profile} {movie_list}")
-        serializer = self.get_serializer(instance=movie_list)
-        return response.Response(serializer.data)
 
     def _build_paginated_response(self, queryset):
         page = self.paginate_queryset(queryset)
