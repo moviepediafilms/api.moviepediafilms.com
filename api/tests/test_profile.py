@@ -44,7 +44,7 @@ class PersonalRecommendListTestCase(APITestCaseMixin, LoggedInMixin, TestCase):
         url = reverse("api:profile-recommends", args=["v1", 1])
         res = self.client.post(url, dict(movie=1))
         self.assertEqual(200, res.status_code)
-        self.assertEqual(1, res.json()["recommended"])
+        self.assertEqual([{"id": 1}], res.json()["recommended"])
 
     def test_undo_recommended_movie(self):
         self._recommend_movie()
@@ -53,7 +53,7 @@ class PersonalRecommendListTestCase(APITestCaseMixin, LoggedInMixin, TestCase):
         url = reverse("api:profile-recommends", args=["v1", 1])
         res = self.client.delete(url, dict(movie=1))
         self.assertEqual(200, res.status_code)
-        self.assertEqual(0, res.json()["recommended"])
+        self.assertEqual([], res.json()["recommended"])
 
     def test_recommend_unpublished_movie(self):
         movie = Movie.objects.get(pk=1)

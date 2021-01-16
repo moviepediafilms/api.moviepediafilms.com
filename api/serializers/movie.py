@@ -209,9 +209,19 @@ class MovieSerializerSummary(serializers.ModelSerializer):
 
 
 class ContestSerializer(serializers.ModelSerializer):
+    # requestor recommended movies
+    recommended_movies = serializers.SerializerMethodField()
+
     class Meta:
         model = Contest
-        fields = ["id", "name", "is_live", "start", "end"]
+        fields = ["id", "name", "is_live", "start", "end", "recommended_movies"]
+
+    def get_recommended_movies(self, contest):
+        request = self.context.get("request")
+        if not request:
+            return []
+        else:
+            return contest.movie_lists.get(owner=request.user).movies.values("id").all()
 
 
 class MovieSerializer(serializers.ModelSerializer):
@@ -228,7 +238,7 @@ class MovieSerializer(serializers.ModelSerializer):
     is_watchlisted = serializers.SerializerMethodField(read_only=True)
     # is recommended by the requestor if he is authenticated
     is_recommended = serializers.SerializerMethodField(read_only=True)
-    contest = ContestSerializer(read_only=True)
+    contests = serializers.SerializerMethodField()
 
     class Meta:
         model = Movie
@@ -252,12 +262,20 @@ class MovieSerializer(serializers.ModelSerializer):
             "is_watchlisted",
             "is_recommended",
             "publish_on",
-            "contest",
             "about",
             "approved",
             "recommend_count",
+            "contests",
         ]
         read_only_fields = ["about", "state"]
+
+    def get_contests(self, movie):
+        return ContestSerializer(
+            instance=[contest for contest in movie.contests.all() if contest.is_live()],
+            context=self.context,
+            read_only=True,
+            many=True,
+        ).data
 
     def get_requestor_rating(self, movie):
         request = self.context.get("request")
@@ -794,9 +812,9 @@ class MovieRecommendSerializer(serializers.ModelSerializer):
         try:
             movie_list = MovieList.objects.get(owner=request.user, name=RECOMMENDATION)
         except MovieList.DoesNotExist:
-            return 0
+            return []
         else:
-            return movie_list.movies.count()
+            return movie_list.movies.values("id").all()
 
     def update(self, profile, validated_data):
         movie = validated_data["movie"]

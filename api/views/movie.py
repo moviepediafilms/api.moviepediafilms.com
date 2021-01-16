@@ -87,6 +87,9 @@ class MovieView(
             return MovieSerializerSummary
         return MovieSerializer
 
+    def get_serializer_context(self):
+        return dict(request=self.request)
+
 
 class MoviesByView(mixins.RetrieveModelMixin, viewsets.GenericViewSet):
     queryset = Profile.objects
@@ -208,6 +211,8 @@ class MovieRecommendView(
     mixins.DestroyModelMixin,
     mixins.UpdateModelMixin,
 ):
+    # TODO: make sure front-end is not using it and then delete it
+    # recommendation should be done via ProfileView additional action
     ordering_fields = []
     queryset = Contest.objects.filter(state=MOVIE_STATE.PUBLISHED)
 
