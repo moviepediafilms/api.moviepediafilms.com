@@ -98,7 +98,7 @@ class MovieView(
         return base_qs
 
     def get_serializer_class(self):
-        if self.action in ("list", "new-releases"):
+        if self.action in ("list", "new_releases"):
             return MovieSerializerSummary
         return MovieSerializer
 
