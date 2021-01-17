@@ -82,4 +82,5 @@ class ContestView(viewsets.GenericViewSet, mixins.ListModelMixin):
     @action(methods=["get"], detail=True)
     def movies(self, request, **kwargs):
         contest = self.get_object()
-        return paginated_response(self, contest.movies.all())
+        movies_qs = contest.movies.order_by("-publish_on", "-recommend_count", "title")
+        return paginated_response(self, movies_qs)
