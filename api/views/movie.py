@@ -10,7 +10,7 @@ from rest_framework import mixins, parsers, viewsets, response, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from api.models.movie import CrewMember
+from api.models.movie import CrewMember, MpGenre
 from api.constants import MOVIE_STATE, RECOMMENDATION
 from api.serializers.movie import (
     SubmissionSerializer,
@@ -22,6 +22,7 @@ from api.serializers.movie import (
     MovieListSerializer,
     CrewMemberRequestSerializer,
     MovieSerializerSummary,
+    MpGenreSerializer,
 )
 from api.models import (
     Movie,
@@ -75,24 +76,44 @@ class MovieView(
     mixins.ListModelMixin,
     viewsets.GenericViewSet,
 ):
+    ordering_fields = ["publish_on", "recommend_count"]
+    ordering = ["-publish_on"]
+
     def get_queryset(self):
+        base_qs = Movie.objects.filter(state=MOVIE_STATE.PUBLISHED)
+        if self.action == "new_releases":
+            latest_movie = (
+                base_qs.exclude(publish_on__isnull=True).order_by("-publish_on").first()
+            )
+            if latest_movie:
+                last_publish_date = latest_movie.publish_on.date()
+                return base_qs.filter(publish_on__date=last_publish_date)
+            else:
+                return Movie.objects.none()
         if self.action == "partial_update":
             return Movie.objects.filter(
                 crewmember__role__name="Director",
                 crewmember__profile=self.request.user.profile,
             ).distinct()
-        return Movie.objects.filter(state=MOVIE_STATE.PUBLISHED)
+        return base_qs
 
     def get_serializer_class(self):
-        if self.action in ("list", "my"):
+        if self.action in ("list", "new-releases"):
             return MovieSerializerSummary
         return MovieSerializer
 
     def get_serializer_context(self):
         return dict(request=self.request)
 
+    @action(methods=["get"], detail=False)
+    def new_releases(self, request, pk=None, **kwargs):
+        """All movies released on same day - need not be today any n-1 day"""
+        return paginated_response(self, self.get_queryset())
+
 
 class MoviesByView(mixins.RetrieveModelMixin, viewsets.GenericViewSet):
+    """All Movie of a director"""
+
     queryset = Profile.objects
     serializer_class = MovieSerializerSummary
     permission_classes = [permissions.IsAuthenticated]
@@ -391,3 +412,15 @@ class CrewMemberRequestView(viewsets.ModelViewSet):
 
     def perform_update(self, serializer):
         serializer.save(logged_in_user=self.request.user)
+
+
+class MpGenreView(mixins.ListModelMixin, viewsets.GenericViewSet):
+    queryset = MpGenre.objects.filter(live=True)
+
+    def get_serializer_class(self):
+        return {"movies": MovieSerializerSummary}.get(self.action, MpGenreSerializer)
+
+    @action(methods=["get"], detail=True)
+    def movies(self, request, **kwargs):
+        mp_genre = self.get_object()
+        return paginated_response(self, mp_genre.movies.all())

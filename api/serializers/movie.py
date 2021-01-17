@@ -1,7 +1,7 @@
 from django.utils import timezone
 from django.db.models.functions import ExtractMonth, ExtractYear
 from rest_framework.exceptions import ValidationError
-from api.models.movie import TopCreator, TopCurator
+from api.models.movie import MpGenre, TopCreator, TopCurator
 from logging import getLogger
 import hashlib
 import os
@@ -221,7 +221,13 @@ class ContestSerializer(serializers.ModelSerializer):
         if not request:
             return []
         else:
-            return contest.movie_lists.get(owner=request.user).movies.values("id").all()
+            try:
+                movie_list = contest.movie_lists.get(owner=request.user)
+            except MovieList.DoesNotExist:
+                movie_ids = []
+            else:
+                movie_ids = movie_list.movies.values("id").all()
+            return movie_ids
 
 
 class MovieSerializer(serializers.ModelSerializer):
@@ -817,3 +823,9 @@ class MovieRecommendSerializer(serializers.ModelSerializer):
         elif action == "remove":
             movie_list.movies.remove(movie)
         return profile
+
+
+class MpGenreSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MpGenre
+        fields = ["id", "name", "live"]
