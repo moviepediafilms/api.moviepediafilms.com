@@ -36,6 +36,7 @@ router.register(
 router.register("contest", contest.ContestView, basename="contest")
 router.register("movies-by", movie.MoviesByView, basename="moviesby")
 router.register("account", auth.AccountVerifyView, basename="account")
+router.register("mpgenre", movie.MpGenreView, basename="mpgenre")
 
 
 urlpatterns = [

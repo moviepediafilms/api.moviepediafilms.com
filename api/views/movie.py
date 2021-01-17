@@ -6,11 +6,11 @@ from django.db.models import Count
 from django.db import transaction
 
 import django_filters as filters
-from rest_framework import mixins, parsers, viewsets, response, permissions
+from rest_framework import mixins, parsers, views, viewsets, response, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from api.models.movie import CrewMember
+from api.models.movie import CrewMember, MpGenre
 from api.constants import MOVIE_STATE, RECOMMENDATION
 from api.serializers.movie import (
     SubmissionSerializer,
@@ -22,6 +22,7 @@ from api.serializers.movie import (
     MovieListSerializer,
     CrewMemberRequestSerializer,
     MovieSerializerSummary,
+    MpGenreSerializer,
 )
 from api.models import (
     Movie,
@@ -406,3 +407,15 @@ class CrewMemberRequestView(viewsets.ModelViewSet):
 
     def perform_update(self, serializer):
         serializer.save(logged_in_user=self.request.user)
+
+
+class MpGenreView(mixins.ListModelMixin, viewsets.GenericViewSet):
+    queryset = MpGenre.objects.filter(live=True)
+
+    def get_serializer_class(self):
+        return {"movies": MovieSerializerSummary}.get(self.action, MpGenreSerializer)
+
+    @action(detail=True)
+    def movies(self, request, **kwargs):
+        mp_genre = self.get_object()
+        return paginated_response(self, mp_genre.movies.all())

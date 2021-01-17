@@ -1,7 +1,7 @@
 from django.utils import timezone
 from django.db.models.functions import ExtractMonth, ExtractYear
 from rest_framework.exceptions import ValidationError
-from api.models.movie import TopCreator, TopCurator
+from api.models.movie import MpGenre, TopCreator, TopCurator
 from logging import getLogger
 import hashlib
 import os
@@ -823,3 +823,9 @@ class MovieRecommendSerializer(serializers.ModelSerializer):
         elif action == "remove":
             movie_list.movies.remove(movie)
         return profile
+
+
+class MpGenreSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MpGenre
+        fields = ["id", "name", "live"]

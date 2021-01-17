@@ -1,3 +1,4 @@
+from api.models.movie import MpGenre
 import math
 from unittest import mock
 from datetime import datetime
@@ -52,7 +53,7 @@ class MostRecommendedTestCase(APITestCaseMixin, LoggedInMixin, TestCase):
         "contest_type",
         "contest",
         "crewmember",
-        "most_recommended",
+        "test_most_recommended",
     ]
 
     def test_most_recommended(self):
@@ -89,7 +90,7 @@ class LiveContestTestCase(APITestCaseMixin, LoggedInMixin, TestCase):
         "contest_type",
         "contest",
         "crewmember",
-        "live_contest_categories",
+        "test_live_contest_categories",
     ]
     feb_3_2020 = timezone.now().replace(year=2021, month=2, day=3)
 
@@ -114,7 +115,7 @@ class LiveContestTestCase(APITestCaseMixin, LoggedInMixin, TestCase):
         self.assertEqual(200, res.status_code)
 
 
-class MpGenreTestCase(APITestCaseMixin, LoggedInMixin, TestCase):
+class MpGenreMoviesTestCase(APITestCaseMixin, LoggedInMixin, TestCase):
     maxDiff = None
     fixtures = [
         "user",
@@ -128,8 +129,53 @@ class MpGenreTestCase(APITestCaseMixin, LoggedInMixin, TestCase):
         "contest_type",
         "contest",
         "crewmember",
-        "mp_live_genre",
+        "test_mp_live_genre",
     ]
 
-    def test_get_live_mp_genres(self):
-        self.fail()
+    def test_movies_in_live_mp_genre(self):
+        res = self.client.get(reverse("api:mpgenre-movies", args=["v1", 1]))
+        self.assertEqual(200, res.status_code)
+        actual_movies = res.json()["results"]
+        self.assertEqual(2, len(actual_movies))
+        self.assertEqual(3, MpGenre.objects.count())
+        self.assertEqual(
+            [
+                {
+                    "id": 2,
+                    "title": "Submitted Movie2",
+                    "poster": None,
+                    "about": "This is a good movie2",
+                    "contests": [],
+                    "crew": [],
+                    "state": "P",
+                    "score": 0.0,
+                    "created_at": "2020-12-15T10:53:15.167332+05:30",
+                    "recommend_count": 0,
+                    "publish_on": "2021-01-01T10:53:15.167332+05:30",
+                    "runtime": 100.0,
+                },
+                {
+                    "id": 4,
+                    "title": "Submitted Movie3",
+                    "poster": None,
+                    "about": "This is a good movie4",
+                    "contests": [],
+                    "crew": [],
+                    "state": "P",
+                    "score": 0.0,
+                    "created_at": "2020-12-15T10:53:15.167332+05:30",
+                    "recommend_count": 0,
+                    "publish_on": "2021-01-01T10:53:15.167332+05:30",
+                    "runtime": 100.0,
+                },
+            ],
+            actual_movies,
+        )
+
+    def test_get_live_genres(self):
+        res = self.client.get(reverse("api:mpgenre-list"))
+        self.assertEqual(200, res.status_code)
+        actual_mp_genre = res.json()["results"]
+        self.assertEqual(2, len(actual_mp_genre))
+        for mp_genre in actual_mp_genre:
+            self.assertTrue(mp_genre["live"])
