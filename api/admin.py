@@ -6,6 +6,7 @@ from api.models import (
     Order,
     Movie,
     Genre,
+    MpGenre,
     MovieLanguage,
     MovieRateReview,
     MovieList,
@@ -108,6 +109,10 @@ class GenreAdmin(admin.ModelAdmin):
     list_display = ["name"]
 
 
+class MpGenreAdmin(admin.ModelAdmin):
+    list_display = ["name"]
+
+
 class MovieLanguageAdmin(admin.ModelAdmin):
     list_display = ["name"]
 
@@ -176,6 +181,7 @@ admin.site.register(Role, RoleAdmin)
 admin.site.register(Order, OrderAdmin)
 admin.site.register(Movie, MovieAdmin)
 admin.site.register(Genre, GenreAdmin)
+admin.site.register(MpGenre, MpGenreAdmin)
 admin.site.register(MovieLanguage, MovieLanguageAdmin)
 admin.site.register(MovieRateReview, MovieRateReviewAdmin)
 admin.site.register(Package, PackageAdmin)

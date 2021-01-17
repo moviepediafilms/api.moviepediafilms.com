@@ -11,6 +11,14 @@ from api.constants import (
 logger = getLogger("api.models")
 
 
+class MpGenre(models.Model):
+    name = models.CharField(max_length=50, unique=True)
+    live = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.name.title()
+
+
 class Genre(models.Model):
     name = models.CharField(max_length=50, unique=True)
 
@@ -60,6 +68,7 @@ class Movie(models.Model):
     # in minutes
     runtime = models.FloatField()
     genres = models.ManyToManyField(Genre)
+    mp_genres = models.ManyToManyField(MpGenre, related_name="movies")
     about = models.TextField(blank=True)
     lang = models.ForeignKey(
         MovieLanguage, on_delete=models.SET_NULL, null=True, blank=True
