@@ -6,7 +6,7 @@
         {
             "label": "test",
             "type": "shell",
-            "command": "pipenv run python manage.py test"
+            "command": "pipenv run coverage run --source='.' manage.py test api.tests && pipenv run coverage html --omit=moviepedia/*,manage.py"
         },
         {
             "label": "run",

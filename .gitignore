@@ -7,3 +7,4 @@ testdb
 coverage.xml
 .coverage
 buglist.yaml
+htmlcov

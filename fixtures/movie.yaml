@@ -8,11 +8,11 @@
     title: Submitted Movie
     link: http://facebook.com
     runtime: 100.0
-    about: ''
+    about: 'This is a good movie'
     lang: 1
     poster: null
     month: null
-    publish_on: null
+    publish_on: 2021-01-01 05:23:15.167332+00:00
     jury_rating: 0.0
     audience_rating: 0.0
     recommend_count: 0

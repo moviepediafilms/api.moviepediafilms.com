@@ -1,0 +1,6 @@
+- model: api.crewmember
+  pk: 1
+  fields:
+    movie: 1
+    profile: 1
+    role: 1

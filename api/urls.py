@@ -34,7 +34,7 @@ router.register(
     basename="filmmakerleaderboard",
 )
 router.register("contest", contest.ContestView, basename="contest")
-router.register("movies-by", movie.MoviesByView, basename="contest")
+router.register("movies-by", movie.MoviesByView, basename="moviesby")
 router.register("account", auth.AccountVerifyView, basename="account")
 
 
