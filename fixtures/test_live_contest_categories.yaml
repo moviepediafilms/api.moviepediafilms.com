@@ -20,6 +20,8 @@
     approved: true
     genres:
     - 1
+    contests:
+    - 1
 - model: api.movie
   pk: 3
   fields:
@@ -42,6 +44,8 @@
     approved: true
     genres:
     - 1
+    contests:
+    - 1
 - model: api.movie
   pk: 4
   fields:
@@ -63,6 +67,8 @@
     review_count: 0
     approved: true
     genres:
+    - 1
+    contests:
     - 1
 - model: api.contest
   pk: 2

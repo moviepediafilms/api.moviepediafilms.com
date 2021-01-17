@@ -6,6 +6,7 @@ from rest_framework.decorators import action
 from api.serializers.contest import ContestRecommendListSerializer
 from api.serializers.movie import (
     ContestSerializer,
+    MovieSerializerSummary,
     TopCreatorSerializer,
     TopCuratorSerializer,
 )
@@ -36,6 +37,7 @@ class ContestView(viewsets.GenericViewSet, mixins.ListModelMixin):
             "top_creators": TopCreatorSerializer,
             "top_curators": TopCuratorSerializer,
             "recommend": ContestRecommendListSerializer,
+            "movies": MovieSerializerSummary,
         }.get(self.action, ContestSerializer)
 
     @action(
@@ -73,3 +75,8 @@ class ContestView(viewsets.GenericViewSet, mixins.ListModelMixin):
                 instance=contest, context={"request": request}
             )
         return response.Response(serializer.data)
+
+    @action(methods=["get"], detail=True)
+    def movies(self, request, **kwargs):
+        contest = self.get_object()
+        return paginated_response(self, contest.movies.all())

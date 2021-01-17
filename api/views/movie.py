@@ -6,7 +6,7 @@ from django.db.models import Count
 from django.db import transaction
 
 import django_filters as filters
-from rest_framework import mixins, parsers, views, viewsets, response, permissions
+from rest_framework import mixins, parsers, viewsets, response, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
@@ -82,9 +82,14 @@ class MovieView(
     def get_queryset(self):
         base_qs = Movie.objects.filter(state=MOVIE_STATE.PUBLISHED)
         if self.action == "new_releases":
-            latest_movie = base_qs.order_by("-publish_on").first()
-            last_publish_date = latest_movie.publish_on.date()
-            return base_qs.filter(publish_on__date=last_publish_date)
+            latest_movie = (
+                base_qs.exclude(publish_on__isnull=True).order_by("-publish_on").first()
+            )
+            if latest_movie:
+                last_publish_date = latest_movie.publish_on.date()
+                return base_qs.filter(publish_on__date=last_publish_date)
+            else:
+                return Movie.objects.none()
         if self.action == "partial_update":
             return Movie.objects.filter(
                 crewmember__role__name="Director",
@@ -415,7 +420,7 @@ class MpGenreView(mixins.ListModelMixin, viewsets.GenericViewSet):
     def get_serializer_class(self):
         return {"movies": MovieSerializerSummary}.get(self.action, MpGenreSerializer)
 
-    @action(detail=True)
+    @action(methods=["get"], detail=True)
     def movies(self, request, **kwargs):
         mp_genre = self.get_object()
         return paginated_response(self, mp_genre.movies.all())

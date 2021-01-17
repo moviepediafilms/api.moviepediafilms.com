@@ -111,8 +111,57 @@ class LiveContestTestCase(APITestCaseMixin, LoggedInMixin, TestCase):
 
     def test_movies_in_contest(self, mocked_timezone):
         mocked_timezone.now.return_value = self.feb_3_2020
-        res = self.client.get(reverse("api:contest-list"), {"live": "true"})
+        res = self.client.get(reverse("api:contest-movies", args=["v1", 1]))
         self.assertEqual(200, res.status_code)
+        actual_movies = res.json()["results"]
+        self.assertEqual(3, len(actual_movies))
+        self.assertEqual(
+            [
+                {
+                    "id": 2,
+                    "title": "Movie2",
+                    "poster": None,
+                    "about": "This is a good movie2",
+                    "contests": ["January"],
+                    "crew": [],
+                    "state": "P",
+                    "score": 0.0,
+                    "created_at": "2020-12-15T10:53:15.167332+05:30",
+                    "recommend_count": 1,
+                    "publish_on": "2021-01-01T10:53:15.167332+05:30",
+                    "runtime": 100.0,
+                },
+                {
+                    "id": 3,
+                    "title": "Movie3",
+                    "poster": None,
+                    "about": "This is a good movie3",
+                    "contests": ["January"],
+                    "crew": [],
+                    "state": "P",
+                    "score": 0.0,
+                    "created_at": "2020-12-15T10:53:15.167332+05:30",
+                    "recommend_count": 2,
+                    "publish_on": "2021-01-10T08:53:15.167332+05:30",
+                    "runtime": 100.0,
+                },
+                {
+                    "id": 4,
+                    "title": "Movie4",
+                    "poster": None,
+                    "about": "This is a good movie4",
+                    "contests": ["January"],
+                    "crew": [],
+                    "state": "P",
+                    "score": 0.0,
+                    "created_at": "2020-12-15T10:53:15.167332+05:30",
+                    "recommend_count": 3,
+                    "publish_on": "2021-01-10T10:53:15.167332+05:30",
+                    "runtime": 100.0,
+                },
+            ],
+            actual_movies,
+        )
 
 
 class MpGenreMoviesTestCase(APITestCaseMixin, LoggedInMixin, TestCase):
