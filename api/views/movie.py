@@ -77,7 +77,7 @@ class MovieView(
     viewsets.GenericViewSet,
 ):
     ordering_fields = ["publish_on", "recommend_count"]
-    ordering = ["-publish_on"]
+    ordering = ["-publish_on", "-recommend_count", "title"]
 
     def get_queryset(self):
         base_qs = Movie.objects.filter(state=MOVIE_STATE.PUBLISHED)
@@ -98,7 +98,7 @@ class MovieView(
         return base_qs
 
     def get_serializer_class(self):
-        if self.action in ("list", "new-releases"):
+        if self.action in ("list", "new_releases"):
             return MovieSerializerSummary
         return MovieSerializer
 
@@ -423,4 +423,7 @@ class MpGenreView(mixins.ListModelMixin, viewsets.GenericViewSet):
     @action(methods=["get"], detail=True)
     def movies(self, request, **kwargs):
         mp_genre = self.get_object()
-        return paginated_response(self, mp_genre.movies.all())
+        movies_qs = mp_genre.movies.order_by(
+            "-publish_on", "-recommend_count", "title"
+        ).all()
+        return paginated_response(self, movies_qs)

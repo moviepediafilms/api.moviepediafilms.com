@@ -1,3 +1,4 @@
+from api.constants import CONTEST_STATE
 from logging import getLogger
 from django.utils import timezone
 from rest_framework import mixins, viewsets, response
@@ -21,15 +22,17 @@ class ContestView(viewsets.GenericViewSet, mixins.ListModelMixin):
     filterset_fields = ["type__name"]
 
     def get_queryset(self):
-        queryset = Contest.objects.all()
+        base_qs = Contest.objects.all()
         live = self.request.query_params.get("live", None)
         if live is not None:
             now = timezone.now()
             if live == "true":
-                queryset = Contest.objects.filter(start__lte=now, end__gte=now)
+                base_qs = base_qs.filter(
+                    start__lte=now, end__gte=now, state=CONTEST_STATE.LIVE
+                )
             elif live == "false":
-                queryset = Contest.objects.exclude(start__lte=now, end__gte=now)
-        return queryset
+                base_qs = base_qs.exclude(start__lte=now, end__gte=now)
+        return base_qs
 
     def get_serializer_class(self, *args, **kwargs):
         logger.debug(f"action {self.action}")
@@ -79,4 +82,5 @@ class ContestView(viewsets.GenericViewSet, mixins.ListModelMixin):
     @action(methods=["get"], detail=True)
     def movies(self, request, **kwargs):
         contest = self.get_object()
-        return paginated_response(self, contest.movies.all())
+        movies_qs = contest.movies.order_by("-publish_on", "-recommend_count", "title")
+        return paginated_response(self, movies_qs)
