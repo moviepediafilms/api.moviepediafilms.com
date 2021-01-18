@@ -20,6 +20,7 @@ from api.models import (
 
 
 class ProfileAdmin(admin.ModelAdmin):
+    search_fields = ["user__first_name", "user__last_name", "username", "city"]
     exclude = ["follows"]
     list_display = [
         "user",
@@ -40,7 +41,14 @@ class RoleAdmin(admin.ModelAdmin):
 
 
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ["order_id", "payment_id"]
+    search_fields = [
+        "owner__first_name",
+        "owner__last_name",
+        "owner__email",
+        "order_id",
+        "payment_id",
+    ]
+    list_display = ["owner", "order_id", "payment_id"]
 
 
 class MovieModelForm(forms.ModelForm):
@@ -67,7 +75,7 @@ class MovieModelForm(forms.ModelForm):
 
 
 class MovieAdmin(admin.ModelAdmin):
-    search_fields = ["title"]
+    search_fields = ["title", "link"]
     list_filter = [
         "approved",
         "state",
@@ -122,14 +130,13 @@ class MovieRateReviewAdmin(admin.ModelAdmin):
 
 
 class MovieListAdmin(admin.ModelAdmin):
+    search_fields = ["owner__email", "owner__first_name", "owner__last_name", "name"]
     list_display = ["name", "owner", "contest", "frozen"]
-    list_filter = ["owner", "contest"]
+    list_filter = ["contest"]
 
 
 class PackageAdmin(admin.ModelAdmin):
-    list_display = [
-        "name",
-    ]
+    list_display = ["name", "amount"]
 
 
 class CrewMemberAdmin(admin.ModelAdmin):

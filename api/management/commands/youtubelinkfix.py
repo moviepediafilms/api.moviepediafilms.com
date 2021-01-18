@@ -1,6 +1,8 @@
 import re
+from django.db.models import Q
 from django.core.management.base import BaseCommand
 from api.models import Movie
+from api.constants import MOVIE_STATE
 from logging import getLogger
 
 logger = getLogger(__name__)
@@ -18,13 +20,19 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         dry_run = options["dry_run"]
-        for movie in Movie.objects.all():
-            if self.is_youtube_link(movie.link):
-                fixed_link = self.convert_to_embedded(movie.link)
-                logger.debug(f"{movie.link} => {fixed_link}")
-                if not dry_run and fixed_link and fixed_link != movie.link:
-                    movie.link = fixed_link
-                    movie.save()
+        for movie in Movie.objects.filter(
+            Q(state=MOVIE_STATE.SUBMITTED) | Q(state=MOVIE_STATE.PUBLISHED)
+        ).all():
+            try:
+                if self.is_youtube_link(movie.link):
+                    fixed_link = self.convert_to_embedded(movie.link)
+                    logger.debug(f"{movie.link} => {fixed_link}")
+                    if not dry_run and fixed_link and fixed_link != movie.link:
+                        movie.link = fixed_link
+                        movie.save()
+            except Exception as ex:
+                logger.error(f"error fixing link for {movie.link}")
+                logger.exception(ex)
 
     def is_youtube_link(self, url):
         return bool(re.search(r"youtu(\.be|be.com)", url))
