@@ -24,7 +24,7 @@ class SendgridEmailBackend(BaseEmailBackend):
                 SENDGRID_API_KEY must be declared in settings.py"""
             )
         self.sg = sendgrid.SendGridAPIClient(api_key=self.api_key)
-        self.dry_run = not getattr(settings, "PRODUCTION", False)
+        self.dry_run = not getattr(settings, "EMAIL_DISABLED", False)
         logger.info(
             f"sendgrid initialized with key: {bool(self.api_key)} and dry_run: {self.dry_run}"
         )
