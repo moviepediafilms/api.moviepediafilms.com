@@ -195,7 +195,7 @@ ADMINS = [("Zeeshan", "zkhan1093@gmail.com")]
 
 # Email Settings
 
-EMAIL_DISABLED = os.getenv("EMAIL_DISABLED", "false") == "true"
+EMAIL_DISABLED = os.getenv("EMAIL_DISABLED", "true") == "true"
 EMAIL_BACKEND = "backends.sendgrid.SendgridEmailBackend"
 DEFAULT_FROM_EMAIL = "Moviepedia Films <info@moviepediafilms.com>"
 SERVER_EMAIL = "root@moviepediafilms.com"
