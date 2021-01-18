@@ -4,7 +4,7 @@ from django.test import TestCase
 from .base import reverse, APITestCaseMixin, LoggedInMixin
 
 
-class RecommendTestCase(APITestCaseMixin, LoggedInMixin, TestCase):
+class ContestTestCase(APITestCaseMixin, LoggedInMixin, TestCase):
     fixtures = [
         "user",
         "profile",
@@ -86,3 +86,56 @@ class RecommendTestCase(APITestCaseMixin, LoggedInMixin, TestCase):
         res = self.client.get(url)
         self.assertEqual(200, res.status_code)
         self.assertEqual(1, res.json()["recommended"])
+
+    def test_get_live_contests(self):
+        res = self.client.get(reverse("api:contest-list"), {"live": "true"})
+        self.assertEqual(200, res.status_code)
+        actual_contests = res.json()["results"]
+        self.assertEqual(1, len(actual_contests))
+        self.assertEqual(
+            [
+                {
+                    "id": 1,
+                    "name": "January",
+                    "is_live": True,
+                    "start": "2021-01-01T00:14:10+05:30",
+                    "end": "2021-02-16T00:14:15+05:30",
+                    "recommended_movies": [],
+                }
+            ],
+            actual_contests,
+        )
+
+
+class AnonUserContestTestCase(APITestCaseMixin, TestCase):
+    fixtures = [
+        "user",
+        "profile",
+        "genre",
+        "lang",
+        "role",
+        "package",
+        "order",
+        "movie",
+        "contest_type",
+        "contest",
+    ]
+
+    def test_get_live_contests(self):
+        res = self.client.get(reverse("api:contest-list"), {"live": "true"})
+        self.assertEqual(200, res.status_code)
+        actual_contests = res.json()["results"]
+        self.assertEqual(1, len(actual_contests))
+        self.assertEqual(
+            [
+                {
+                    "id": 1,
+                    "name": "January",
+                    "is_live": True,
+                    "start": "2021-01-01T00:14:10+05:30",
+                    "end": "2021-02-16T00:14:15+05:30",
+                    "recommended_movies": [],
+                }
+            ],
+            actual_contests,
+        )
