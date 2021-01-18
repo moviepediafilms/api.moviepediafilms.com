@@ -67,8 +67,8 @@ class Movie(models.Model):
     )
     # in minutes
     runtime = models.FloatField()
-    genres = models.ManyToManyField(Genre)
-    mp_genres = models.ManyToManyField(MpGenre, related_name="movies")
+    genres = models.ManyToManyField(Genre, related_name="movies", blank=True)
+    mp_genres = models.ManyToManyField(MpGenre, related_name="movies", blank=True)
     about = models.TextField(blank=True)
     lang = models.ForeignKey(
         MovieLanguage, on_delete=models.SET_NULL, null=True, blank=True
