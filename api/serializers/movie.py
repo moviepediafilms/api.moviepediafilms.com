@@ -218,7 +218,7 @@ class ContestSerializer(serializers.ModelSerializer):
 
     def get_recommended_movies(self, contest):
         request = self.context.get("request")
-        if not request:
+        if not request.user.is_authenticated:
             return []
         else:
             try:
