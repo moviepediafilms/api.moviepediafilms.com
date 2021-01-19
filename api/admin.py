@@ -20,7 +20,7 @@ from api.models import (
 
 
 class ProfileAdmin(admin.ModelAdmin):
-    search_fields = ["user__first_name", "user__last_name", "username", "city"]
+    search_fields = ["user__first_name", "user__last_name", "user__username", "city"]
     exclude = ["follows"]
     list_display = [
         "user",
