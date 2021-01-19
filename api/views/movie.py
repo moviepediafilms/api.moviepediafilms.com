@@ -5,7 +5,9 @@ from django.utils.timezone import make_aware
 from django.db.models import Count
 from django.db import transaction
 
+
 import django_filters as filters
+from rest_framework.filters import SearchFilter
 from rest_framework import mixins, parsers, viewsets, response, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -78,6 +80,15 @@ class MovieView(
 ):
     ordering_fields = ["publish_on", "recommend_count"]
     ordering = ["-publish_on", "-recommend_count", "title"]
+    filterset_fields = {
+        "genres__name": ["iexact", "in"],
+        "lang__name": ["iexact", "in"],
+    }
+    search_fields = [
+        "title",
+        "crew__user__first_name",
+        "crew__user__last_name",
+    ]
 
     def get_queryset(self):
         base_qs = Movie.objects.filter(state=MOVIE_STATE.PUBLISHED)

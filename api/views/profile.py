@@ -8,7 +8,6 @@ from api.serializers.movie import (
     CrewMemberRequestSerializer,
     MovieSerializerSummary,
     SubmissionEntrySerializer,
-    MovieListSerializer,
     MovieRecommendSerializer,
 )
 from api.serializers.profile import (
