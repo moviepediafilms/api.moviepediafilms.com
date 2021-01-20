@@ -72,9 +72,44 @@
     },
     {
         "model": "api.genre",
+        "pk": 18,
+        "fields": {
+            "name": "psychological thriller"
+        }
+    },
+    {
+        "model": "api.genre",
         "pk": 1,
         "fields": {
             "name": "drama"
+        }
+    },
+    {
+        "model": "api.genre",
+        "pk": 20,
+        "fields": {
+            "name": "science fiction"
+        }
+    },
+    {
+        "model": "api.genre",
+        "pk": 21,
+        "fields": {
+            "name": "animation"
+        }
+    },
+    {
+        "model": "api.genre",
+        "pk": 22,
+        "fields": {
+            "name": "documentary"
+        }
+    },
+    {
+        "model": "api.genre",
+        "pk": 23,
+        "fields": {
+            "name": "noir"
         }
     },
     {
@@ -86,9 +121,65 @@
     },
     {
         "model": "api.genre",
+        "pk": 31,
+        "fields": {
+            "name": "experimental"
+        }
+    },
+    {
+        "model": "api.genre",
+        "pk": 32,
+        "fields": {
+            "name": "fantasy"
+        }
+    },
+    {
+        "model": "api.genre",
+        "pk": 33,
+        "fields": {
+            "name": "horror"
+        }
+    },
+    {
+        "model": "api.genre",
+        "pk": 34,
+        "fields": {
+            "name": "musical"
+        }
+    },
+    {
+        "model": "api.genre",
+        "pk": 35,
+        "fields": {
+            "name": "mystery"
+        }
+    },
+    {
+        "model": "api.genre",
+        "pk": 36,
+        "fields": {
+            "name": "romance"
+        }
+    },
+    {
+        "model": "api.genre",
+        "pk": 37,
+        "fields": {
+            "name": "silent"
+        }
+    },
+    {
+        "model": "api.genre",
+        "pk": 38,
+        "fields": {
+            "name": "sports"
+        }
+    },
+    {
+        "model": "api.genre",
         "pk": 3,
         "fields": {
-            "name": "thrill"
+            "name": "thriller"
         }
     },
     {

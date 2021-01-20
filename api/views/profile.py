@@ -56,6 +56,7 @@ class ProfileView(viewsets.ModelViewSet):
     permission_classes = [IsCreateSafeOrIsOwner]
     filterset_fields = ["is_celeb"]
     lookup_field = "user__id"
+    search_fields = ["user__first_name", "user__last_name"]
 
     def get_serializer_class(self):
         if self.action in ("filmography", "movie_approvals"):
