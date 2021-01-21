@@ -1,0 +1,10 @@
+- model: api.contest
+  pk: 1
+  fields:
+    name: January
+    start: 2020-12-31 18:44:10+00:00
+    end: 2021-02-15 18:44:15+00:00
+    days_per_movie: 15
+    type: 1
+    state: L
+    max_recommends: 20

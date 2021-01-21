@@ -7,6 +7,7 @@ from .contest import (
 )
 from .movie import (
     Genre,
+    MpGenre,
     MovieLanguage,
     Movie,
     MovieRateReview,
@@ -20,6 +21,7 @@ from .movie import (
 
 __all__ = [
     "Genre",
+    "MpGenre",
     "MovieLanguage",
     "Movie",
     "MovieRateReview",

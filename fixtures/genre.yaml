@@ -1,0 +1,4 @@
+- model: api.genre
+  pk: 1
+  fields:
+    name: drama

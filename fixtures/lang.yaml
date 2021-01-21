@@ -1,0 +1,4 @@
+- model: api.movielanguage
+  pk: 1
+  fields:
+    name: English

@@ -6,6 +6,7 @@ from api.models import (
     Order,
     Movie,
     Genre,
+    MpGenre,
     MovieLanguage,
     MovieRateReview,
     MovieList,
@@ -19,6 +20,7 @@ from api.models import (
 
 
 class ProfileAdmin(admin.ModelAdmin):
+    search_fields = ["user__first_name", "user__last_name", "user__username", "city"]
     exclude = ["follows"]
     list_display = [
         "user",
@@ -39,7 +41,14 @@ class RoleAdmin(admin.ModelAdmin):
 
 
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ["order_id", "payment_id"]
+    search_fields = [
+        "owner__first_name",
+        "owner__last_name",
+        "owner__email",
+        "order_id",
+        "payment_id",
+    ]
+    list_display = ["owner", "order_id", "payment_id"]
 
 
 class MovieModelForm(forms.ModelForm):
@@ -66,7 +75,7 @@ class MovieModelForm(forms.ModelForm):
 
 
 class MovieAdmin(admin.ModelAdmin):
-    search_fields = ["title"]
+    search_fields = ["title", "link"]
     list_filter = [
         "approved",
         "state",
@@ -87,6 +96,7 @@ class MovieAdmin(admin.ModelAdmin):
     ]
     ordering = ["-created_at", "title"]
     readonly_fields = ["poster"]
+    filter_horizontal = ["contests"]
 
     def submited_by(self, movie):
         return movie.order.owner
@@ -107,6 +117,10 @@ class GenreAdmin(admin.ModelAdmin):
     list_display = ["name"]
 
 
+class MpGenreAdmin(admin.ModelAdmin):
+    list_display = ["name"]
+
+
 class MovieLanguageAdmin(admin.ModelAdmin):
     list_display = ["name"]
 
@@ -116,14 +130,13 @@ class MovieRateReviewAdmin(admin.ModelAdmin):
 
 
 class MovieListAdmin(admin.ModelAdmin):
+    search_fields = ["owner__email", "owner__first_name", "owner__last_name", "name"]
     list_display = ["name", "owner", "contest", "frozen"]
-    list_filter = ["owner", "contest"]
+    list_filter = ["contest"]
 
 
 class PackageAdmin(admin.ModelAdmin):
-    list_display = [
-        "name",
-    ]
+    list_display = ["name", "amount"]
 
 
 class CrewMemberAdmin(admin.ModelAdmin):
@@ -149,8 +162,21 @@ class ContestTypeAdmin(admin.ModelAdmin):
     list_display = ["name"]
 
 
+class MoviesInContest(admin.TabularInline):
+    model = Contest.movies.through
+
+
 class ContestAdmin(admin.ModelAdmin):
-    list_display = ["name", "start", "end", "days_per_movie", "state"]
+    list_display = [
+        "name",
+        "start",
+        "end",
+        "days_per_movie",
+        "state",
+    ]
+    inlines = [
+        MoviesInContest,
+    ]
 
 
 class NotificationAdmin(admin.ModelAdmin):
@@ -162,6 +188,7 @@ admin.site.register(Role, RoleAdmin)
 admin.site.register(Order, OrderAdmin)
 admin.site.register(Movie, MovieAdmin)
 admin.site.register(Genre, GenreAdmin)
+admin.site.register(MpGenre, MpGenreAdmin)
 admin.site.register(MovieLanguage, MovieLanguageAdmin)
 admin.site.register(MovieRateReview, MovieRateReviewAdmin)
 admin.site.register(Package, PackageAdmin)

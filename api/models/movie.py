@@ -11,6 +11,14 @@ from api.constants import (
 logger = getLogger("api.models")
 
 
+class MpGenre(models.Model):
+    name = models.CharField(max_length=50, unique=True)
+    live = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.name.title()
+
+
 class Genre(models.Model):
     name = models.CharField(max_length=50, unique=True)
 
@@ -59,7 +67,8 @@ class Movie(models.Model):
     )
     # in minutes
     runtime = models.FloatField()
-    genres = models.ManyToManyField(Genre)
+    genres = models.ManyToManyField(Genre, related_name="movies", blank=True)
+    mp_genres = models.ManyToManyField(MpGenre, related_name="movies", blank=True)
     about = models.TextField(blank=True)
     lang = models.ForeignKey(
         MovieLanguage, on_delete=models.SET_NULL, null=True, blank=True
@@ -72,13 +81,7 @@ class Movie(models.Model):
     jury_rating = models.FloatField(null=True, blank=True, default=0)
     # cached audience rating to be updated periodically
     audience_rating = models.FloatField(null=True, blank=True, default=0)
-    contest = models.ForeignKey(
-        "Contest",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="movies",
-    )
+    contests = models.ManyToManyField("Contest", related_name="movies", blank=True)
 
     # cached attributes
     recommend_count = models.IntegerField(default=0)
@@ -87,6 +90,9 @@ class Movie(models.Model):
     approved = models.BooleanField(
         "Approved by Director", null=True, blank=True, default=None
     )
+
+    class Meta:
+        ordering = ["publish_on"]
 
     def __str__(self):
         return self.title
@@ -97,7 +103,7 @@ class Movie(models.Model):
     def score(self):
         score = self.audience_rating or 0
         score += self.jury_rating or 0
-        return score / 2
+        return round(score / 2, 1)
 
     # TODO: override save to check the change in approved attribute,
     # and send email to owner of the order to inform them that the director
@@ -182,6 +188,7 @@ class MovieRateReview(models.Model):
         (REVIEW_STATE.BLOCKED, "Blocked"),
     ]
     state = models.CharField(choices=REVIEW_STATE_CHOICES, max_length=1)
+    rated_at = models.DateTimeField(null=True, blank=True)
     published_at = models.DateTimeField(auto_now_add=True)
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     movie = models.ForeignKey(Movie, on_delete=models.CASCADE)

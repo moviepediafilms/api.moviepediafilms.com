@@ -1,12 +1,14 @@
+from django.utils import timezone
+from django.db.models.functions import ExtractMonth, ExtractYear
 from rest_framework.exceptions import ValidationError
-from api.models.movie import TopCreator, TopCurator
+from api.models.movie import MpGenre, TopCreator, TopCurator
 from logging import getLogger
 import hashlib
 import os
 import re
 
 from django.conf import settings
-from django.db.models import Avg
+from django.db.models import Avg, Count
 from django.db import transaction
 from django.core.files.storage import default_storage
 from rest_framework import serializers
@@ -179,7 +181,7 @@ class SubmissionEntrySerializer(serializers.ModelSerializer):
 
 
 class MovieSerializerSummary(serializers.ModelSerializer):
-    contest = serializers.SerializerMethodField()
+    contests = serializers.SerializerMethodField()
     crew = CrewMemberSerializer(source="crewmember_set", many=True)
 
     class Meta:
@@ -189,25 +191,43 @@ class MovieSerializerSummary(serializers.ModelSerializer):
             "title",
             "poster",
             "about",
-            "is_live",
-            "contest",
+            "contests",
             "crew",
             "state",
             "score",
             "created_at",
             "recommend_count",
+            "publish_on",
+            "runtime",
         ]
 
-    def get_contest(self, obj):
-        contest = obj.contest
-        if contest:
-            return contest.name
+    def get_contests(self, obj):
+        contests = obj.contests.values(
+            "name",
+        ).all()
+        return [contest["name"] for contest in contests]
 
 
 class ContestSerializer(serializers.ModelSerializer):
+    # requestor recommended movies
+    recommended_movies = serializers.SerializerMethodField()
+
     class Meta:
         model = Contest
-        fields = ["id", "name", "is_live", "start", "end"]
+        fields = ["id", "name", "is_live", "start", "end", "recommended_movies"]
+
+    def get_recommended_movies(self, contest):
+        request = self.context.get("request")
+        if not request.user.is_authenticated:
+            return []
+        else:
+            try:
+                movie_list = contest.movie_lists.get(owner=request.user)
+            except MovieList.DoesNotExist:
+                movie_ids = []
+            else:
+                movie_ids = movie_list.movies.values("id").all()
+            return movie_ids
 
 
 class MovieSerializer(serializers.ModelSerializer):
@@ -224,7 +244,7 @@ class MovieSerializer(serializers.ModelSerializer):
     is_watchlisted = serializers.SerializerMethodField(read_only=True)
     # is recommended by the requestor if he is authenticated
     is_recommended = serializers.SerializerMethodField(read_only=True)
-    contest = ContestSerializer(read_only=True)
+    contests = serializers.SerializerMethodField()
 
     class Meta:
         model = Movie
@@ -248,11 +268,20 @@ class MovieSerializer(serializers.ModelSerializer):
             "is_watchlisted",
             "is_recommended",
             "publish_on",
-            "contest",
             "about",
             "approved",
+            "recommend_count",
+            "contests",
         ]
         read_only_fields = ["about", "state"]
+
+    def get_contests(self, movie):
+        return ContestSerializer(
+            instance=[contest for contest in movie.contests.all() if contest.is_live()],
+            context=self.context,
+            read_only=True,
+            many=True,
+        ).data
 
     def get_requestor_rating(self, movie):
         request = self.context.get("request")
@@ -550,7 +579,7 @@ class MoviePosterSerializer(serializers.ModelSerializer):
 class MovieReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = MovieRateReview
-        fields = ["id", "content", "rating"]
+        fields = ["id", "content", "rating", "published_at", "rated_at"]
 
 
 class MinUserSerializer(serializers.ModelSerializer):
@@ -566,6 +595,7 @@ class MovieReviewDetailSerializer(serializers.ModelSerializer):
     liked_by = MinUserSerializer(read_only=True, many=True)
     # serializers.IntegerField(source="liked_by.count", read_only=True)
     published_at = serializers.DateTimeField(read_only=True)
+    rated_at = serializers.DateTimeField(read_only=True)
     # added for my reviews page, normal reviews for a movie don't use this,
     # can be moved to a new serializer and new view
     movie = MovieSerializerSummary(read_only=True)
@@ -579,6 +609,7 @@ class MovieReviewDetailSerializer(serializers.ModelSerializer):
             "content",
             "liked_by",
             "published_at",
+            "rated_at",
             "rating",
             "movie",
             "movie_id",
@@ -587,7 +618,7 @@ class MovieReviewDetailSerializer(serializers.ModelSerializer):
     def validate(self, validated_data):
         if all([key not in validated_data for key in ["content", "rating"]]):
             raise serializers.ValidationError(
-                "Atleast one of `content` or `rating` should be provided"
+                "At least one of `content` or `rating` should be provided"
             )
         return validated_data
 
@@ -604,31 +635,47 @@ class MovieReviewDetailSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         validated_data["author"] = validated_data.pop("user")
+        if validated_data.get("rating") is not None:
+            validated_data["rated_at"] = timezone.now()
         instance = super().create(validated_data)
         self._update_movie_audience_rating(instance.movie)
         return instance
 
     def update(self, instance, validated_data):
+        rating = validated_data.get("rating")
+        if rating is not None and instance.rating != rating:
+            if (
+                instance.rated_at is not None
+                and timezone.now() > instance.rated_at + timezone.timedelta(seconds=9)
+            ):
+                raise ValidationError("Rating is now freezed")
+            else:
+                validated_data["rated_at"] = timezone.now()
         instance = super().update(instance, validated_data)
         self._update_movie_audience_rating(instance.movie)
         return instance
 
 
 class MovieListSerializer(serializers.ModelSerializer):
-    like_count = serializers.IntegerField(source="likes", read_only=True)
-    owner = serializers.PrimaryKeyRelatedField(source="owner.id", read_only=True)
+    like_count = serializers.IntegerField(source="liked_by.count", read_only=True)
+    owner = UserSerializer(read_only=True)
+    movies_count = serializers.IntegerField(source="movies.count", read_only=True)
 
     class Meta:
         model = MovieList
-        fields = ["id", "owner", "name", "movies", "like_count", "frozen"]
+        fields = [
+            "id",
+            "owner",
+            "name",
+            "movies",
+            "movies_count",
+            "like_count",
+            "frozen",
+        ]
 
     def create(self, validated_data: dict):
         user = validated_data.pop("user")
         return MovieList.objects.create(**validated_data, owner=user)
-
-
-class MovieListDetailSerializer(MovieListSerializer):
-    movies = MovieSerializerSummary(many=True)
 
 
 class CrewMemberRequestSerializer(serializers.ModelSerializer):
@@ -741,3 +788,44 @@ class TopCuratorSerializer(serializers.ModelSerializer):
         value = super().to_representation(value)
         value.update(value.pop("profile"))
         return value
+
+
+class MovieRecommendSerializer(serializers.ModelSerializer):
+    movie = serializers.PrimaryKeyRelatedField(
+        queryset=Movie.objects.filter(state=MOVIE_STATE.PUBLISHED),
+        write_only=True,
+        error_messages={"does_not_exist": "Movie does not exist"},
+    )
+    recommended = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Profile
+        fields = ["movie", "recommended"]
+
+    def get_recommended(self, profile):
+        request = self.context["request"]
+        try:
+            movie_list = MovieList.objects.get(owner=request.user, name=RECOMMENDATION)
+        except MovieList.DoesNotExist:
+            return []
+        else:
+            return movie_list.movies.values("id").all()
+
+    def update(self, profile, validated_data):
+        movie = validated_data["movie"]
+        action = validated_data["action"]
+        movie_list, _ = MovieList.objects.get_or_create(
+            name=RECOMMENDATION,
+            owner=profile.user,
+        )
+        if action == "add":
+            movie_list.movies.add(movie)
+        elif action == "remove":
+            movie_list.movies.remove(movie)
+        return profile
+
+
+class MpGenreSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MpGenre
+        fields = ["id", "name", "live"]

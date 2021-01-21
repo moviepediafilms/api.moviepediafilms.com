@@ -1,0 +1,5 @@
+- model: api.package
+  pk: 1
+  fields:
+    name: pack1
+    amount: 100

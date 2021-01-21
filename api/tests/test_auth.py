@@ -33,6 +33,7 @@ class WithPayloadMixin:
             "image": None,
             "level": 1,
             "mcoins": 0.0,
+            "is_celeb": False,
             "mobile": "123456789012",
             "movies_directed": 0,
             "name": "Test User",

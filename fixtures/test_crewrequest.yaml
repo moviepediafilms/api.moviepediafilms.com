@@ -116,7 +116,6 @@
     publish_on: null
     jury_rating: 0.0
     audience_rating: 0.0
-    contest: null
     recommend_count: 0
     review_count: 0
     approved: true

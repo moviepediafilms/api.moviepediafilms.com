@@ -5,8 +5,6 @@ from django.core import mail
 from api.models import CrewMemberRequest, CrewMember
 from .base import reverse, APITestCaseMixin, LoggedInMixin
 
-# from api.emails import TEMPLATES
-
 
 class CrewRequestTestCase(APITestCaseMixin, LoggedInMixin, TestCase):
     auth_user_id = 1

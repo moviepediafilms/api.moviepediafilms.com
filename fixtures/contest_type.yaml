@@ -1,0 +1,4 @@
+- model: api.contesttype
+  pk: 1
+  fields:
+    name: Monthly

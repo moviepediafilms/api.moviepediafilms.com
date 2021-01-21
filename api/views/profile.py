@@ -2,13 +2,13 @@ from api.models.movie import Movie
 from logging import getLogger
 
 from django.db.models import Count, Q
-from django.db.models.query import QuerySet
 from rest_framework import permissions, viewsets, mixins, parsers, response
 from rest_framework.decorators import action
 from api.serializers.movie import (
     CrewMemberRequestSerializer,
     MovieSerializerSummary,
     SubmissionEntrySerializer,
+    MovieRecommendSerializer,
 )
 from api.serializers.profile import (
     ProfileDetailSerializer,
@@ -56,9 +56,10 @@ class ProfileView(viewsets.ModelViewSet):
     permission_classes = [IsCreateSafeOrIsOwner]
     filterset_fields = ["is_celeb"]
     lookup_field = "user__id"
+    search_fields = ["user__first_name", "user__last_name"]
 
     def get_serializer_class(self):
-        if self.action in ("filmography", "movie_approvals", "recommends"):
+        if self.action in ("filmography", "movie_approvals"):
             return MovieSerializerSummary
         if self.action in ("submissions"):
             return SubmissionEntrySerializer
@@ -66,6 +67,11 @@ class ProfileView(viewsets.ModelViewSet):
             return NotificationSerializer
         if self.action == "crew_approvals":
             return CrewMemberRequestSerializer
+        if self.action == "recommends":
+            if self.request.method in ("POST", "DELETE"):
+                return MovieRecommendSerializer
+            else:
+                return MovieSerializerSummary
         return ProfileDetailSerializer
 
     @action(methods=["get"], detail=True)
@@ -129,17 +135,37 @@ class ProfileView(viewsets.ModelViewSet):
         ).all()
         return self._build_paginated_response(crew_requests)
 
-    @action(methods=["get"], detail=True)
+    @action(methods=["get", "post", "delete"], detail=True)
     def recommends(self, pk=None, **kwargs):
+        """
+        manages user's personal recommendations list.
+        POST and DELETE methods are used to add movies where as GET
+        is used to fetch all the movies in personal recommend list
+        """
+
         profile = self.get_object()
         movie_list = MovieList.objects.filter(
             owner=profile.user, name=RECOMMENDATION
         ).first()
-        movies = Movie.objects.none()
-        if movie_list:
-            movies = movie_list.movies.all()
-        logger.debug(f"{pk} {profile} {movies}")
-        return self._build_paginated_response(movies)
+        if self.request.method == "GET":
+            movies = Movie.objects.none()
+            if movie_list:
+                movies = movie_list.movies.all()
+            logger.debug(f"{pk} {profile} {movies}")
+            return self._build_paginated_response(movies)
+        elif self.request.method in ("POST", "DELETE"):
+            # FIXME: handle allow modification to self profile only via permission classes
+            profile = self.request.user.profile
+            serializer = self.get_serializer(
+                instance=profile,
+                data=self.request.data,
+                context={"request": self.request},
+            )
+            serializer.is_valid(raise_exception=True)
+            serializer.save(
+                action={"POST": "add", "DELETE": "remove"}[self.request.method]
+            )
+            return response.Response(serializer.data)
 
     def _build_paginated_response(self, queryset):
         page = self.paginate_queryset(queryset)

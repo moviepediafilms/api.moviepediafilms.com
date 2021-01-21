@@ -19,7 +19,7 @@ DEBUG = os.getenv("DEBUG") == "true"
 PRODUCTION = os.getenv("PRODUCTION") == "true"
 
 LOG_PATH = os.getenv("LOG_PATH", "api.moviepediafilms.log")
-LOG_PATH_JOB = os.getenv("LOG_PATH", "jobs.moviepediafilms.log")
+LOG_PATH_JOB = os.getenv("LOG_PATH_JOB", "jobs.moviepediafilms.log")
 handlers = ["console", "file"] if DEBUG else ["file"]
 
 LOGGING = {
@@ -195,6 +195,7 @@ ADMINS = [("Zeeshan", "zkhan1093@gmail.com")]
 
 # Email Settings
 
+EMAIL_DISABLED = os.getenv("EMAIL_DISABLED", "true") == "true"
 EMAIL_BACKEND = "backends.sendgrid.SendgridEmailBackend"
 DEFAULT_FROM_EMAIL = "Moviepedia Films <info@moviepediafilms.com>"
 SERVER_EMAIL = "root@moviepediafilms.com"
@@ -214,13 +215,14 @@ REST_FRAMEWORK = {
     "DEFAULT_FILTER_BACKENDS": [
         "django_filters.rest_framework.DjangoFilterBackend",
         "rest_framework.filters.OrderingFilter",
+        "rest_framework.filters.SearchFilter",
     ],
     "DEFAULT_RENDERER_CLASSES": [
         "rest_framework.renderers.JSONRenderer",
         "rest_framework.renderers.BrowsableAPIRenderer",
     ],
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
-    "PAGE_SIZE": 25,
+    "PAGE_SIZE": int(os.getenv("PAGE_SIZE", "25")),
     "TEST_REQUEST_DEFAULT_FORMAT": "json",
 }
 

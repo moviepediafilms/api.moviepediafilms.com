@@ -1,22 +1,4 @@
 [{
-        "model": "auth.user",
-        "pk": 1,
-        "fields": {
-            "password": "pbkdf2_sha256$216000$jW5swHrr6OhM$G75IHK/TthAaro0gU0OsXG7dc+fig2SArHKjna8OL5I=",
-            "last_login": null,
-            "is_superuser": true,
-            "username": "zkhan1093@gmail.com",
-            "first_name": "Zeeshan",
-            "last_name": "Khan",
-            "email": "zkhan1093@gmail.com",
-            "is_staff": true,
-            "is_active": true,
-            "date_joined": "2020-10-01T13:04:44.652Z",
-            "groups": [],
-            "user_permissions": []
-        }
-    },
-    {
         "model": "api.role",
         "pk": 1,
         "fields": {
@@ -89,23 +71,10 @@
         }
     },
     {
-        "model": "api.profile",
-        "pk": 1,
+        "model": "api.genre",
+        "pk": 18,
         "fields": {
-            "user": 1,
-            "city": "Lucknow",
-            "mobile": "8932061116",
-            "gender": "M",
-            "dob": "1993-10-07",
-            "image": "https://lh3.googleusercontent.com/ogw/ADGmqu_ROyhxdiC8S8an63aKUds-000enGPpbCyMidUhkA=s32-c-mo",
-            "mcoins": 0.0,
-            "rank": -1,
-            "engagement_score": 0.0,
-            "level": 1,
-            "is_celeb": false,
-            "pop_score": 0.0,
-            "roles": [],
-            "follows": []
+            "name": "psychological thriller"
         }
     },
     {
@@ -117,6 +86,34 @@
     },
     {
         "model": "api.genre",
+        "pk": 20,
+        "fields": {
+            "name": "science fiction"
+        }
+    },
+    {
+        "model": "api.genre",
+        "pk": 21,
+        "fields": {
+            "name": "animation"
+        }
+    },
+    {
+        "model": "api.genre",
+        "pk": 22,
+        "fields": {
+            "name": "documentary"
+        }
+    },
+    {
+        "model": "api.genre",
+        "pk": 23,
+        "fields": {
+            "name": "noir"
+        }
+    },
+    {
+        "model": "api.genre",
         "pk": 2,
         "fields": {
             "name": "crime"
@@ -124,9 +121,65 @@
     },
     {
         "model": "api.genre",
+        "pk": 31,
+        "fields": {
+            "name": "experimental"
+        }
+    },
+    {
+        "model": "api.genre",
+        "pk": 32,
+        "fields": {
+            "name": "fantasy"
+        }
+    },
+    {
+        "model": "api.genre",
+        "pk": 33,
+        "fields": {
+            "name": "horror"
+        }
+    },
+    {
+        "model": "api.genre",
+        "pk": 34,
+        "fields": {
+            "name": "musical"
+        }
+    },
+    {
+        "model": "api.genre",
+        "pk": 35,
+        "fields": {
+            "name": "mystery"
+        }
+    },
+    {
+        "model": "api.genre",
+        "pk": 36,
+        "fields": {
+            "name": "romance"
+        }
+    },
+    {
+        "model": "api.genre",
+        "pk": 37,
+        "fields": {
+            "name": "silent"
+        }
+    },
+    {
+        "model": "api.genre",
+        "pk": 38,
+        "fields": {
+            "name": "sports"
+        }
+    },
+    {
+        "model": "api.genre",
         "pk": 3,
         "fields": {
-            "name": "thrill"
+            "name": "thriller"
         }
     },
     {
