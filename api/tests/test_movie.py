@@ -49,6 +49,7 @@ class MovieViewTestCase(APITestCaseMixin, LoggedInMixin, TestCase):
                             "email": "test@example.com",
                             "engagement_score": 0.0,
                             "id": 1,
+                            "is_celeb": False,
                             "image": None,
                             "level": 1,
                             "name": "Test User",
