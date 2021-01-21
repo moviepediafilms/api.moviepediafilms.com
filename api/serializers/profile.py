@@ -91,6 +91,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             "creator_rank",
             "curator_rank",
             "level",
+            "is_celeb",
             "engagement_score",
             "city",
         ]
@@ -142,6 +143,7 @@ class ProfileDetailSerializer(serializers.ModelSerializer):
             "mobile",
             "roles",
             "image",
+            "is_celeb",
             "level",
             "creator_rank",
             "curator_rank",
