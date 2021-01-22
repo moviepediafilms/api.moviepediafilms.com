@@ -12,7 +12,7 @@ logger = getLogger(__name__)
 class Command(BaseCommand):
     def handle(self, *args, **options):
         with transaction.atomic():
-            for profile in Profile.objects.all():
+            for profile in Profile.objects.filter(is_celeb=False).all():
                 logger.info(f"{profile.user}: {profile.engagement_score}")
                 engg_score = self._calculate_score(profile)
                 profile.engagement_score = engg_score
