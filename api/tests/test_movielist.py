@@ -19,6 +19,16 @@ class MovieListTestCase(APITestCaseMixin, LoggedInMixin, TestCase):
         "movielist",
     ]
 
+    def setUp(self):
+        super().setUp()
+        self._fix_movielist_object_ownership()
+
+    def _fix_movielist_object_ownership(self):
+        new_user = User.objects.create(username="test2", email="sample2@example.com")
+        ml = MovieList.objects.get(pk=1)
+        ml.owner = new_user
+        ml.save()
+
     def test_get_all_contest_recommend_movielist(self):
         url = reverse("api:movielist-list")
         res = self.client.get(url, {"contest__isnull": "false"})
@@ -35,10 +45,10 @@ class MovieListTestCase(APITestCaseMixin, LoggedInMixin, TestCase):
                     "movies_count": 1,
                     "name": "January",
                     "owner": {
-                        "email": "test@example.com",
-                        "id": 1,
+                        "email": "sample2@example.com",
+                        "id": 2,
                         "image": None,
-                        "name": "Test User",
+                        "name": "",
                     },
                 }
             ],

@@ -327,7 +327,7 @@ class IsMovieListOwnerOrLike(permissions.BasePermission):
         me = request.user
         if request.method in permissions.SAFE_METHODS:
             return True
-        return view.action == "likes" or object.owner == me
+        return view.action == "like" or object.owner == me
 
 
 class MovieListFilter(filters.FilterSet):
