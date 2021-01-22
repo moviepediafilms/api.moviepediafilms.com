@@ -322,12 +322,12 @@ class MovieRecommendView(
         return response.Response(dict(success=True))
 
 
-class IsMovieListOwner(permissions.BasePermission):
+class IsMovieListOwnerOrLike(permissions.BasePermission):
     def has_object_permission(self, request, view, object: MovieList):
         me = request.user
         if request.method in permissions.SAFE_METHODS:
             return True
-        return object.owner == me
+        return view.action == "likes" or object.owner == me
 
 
 class MovieListFilter(filters.FilterSet):
@@ -341,7 +341,7 @@ class MovieListFilter(filters.FilterSet):
 
 
 class MovieListView(viewsets.ModelViewSet):
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsMovieListOwner]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsMovieListOwnerOrLike]
     queryset = MovieList.objects.annotate(
         likes=Count("liked_by"), number_of_movies=Count("movies")
     )
