@@ -25,7 +25,10 @@ class Command(BaseCommand):
                 top_creator_data.update(self._get_score(movies))
                 top_creators.append(top_creator_data)
 
-            top_creators = sorted(top_creators, key=lambda x: x.get("score", 0))
+            top_creators = sorted(
+                top_creators, key=lambda x: x.get("score", 0), reverse=True
+            )
+
             top_creators = [
                 TopCreator(pos=pos + 1, **data) for pos, data in enumerate(top_creators)
             ]

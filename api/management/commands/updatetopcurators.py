@@ -58,7 +58,7 @@ class Command(BaseCommand):
                     }
                 )
 
-            curators = sorted(curators, key=lambda x: x.get("score"))
+            curators = sorted(curators, key=lambda x: x.get("score"), reverse=True)
             curators = [
                 TopCurator(pos=pos + 1, **data) for pos, data in enumerate(curators)
             ]
