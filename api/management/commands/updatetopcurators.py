@@ -27,7 +27,7 @@ class Command(BaseCommand):
                 rl for rl in recommend_lists if rl.owner.profile.is_celeb
             ]
             celeb_recommend_movies = list(
-                chain(crl.movies for crl in celeb_recommend_lists)
+                chain(*[crl.movies.all() for crl in celeb_recommend_lists])
             )
             logger.info(f"{len(celeb_recommend_movies)} movies recommended by celebs")
             audience_recommend_lists = [
@@ -35,17 +35,27 @@ class Command(BaseCommand):
             ]
             logger.info(f"{len(audience_recommend_lists)} people recommended movies")
             for recommend_list in audience_recommend_lists:
+                likes = recommend_list.liked_by.count()
+                match_count = len(
+                    set(recommend_list.movies.all()).intersection(
+                        celeb_recommend_movies
+                    )
+                )
+                match_percent = 0
+                if match_count > 0:
+                    match_percent = round(
+                        (match_count / len(celeb_recommend_movies)) * 100, 2
+                    )
+
+                score = round(likes * match_percent, 2) if match_percent > 0 else likes
                 curators.append(
                     TopCurator(
                         **{
                             "profile_id": recommend_list.owner.id,
                             "contest_id": contest.id,
-                            "recommend_count": recommend_list.movies.count(),
-                            "match": len(
-                                set(recommend_list.movies.all()).intersection(
-                                    celeb_recommend_movies
-                                )
-                            ),
+                            "likes_on_recommend": likes,
+                            "match": match_percent,
+                            "score": score,
                         }
                     )
                 )
