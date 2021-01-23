@@ -1,6 +1,5 @@
-from io import StringIO
 from api.constants import CONTEST_STATE
-from api.models import MovieList, Contest, Movie, User, Profile, TopCurator, TopCreator
+from api.models import MovieList, Contest, Movie, User, Profile
 from django.test import TestCase
 from django.core.management import call_command
 from .base import reverse, APITestCaseMixin, LoggedInMixin
@@ -110,6 +109,55 @@ class ContestTestCase(APITestCaseMixin, LoggedInMixin, TestCase):
                 }
             ],
             actual_contests,
+        )
+
+    def test_my_creator_position(self):
+        res = self.client.get(
+            reverse("api:contest-my-creator-position", args=["v1", 1])
+        )
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(
+            res.json(),
+            {
+                "score": 0.0,
+                "recommend_count": 0,
+                "profile_id": 1,
+                "image": None,
+                "creator_rank": -1,
+                "curator_rank": -1,
+                "level": 1,
+                "is_celeb": False,
+                "engagement_score": 0.0,
+                "city": None,
+                "id": 1,
+                "email": "test@example.com",
+                "name": "Test User",
+            },
+        )
+
+    def test_my_curator_position(self):
+        res = self.client.get(
+            reverse("api:contest-my-curator-position", args=["v1", 1])
+        )
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(
+            res.json(),
+            {
+                "match": 0.0,
+                "likes_on_recommend": 0,
+                "score": 0.0,
+                "profile_id": 1,
+                "image": None,
+                "creator_rank": -1,
+                "curator_rank": -1,
+                "level": 1,
+                "is_celeb": False,
+                "engagement_score": 0.0,
+                "city": None,
+                "id": 1,
+                "email": "test@example.com",
+                "name": "Test User",
+            },
         )
 
 
@@ -232,3 +280,15 @@ class AnonUserContestTestCase(APITestCaseMixin, TestCase):
             ],
             actual_curators,
         )
+
+    def test_my_creator_position(self):
+        res = self.client.get(
+            reverse("api:contest-my-creator-position", args=["v1", 1])
+        )
+        self.assertEquals(res.status_code, 401)
+
+    def test_my_curator_position(self):
+        res = self.client.get(
+            reverse("api:contest-my-curator-position", args=["v1", 1])
+        )
+        self.assertEquals(res.status_code, 401)
