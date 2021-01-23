@@ -47,10 +47,13 @@ class Command(BaseCommand):
             movie.in_lists.filter(name=RECOMMENDATION).count() for movie in movies
         )
 
-        score["score"] = round(
+        composite_score = (
             avg_jury_rating * 0.3
             + avg_audience_rating * 0.3
-            + min((sum_of_all_recommendations * 0.025), 10),
+            + min((sum_of_all_recommendations * 0.025), 10)
+        )
+        score["score"] = round(
+            composite_score * 10,
             2,
         )
         score["recommend_count"] = sum_of_all_recommendations
