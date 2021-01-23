@@ -780,8 +780,9 @@ class TopCuratorSerializer(serializers.ModelSerializer):
         model = TopCurator
         fields = [
             "match",
-            "recommend_count",
+            "likes_on_recommend",
             "profile",
+            "score",
         ]
 
     def to_representation(self, value):

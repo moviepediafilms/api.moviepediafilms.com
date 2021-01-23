@@ -216,5 +216,7 @@ class TopCurator(models.Model):
     contest = models.ForeignKey(
         "Contest", on_delete=models.CASCADE, related_name="top_curators"
     )
-    recommend_count = models.IntegerField(default=0)
+    likes_on_recommend = models.IntegerField(default=0)
     match = models.FloatField(default=0)
+    # score here is used just for keeping the sort order
+    score = models.FloatField(default=0)

@@ -36,6 +36,7 @@ def log_runtime(fn):
 
 class APITestCaseMixin:
     client_class = APIClient
+    maxDiff = None
 
     def setUp(self):
         super().setUp()

@@ -60,7 +60,7 @@ class ContestView(viewsets.GenericViewSet, mixins.ListModelMixin):
     )
     def top_curators(self, request, pk=None, **kwargs):
         contest = self.get_object()
-        top_curators = contest.top_curators.order_by("-match").all()
+        top_curators = contest.top_curators.order_by("-score").all()
         return paginated_response(self, top_curators)
 
     @action(methods=["get", "post", "delete"], detail=True, url_path="recommend")
