@@ -28,6 +28,7 @@ class ContestTestCase(APITestCaseMixin, LoggedInMixin, TestCase):
         "package",
         "order",
         "movie",
+        "crewmember",
         "contest_type",
         "contest",
     ]
@@ -111,7 +112,15 @@ class ContestTestCase(APITestCaseMixin, LoggedInMixin, TestCase):
             actual_contests,
         )
 
+    def test_my_creator_position_not_participated(self):
+        res = self.client.get(
+            reverse("api:contest-my-creator-position", args=["v1", 1])
+        )
+        self.assertEqual(res.status_code, 404)
+
     def test_my_creator_position(self):
+        _add_movie_in_contest()
+        call_command("updatetopcreators")
         res = self.client.get(
             reverse("api:contest-my-creator-position", args=["v1", 1])
         )
@@ -135,7 +144,18 @@ class ContestTestCase(APITestCaseMixin, LoggedInMixin, TestCase):
             },
         )
 
+    def test_my_curator_position_not_participated(self):
+        res = self.client.get(
+            reverse("api:contest-my-curator-position", args=["v1", 1])
+        )
+        self.assertEqual(res.status_code, 404)
+
     def test_my_curator_position(self):
+        _add_movie_in_contest()
+        movie_list = _create_movie_list_for_contest()
+        movie_list.movies.add(Movie.objects.get(pk=1))
+
+        call_command("updatetopcurators")
         res = self.client.get(
             reverse("api:contest-my-curator-position", args=["v1", 1])
         )
@@ -176,13 +196,6 @@ class AnonUserContestTestCase(APITestCaseMixin, TestCase):
         "contest",
     ]
 
-    def call_command(self, name, *args, **kwargs):
-        call_command(
-            name,
-            *args,
-            **kwargs,
-        )
-
     def test_get_live_contests(self):
         res = self.client.get(reverse("api:contest-list"), {"live": "true"})
         self.assertEqual(200, res.status_code)
@@ -213,7 +226,7 @@ class AnonUserContestTestCase(APITestCaseMixin, TestCase):
 
         movie_list.movies.add(movie)
 
-        self.call_command("updatetopcreators")
+        call_command("updatetopcreators")
         res = self.client.get(reverse("api:contest-top-creators", args=["v1", 1]))
         self.assertEqual(200, res.status_code)
         actual_top_creators = res.json()["results"]
@@ -255,7 +268,7 @@ class AnonUserContestTestCase(APITestCaseMixin, TestCase):
         movie_list.liked_by.add(celeb_user)
         movie_list.liked_by.add(User.objects.get(pk=1))
 
-        self.call_command("updatetopcurators")
+        call_command("updatetopcurators")
         res = self.client.get(reverse("api:contest-top-curators", args=["v1", 1]))
         self.assertEqual(200, res.status_code)
         actual_curators = res.json()["results"]

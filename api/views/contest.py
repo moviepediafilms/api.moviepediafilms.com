@@ -1,10 +1,13 @@
-from rest_framework.permissions import IsAuthenticated
-from api.constants import CONTEST_STATE
 from logging import getLogger
+
 from django.utils import timezone
+
+from rest_framework.generics import get_object_or_404
+from rest_framework.permissions import IsAuthenticated
 from rest_framework import mixins, viewsets, response
 from rest_framework.decorators import action
 
+from api.constants import CONTEST_STATE
 from api.serializers.contest import ContestRecommendListSerializer
 from api.serializers.movie import (
     ContestSerializer,
@@ -91,8 +94,8 @@ class ContestView(viewsets.GenericViewSet, mixins.ListModelMixin):
     @action(methods=["get"], detail=True, permission_classes=[IsAuthenticated])
     def my_creator_position(self, request, **kwargs):
         contest = self.get_object()
-        top_creator, _ = TopCreator.objects.get_or_create(
-            contest=contest, profile=request.user.profile
+        top_creator = get_object_or_404(
+            TopCreator.objects, contest=contest, profile=request.user.profile
         )
         serializer = self.get_serializer(instance=top_creator)
         return response.Response(data=serializer.data)
@@ -100,8 +103,8 @@ class ContestView(viewsets.GenericViewSet, mixins.ListModelMixin):
     @action(methods=["get"], detail=True, permission_classes=[IsAuthenticated])
     def my_curator_position(self, request, **kwargs):
         contest = self.get_object()
-        top_curator, _ = TopCurator.objects.get_or_create(
-            contest=contest, profile=request.user.profile
+        top_curator = get_object_or_404(
+            TopCurator.objects, contest=contest, profile=request.user.profile
         )
         serializer = self.get_serializer(instance=top_curator)
         return response.Response(data=serializer.data)
