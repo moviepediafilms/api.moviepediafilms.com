@@ -20,15 +20,22 @@ class Command(BaseCommand):
             movies_by_director = self._get_movies_by_director(contest)
             logger.info(f"found {len(movies_by_director)} directors")
             top_creators = []
-            for director_id, movies in movies_by_director.items():
-                top_creator_data = {"profile_id": director_id, "contest_id": contest.id}
+            for director, movies in movies_by_director.items():
+                top_creator_data = {
+                    "profile_id": director.id,
+                    "contest_id": contest.id,
+                    "name": director.user.get_full_name(),
+                }
                 top_creator_data.update(self._get_score(movies))
                 top_creators.append(top_creator_data)
 
             top_creators = sorted(
-                top_creators, key=lambda x: x.get("score", 0), reverse=True
+                top_creators,
+                key=lambda x: (x.get("score", 0), x.get("name")),
+                reverse=True,
             )
-
+            for top_creator in top_creators:
+                top_creator.pop("name")
             top_creators = [
                 TopCreator(pos=pos + 1, **data) for pos, data in enumerate(top_creators)
             ]
@@ -75,8 +82,8 @@ class Command(BaseCommand):
 
             for director in directors:
                 if director.id not in movies_by_director:
-                    movies_by_director[director.id] = []
-                movies_by_director[director.id].append(movie)
+                    movies_by_director[director] = []
+                movies_by_director[director].append(movie)
         return movies_by_director
 
     def _get_directors(self, movie):
