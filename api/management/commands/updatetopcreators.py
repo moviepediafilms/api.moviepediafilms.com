@@ -37,11 +37,23 @@ class Command(BaseCommand):
             "score": 0,
             "recommend_count": 0,
         }
-        for movie in movies:
-            score["score"] += movie.jury_rating + movie.audience_rating
-            score["recommend_count"] += movie.in_lists.filter(
-                name=RECOMMENDATION
-            ).count()
+        avg_jury_rating = round(
+            sum(movie.jury_rating or 0 for movie in movies) / len(movies), 2
+        )
+        avg_audience_rating = round(
+            sum(movie.audience_rating or 0 for movie in movies) / len(movies), 2
+        )
+        sum_of_all_recommendations = sum(
+            movie.in_lists.filter(name=RECOMMENDATION).count() for movie in movies
+        )
+
+        score["score"] = round(
+            avg_jury_rating * 0.3
+            + avg_audience_rating * 0.3
+            + min((sum_of_all_recommendations * 0.025), 10),
+            2,
+        )
+        score["recommend_count"] = sum_of_all_recommendations
         return score
 
     def _get_movies_by_director(self, contest):
