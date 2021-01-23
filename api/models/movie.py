@@ -210,6 +210,7 @@ class TopCreator(models.Model):
     )
     recommend_count = models.IntegerField(default=0)
     score = models.FloatField(default=0)
+    pos = models.IntegerField(default=0)
 
     class Meta:
         unique_together = [["contest", "profile"]]
@@ -224,6 +225,7 @@ class TopCurator(models.Model):
     match = models.FloatField(default=0)
     # score here is used just for keeping the sort order
     score = models.FloatField(default=0)
+    pos = models.IntegerField(default=0)
 
     class Meta:
         unique_together = [["contest", "profile"]]

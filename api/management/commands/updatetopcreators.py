@@ -23,7 +23,13 @@ class Command(BaseCommand):
             for director_id, movies in movies_by_director.items():
                 top_creator_data = {"profile_id": director_id, "contest_id": contest.id}
                 top_creator_data.update(self._get_score(movies))
-                top_creators.append(TopCreator(**top_creator_data))
+                top_creators.append(top_creator_data)
+
+            top_creators = sorted(top_creators, key=lambda x: x.get("score", 0))
+            top_creators = [
+                TopCreator(pos=pos + 1, **data) for pos, data in enumerate(top_creators)
+            ]
+
             logger.info(f"created {len(top_creators)} creator(s)")
             with transaction.atomic():
                 old_top_creators = TopCreator.objects.filter(contest=contest)
