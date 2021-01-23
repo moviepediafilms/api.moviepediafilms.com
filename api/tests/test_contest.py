@@ -141,6 +141,7 @@ class ContestTestCase(APITestCaseMixin, LoggedInMixin, TestCase):
                 "id": 1,
                 "email": "test@example.com",
                 "name": "Test User",
+                "pos": 1,
             },
         )
 
@@ -175,6 +176,7 @@ class ContestTestCase(APITestCaseMixin, LoggedInMixin, TestCase):
                 "engagement_score": 0.0,
                 "city": None,
                 "id": 1,
+                "pos": 1,
                 "email": "test@example.com",
                 "name": "Test User",
             },
@@ -244,6 +246,7 @@ class AnonUserContestTestCase(APITestCaseMixin, TestCase):
                     "engagement_score": 0.0,
                     "city": None,
                     "id": 1,
+                    "pos": 1,
                     "email": "test@example.com",
                     "name": "Test User",
                 }
@@ -287,6 +290,7 @@ class AnonUserContestTestCase(APITestCaseMixin, TestCase):
                     "engagement_score": 0.0,
                     "city": None,
                     "id": 1,
+                    "pos": 1,
                     "email": "test@example.com",
                     "name": "Test User",
                 }
