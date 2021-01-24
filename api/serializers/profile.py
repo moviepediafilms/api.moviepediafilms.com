@@ -93,6 +93,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             "level",
             "is_celeb",
             "engagement_score",
+            "pop_score",
             "city",
         ]
 
