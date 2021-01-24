@@ -45,6 +45,10 @@ class ContestRecommendListSerializer(serializers.ModelSerializer):
         )
         if action == "add":
             movie_list.movies.add(movie)
+            movie.recommend_count += 1
+            movie.save()
         elif action == "remove":
             movie_list.movies.remove(movie)
+            movie.recommend_count = min(movie.recommend_count - 1, 0)
+            movie.save()
         return contest
