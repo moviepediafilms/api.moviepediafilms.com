@@ -48,6 +48,7 @@ class MovieViewTestCase(APITestCaseMixin, LoggedInMixin, TestCase):
                             "curator_rank": -1,
                             "email": "test@example.com",
                             "engagement_score": 0.0,
+                            "pop_score": 0.0,
                             "id": 1,
                             "is_celeb": False,
                             "image": None,
