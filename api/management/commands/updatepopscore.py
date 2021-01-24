@@ -72,7 +72,8 @@ class Command(BaseCommand):
     def update_rank(self, directors):
         directors = list(directors)
         directors.sort(
-            key=lambda profile: (profile.pop_score, profile.user.get_full_name())
+            key=lambda profile: (profile.pop_score, profile.user.get_full_name()),
+            reverse=True,
         )
         for rank, profile in enumerate(directors):
             profile.creator_rank = rank + 1
