@@ -38,6 +38,7 @@ class MovieListTestCase(APITestCaseMixin, LoggedInMixin, TestCase):
         self.assertEqual(
             [
                 {
+                    "contest": 1,
                     "frozen": False,
                     "id": 1,
                     "like_count": 0,
@@ -64,6 +65,7 @@ class MovieListTestCase(APITestCaseMixin, LoggedInMixin, TestCase):
         self.assertEqual(
             [
                 {
+                    "contest": None,
                     "frozen": False,
                     "id": 2,
                     "like_count": 0,

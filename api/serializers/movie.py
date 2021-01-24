@@ -671,6 +671,7 @@ class MovieListSerializer(serializers.ModelSerializer):
             "movies_count",
             "like_count",
             "frozen",
+            "contest",
         ]
 
     def create(self, validated_data: dict):
