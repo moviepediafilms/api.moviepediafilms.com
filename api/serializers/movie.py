@@ -761,11 +761,7 @@ class TopCreatorSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TopCreator
-        fields = [
-            "score",
-            "recommend_count",
-            "profile",
-        ]
+        fields = ["score", "recommend_count", "profile", "pos"]
 
     def to_representation(self, value):
         value = super().to_representation(value)
@@ -778,12 +774,7 @@ class TopCuratorSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TopCurator
-        fields = [
-            "match",
-            "likes_on_recommend",
-            "profile",
-            "score",
-        ]
+        fields = ["match", "likes_on_recommend", "profile", "score", "pos"]
 
     def to_representation(self, value):
         value = super().to_representation(value)

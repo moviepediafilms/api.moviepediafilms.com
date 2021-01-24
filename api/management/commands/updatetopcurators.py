@@ -49,19 +49,21 @@ class Command(BaseCommand):
 
                 score = round(likes * match_percent, 2) if match_percent > 0 else likes
                 curators.append(
-                    TopCurator(
-                        **{
-                            "profile_id": recommend_list.owner.id,
-                            "contest_id": contest.id,
-                            "likes_on_recommend": likes,
-                            "match": match_percent,
-                            "score": score,
-                        }
-                    )
+                    {
+                        "profile_id": recommend_list.owner.id,
+                        "contest_id": contest.id,
+                        "likes_on_recommend": likes,
+                        "match": match_percent,
+                        "score": score,
+                    }
                 )
 
+            curators = sorted(curators, key=lambda x: x.get("score"), reverse=True)
+            curators = [
+                TopCurator(pos=pos + 1, **data) for pos, data in enumerate(curators)
+            ]
             with transaction.atomic():
-                logger.info(f"deleting top curators")
+                logger.info("deleting top curators")
                 contest.top_curators.all().delete()
                 logger.info(f"inserting {len(curators)} new curators")
                 TopCurator.objects.bulk_create(curators, batch_size=100)

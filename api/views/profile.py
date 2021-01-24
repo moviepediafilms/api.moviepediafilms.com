@@ -1,4 +1,4 @@
-from api.models.movie import Movie
+from api.models.movie import Movie, TopCreator
 from logging import getLogger
 
 from django.db.models import Count, Q
