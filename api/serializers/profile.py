@@ -14,7 +14,7 @@ from rest_framework import serializers
 from PIL import Image
 
 from api.models import Profile, Role, Movie, Notification
-from api.constants import MOVIE_STATE
+from api.constants import MOVIE_STATE, DEFAULT_AVATARS
 
 logger = getLogger(__name__)
 
@@ -100,6 +100,8 @@ class ProfileSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         representation = super().to_representation(instance)
         representation.update(representation.pop("user"))
+        if not representation.get("image"):
+            representation["image"] = DEFAULT_AVATARS.get(instance.gender)
         return representation
 
 
@@ -195,6 +197,8 @@ class ProfileDetailSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         representation = super().to_representation(instance)
         representation.update(representation.pop("user"))
+        if not representation.get("image"):
+            representation["image"] = DEFAULT_AVATARS.get(instance.gender)
         return representation
 
     def get_movies_directed(self, profile):
