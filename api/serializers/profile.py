@@ -71,6 +71,14 @@ class UserSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        if not representation.get("image"):
+            profile = getattr(instance, "profile", None)
+            if profile:
+                representation["image"] = DEFAULT_AVATARS.get(instance.profile.gender)
+        return representation
+
 
 class RoleSerializer(serializers.ModelSerializer):
     class Meta:
