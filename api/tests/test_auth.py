@@ -30,7 +30,7 @@ class WithPayloadMixin:
             "follows": [],
             "gender": "M",
             "id": 1,
-            "image": None,
+            "image": "/default_avatar_m.png",
             "level": 1,
             "mcoins": 0.0,
             "is_celeb": False,
