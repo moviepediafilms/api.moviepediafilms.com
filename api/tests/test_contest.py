@@ -257,24 +257,56 @@ class AnonUserContestTestCase(APITestCaseMixin, TestCase):
             actual_top_creators,
         )
 
+    def test_my_creator_position(self):
+        res = self.client.get(
+            reverse("api:contest-my-creator-position", args=["v1", 1])
+        )
+        self.assertEquals(res.status_code, 401)
+
+    def test_my_curator_position(self):
+        res = self.client.get(
+            reverse("api:contest-my-curator-position", args=["v1", 1])
+        )
+        self.assertEquals(res.status_code, 401)
+
+
+class TestTopCurator(APITestCaseMixin, TestCase):
+    fixtures = [
+        "test_top_curators",
+        "genre",
+        "lang",
+        "role",
+        "package",
+        "order",
+        "movie",
+        "contest_type",
+        "contest",
+    ]
+
     def test_get_top_curators(self):
-        movie = Movie.objects.get(pk=1)
         _add_movie_in_contest()
 
+        # create a celeb profile
         celeb_user = User.objects.create(username="A Celeb", email="celeb@example.com")
         Profile.objects.create(user=celeb_user, is_celeb=True)
 
+        # build celeb recommends list
         celeb_movie_list = _create_movie_list_for_contest(owner_id=celeb_user.id)
+        movie = Movie.objects.get(pk=1)
         celeb_movie_list.movies.add(movie)
 
+        # create a curation for regular user
         movie_list = _create_movie_list_for_contest(owner_id=1)
-        # recommend a movie
         movie_list.movies.add(movie)
-        # like a curation
+
+        # add likes to this new curation list by any user(s)
         movie_list.liked_by.add(celeb_user)
         movie_list.liked_by.add(User.objects.get(pk=1))
 
+        # run the job
         call_command("updatetopcurators")
+
+        # check users position
         res = self.client.get(reverse("api:contest-top-curators", args=["v1", 1]))
         self.assertEqual(200, res.status_code)
         actual_curators = res.json()["results"]
@@ -284,7 +316,7 @@ class AnonUserContestTestCase(APITestCaseMixin, TestCase):
                     "match": 100.0,
                     "likes_on_recommend": 2,
                     "score": 200.0,
-                    "profile_id": 1,
+                    "profile_id": 10,
                     "image": None,
                     "creator_rank": -1,
                     "curator_rank": -1,
@@ -301,15 +333,3 @@ class AnonUserContestTestCase(APITestCaseMixin, TestCase):
             ],
             actual_curators,
         )
-
-    def test_my_creator_position(self):
-        res = self.client.get(
-            reverse("api:contest-my-creator-position", args=["v1", 1])
-        )
-        self.assertEquals(res.status_code, 401)
-
-    def test_my_curator_position(self):
-        res = self.client.get(
-            reverse("api:contest-my-curator-position", args=["v1", 1])
-        )
-        self.assertEquals(res.status_code, 401)
