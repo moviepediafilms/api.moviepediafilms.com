@@ -50,7 +50,7 @@ class Command(BaseCommand):
                 score = round(likes * match_percent, 2) if match_percent > 0 else likes
                 curators.append(
                     {
-                        "profile_id": recommend_list.owner.id,
+                        "profile_id": recommend_list.owner.profile.id,
                         "contest_id": contest.id,
                         "likes_on_recommend": likes,
                         "match": match_percent,
@@ -65,5 +65,6 @@ class Command(BaseCommand):
             with transaction.atomic():
                 logger.info("deleting top curators")
                 contest.top_curators.all().delete()
+
                 logger.info(f"inserting {len(curators)} new curators")
                 TopCurator.objects.bulk_create(curators, batch_size=100)
