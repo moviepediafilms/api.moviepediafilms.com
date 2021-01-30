@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django import forms
+from import_export.admin import ExportMixin
 from api.models import (
     Profile,
     Role,
@@ -19,7 +20,7 @@ from api.models import (
 )
 
 
-class ProfileAdmin(admin.ModelAdmin):
+class ProfileAdmin(ExportMixin, admin.ModelAdmin):
     search_fields = ["user__first_name", "user__last_name", "user__username", "city"]
     exclude = ["follows"]
     list_display = [
@@ -40,7 +41,7 @@ class RoleAdmin(admin.ModelAdmin):
     list_display = ["name"]
 
 
-class OrderAdmin(admin.ModelAdmin):
+class OrderAdmin(ExportMixin, admin.ModelAdmin):
     search_fields = [
         "owner__first_name",
         "owner__last_name",
@@ -74,7 +75,7 @@ class MovieModelForm(forms.ModelForm):
         exclude = []
 
 
-class MovieAdmin(admin.ModelAdmin):
+class MovieAdmin(ExportMixin, admin.ModelAdmin):
     search_fields = ["title", "link"]
     list_filter = [
         "approved",
@@ -125,11 +126,11 @@ class MovieLanguageAdmin(admin.ModelAdmin):
     list_display = ["name"]
 
 
-class MovieRateReviewAdmin(admin.ModelAdmin):
+class MovieRateReviewAdmin(ExportMixin, admin.ModelAdmin):
     list_display = ["id", "author", "content", "movie", "published_at", "rating"]
 
 
-class MovieListAdmin(admin.ModelAdmin):
+class MovieListAdmin(ExportMixin, admin.ModelAdmin):
     search_fields = ["owner__email", "owner__first_name", "owner__last_name", "name"]
     list_display = ["name", "owner", "contest", "frozen"]
     list_filter = ["contest"]
@@ -139,7 +140,7 @@ class PackageAdmin(admin.ModelAdmin):
     list_display = ["name", "amount"]
 
 
-class CrewMemberAdmin(admin.ModelAdmin):
+class CrewMemberAdmin(ExportMixin, admin.ModelAdmin):
     search_fields = ["profile__user__email", "movie__title"]
     list_filter = ["role"]
     list_display = [
@@ -152,7 +153,7 @@ class CrewMemberAdmin(admin.ModelAdmin):
         return membership.profile.user.email
 
 
-class CrewMemberRequestAdmin(admin.ModelAdmin):
+class CrewMemberRequestAdmin(ExportMixin, admin.ModelAdmin):
     search_fields = ["user__user__email", "movie__title"]
     list_filter = ["role", "state"]
     list_display = ["requestor", "movie", "user", "role", "state", "reason"]
@@ -162,11 +163,11 @@ class ContestTypeAdmin(admin.ModelAdmin):
     list_display = ["name"]
 
 
-class MoviesInContest(admin.TabularInline):
+class MoviesInContest(ExportMixin, admin.TabularInline):
     model = Contest.movies.through
 
 
-class ContestAdmin(admin.ModelAdmin):
+class ContestAdmin(ExportMixin, admin.ModelAdmin):
     list_display = [
         "name",
         "start",
