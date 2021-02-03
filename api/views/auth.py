@@ -98,7 +98,7 @@ class GoogleSignInView(views.APIView):
         """
 
         token = request.data["id_token"]
-        code = request.data.get("code")
+        auth_code = request.data.get("code")
         try:
             # check the doc below to see fields present in google_auth_res
             # https://developers.google.com/identity/sign-in/web/backend-auth
@@ -109,15 +109,16 @@ class GoogleSignInView(views.APIView):
             logger.exception(ex)
             return Response({"error": str(ex)}, status=400)
         else:
-            if not google_auth_res["aud"] == settings.GOOGLE_CLIENT_ID:
+            if not google_auth_res.get("aud") == settings.GOOGLE_CLIENT_ID:
                 raise ValueError("Could not verify audience.")
 
             # at this point user is authenticated by google
-            email = google_auth_res["email"]
+            logger.info(google_auth_res)
+            email = google_auth_res.get("email")
             account_id = google_auth_res["sub"]
-            first_name = google_auth_res["given_name"]
-            last_name = google_auth_res["family_name"]
-            picture = google_auth_res["picture"]
+            first_name = google_auth_res.get("given_name")
+            last_name = google_auth_res.get("family_name")
+            image = google_auth_res.get("picture")
             try:
                 user = User.objects.get(email=email)
             except User.DoesNotExist:
@@ -127,8 +128,8 @@ class GoogleSignInView(views.APIView):
                     first_name=first_name,
                     last_name=last_name,
                 )
-                extra_details = fetch_profile_details(code, account_id)
-                Profile.objects.create(user=user, image=picture, **extra_details)
+                extra_details = fetch_profile_details(auth_code, account_id)
+                Profile.objects.create(user=user, image=image, **extra_details)
             token, _ = Token.objects.get_or_create(user=user)
             return Response(
                 {"token": token.key, "user_id": user.pk, "email": user.email}
@@ -161,7 +162,8 @@ def fetch_profile_details(auth_code, account_id):
         for a advance usecase where we get both a auth_code(for sign in flows) and id_token(for api calls at backend) we can use method describe on this page
         https://developers.google.com/identity/sign-in/web/reference#gapiauth2authorizeparams_callback
     """
-
+    if not auth_code or not account_id:
+        return {}
     credentials = client.credentials_from_clientsecrets_and_code(
         settings.GOOGLE_SECRET_FILE,
         [
