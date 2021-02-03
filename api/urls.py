@@ -41,6 +41,7 @@ router.register("mpgenre", movie.MpGenreView, basename="mpgenre")
 
 urlpatterns = [
     path("", include(router.urls)),
+    path("auth/google/", auth.GoogleSignInView.as_view(), name="google"),
     path("auth/", auth.AuthTokenView.as_view(), name="login"),
     path("payment/verify/", payment.VerifyPayment.as_view()),
 ]
