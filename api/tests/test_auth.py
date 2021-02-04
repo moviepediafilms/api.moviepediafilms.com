@@ -49,9 +49,9 @@ class WithPayloadMixin:
 class SignUpTestCase(APITestCaseMixin, WithPayloadMixin, TestCase):
     def test_signup_ok(self):
         res = self.client.post(reverse("api:profile-list"), data=self.payload)
-        self.assertEquals(len(mail.outbox), 1)
+        self.assertEquals(len(mail.outbox), 2)
         self.assertEquals(mail.outbox[0].template_id, TEMPLATES.WELCOME)
-        # self.assertEquals(mail.outbox[1].template_id, TEMPLATES.VERIFY)
+        self.assertEquals(mail.outbox[1].template_id, TEMPLATES.VERIFY)
         self.assertEquals(res.status_code, 201)
         self.assertEquals(res.json(), self.expected)
 
@@ -80,10 +80,9 @@ class SignInTestCase(APITestCaseMixin, WithPayloadMixin, TestCase):
             reverse("api:profile-detail", args=["v1", profile_id]),
             data=self.payload,
         )
-        self.assertEquals(len(mail.outbox), 1)
+        self.assertEquals(len(mail.outbox), 2)
         self.assertEquals(mail.outbox[0].template_id, TEMPLATES.WELCOME)
-        # FIXME: enable verification email after selecting sendgrid alternative
-        # self.assertEquals(mail.outbox[1].template_id, TEMPLATES.VERIFY)
+        self.assertEquals(mail.outbox[1].template_id, TEMPLATES.VERIFY)
         self.assertEquals(res.status_code, 200)
         self.assertEquals(res.json(), self.expected)
 
