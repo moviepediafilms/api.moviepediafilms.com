@@ -116,20 +116,24 @@ class GoogleSignInView(views.APIView):
             logger.info(google_auth_res)
             email = google_auth_res.get("email")
             account_id = google_auth_res["sub"]
-            first_name = google_auth_res.get("given_name")
-            last_name = google_auth_res.get("family_name")
-            image = google_auth_res.get("picture")
+            profile_data = dict(
+                first_name=google_auth_res.get("given_name"),
+                last_name=google_auth_res.get("family_name"),
+                image=google_auth_res.get("picture"),
+            )
             try:
                 user = User.objects.get(email=email)
             except User.DoesNotExist:
+                extra_details = fetch_profile_details(auth_code, account_id)
+                profile_data.update(extra_details)
+
                 user = User.objects.create(
                     email=email,
                     username=email,
-                    first_name=first_name,
-                    last_name=last_name,
+                    first_name=profile_data.pop("first_name"),
+                    last_name=profile_data.pop("last_name"),
                 )
-                extra_details = fetch_profile_details(auth_code, account_id)
-                Profile.objects.create(user=user, image=image, **extra_details)
+                Profile.objects.create(user=user, **profile_data)
             token, _ = Token.objects.get_or_create(user=user)
             return Response(
                 {"token": token.key, "user_id": user.pk, "email": user.email}
@@ -162,8 +166,9 @@ def fetch_profile_details(auth_code, account_id):
         for a advance usecase where we get both a auth_code(for sign in flows) and id_token(for api calls at backend) we can use method describe on this page
         https://developers.google.com/identity/sign-in/web/reference#gapiauth2authorizeparams_callback
     """
+    data = {}
     if not auth_code or not account_id:
-        return {}
+        return data
     credentials = client.credentials_from_clientsecrets_and_code(
         settings.GOOGLE_SECRET_FILE,
         [
@@ -180,7 +185,7 @@ def fetch_profile_details(auth_code, account_id):
             people_service.people()
             .get(
                 resourceName=f"people/{account_id}",
-                personFields="genders,phoneNumbers,birthdays",
+                personFields="genders,phoneNumbers,birthdays,names",
             )
             .execute()
         )
@@ -190,7 +195,7 @@ def fetch_profile_details(auth_code, account_id):
     else:
         logger.debug(people_res)
         genders = people_res.get("genders", [])
-        gender = next((g.get("value") for g in genders if g.get("value")), None)
+        data["gender"] = next((g.get("value") for g in genders if g.get("value")), None)
 
         birthdays = people_res.get("birthdays", [])
         dob = next(
@@ -198,8 +203,24 @@ def fetch_profile_details(auth_code, account_id):
             None,
         )
         if dob:
-            dob = datetime.date(**dob)
+            data["dob"] = datetime.date(**dob)
 
         phoneNumbers = people_res.get("phoneNumbers", [])
-        mobile = next((ph.get("value") for ph in phoneNumbers if ph.get("value")), None)
-        return dict(mobile=mobile, dob=dob, gender=gender)
+        data["mobile"] = next(
+            (ph.get("value") for ph in phoneNumbers if ph.get("value")), None
+        )
+
+        names = people_res.get("names", [])
+        names = next(
+            (
+                name
+                for name in names
+                if name.get("familyName") and name.get("givenName")
+            ),
+            None,
+        )
+        if names:
+            data["first_name"] = names.get("givenName")
+            data["last_name"] = names.get("familyName")
+
+        return data
