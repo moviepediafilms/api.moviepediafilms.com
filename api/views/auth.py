@@ -195,7 +195,10 @@ def fetch_profile_details(auth_code, account_id):
     else:
         logger.debug(people_res)
         genders = people_res.get("genders", [])
-        data["gender"] = next((g.get("value") for g in genders if g.get("value")), None)
+        gender = next((g.get("value")[0] for g in genders if g.get("value")), None)
+        if gender:
+            gender = gender[0].upper()
+            data["gender"] = gender if gender != "U" else "O"
 
         birthdays = people_res.get("birthdays", [])
         dob = next(
