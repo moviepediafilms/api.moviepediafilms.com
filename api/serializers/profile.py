@@ -23,7 +23,7 @@ class UserSerializer(serializers.ModelSerializer):
     name = serializers.CharField(source="get_full_name", read_only=True)
     first_name = serializers.CharField(write_only=True)
     last_name = serializers.CharField(write_only=True, allow_blank=True)
-    email = serializers.EmailField(required=True)
+    email = serializers.EmailField(required=True, write_only=True)
     password = serializers.CharField(min_length=6, write_only=True)
     image = serializers.URLField(source="profile.image", read_only=True)
 
@@ -38,6 +38,7 @@ class UserSerializer(serializers.ModelSerializer):
             "password",
             "image",
         ]
+        extra_kwargs = {"email": {"write_only": True}}
 
     def validate_email(self, email):
         email = email.lower()
@@ -165,6 +166,7 @@ class ProfileDetailSerializer(serializers.ModelSerializer):
             "movies_directed",
         ]
         read_only_fields = ["level", "rank", "score", "mcoins", "pop_score", "follows"]
+        extra_kwargs = {"mobile": {"write_only": True}, "dob": {"write_only": True}}
 
     def get_fields(self, *args, **kwargs):
         fields = super().get_fields(*args, **kwargs)

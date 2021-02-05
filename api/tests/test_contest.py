@@ -140,7 +140,6 @@ class ContestTestCase(APITestCaseMixin, LoggedInMixin, TestCase):
                 "pop_score": 0.0,
                 "city": None,
                 "id": 1,
-                "email": "test@example.com",
                 "name": "Test User",
                 "pos": 1,
             },
@@ -179,7 +178,6 @@ class ContestTestCase(APITestCaseMixin, LoggedInMixin, TestCase):
                 "city": None,
                 "id": 1,
                 "pos": 1,
-                "email": "test@example.com",
                 "name": "Test User",
             },
         )
@@ -250,7 +248,6 @@ class AnonUserContestTestCase(APITestCaseMixin, TestCase):
                     "city": None,
                     "id": 1,
                     "pos": 1,
-                    "email": "test@example.com",
                     "name": "Test User",
                 }
             ],
@@ -327,7 +324,6 @@ class TestTopCurator(APITestCaseMixin, TestCase):
                     "city": None,
                     "id": 1,
                     "pos": 1,
-                    "email": "test@example.com",
                     "name": "Test User",
                 }
             ],
