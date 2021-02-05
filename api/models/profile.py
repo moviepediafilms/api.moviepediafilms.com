@@ -79,6 +79,5 @@ class Profile(models.Model):
             logger.info(f"user onboarded! {self.user.email}")
             success = email_trigger(self.user, TEMPLATES.WELCOME)
             logger.info(f"welcome email sent: {success}")
-            # FIXME: enable verification after changing Email provider
-            # success = email_trigger(self.user, TEMPLATES.VERIFY)
-            # logger.info(f"verification email sent: {success}")
+            success = email_trigger(self.user, TEMPLATES.VERIFY)
+            logger.info(f"verification email sent: {success}")

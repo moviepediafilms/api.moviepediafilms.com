@@ -21,6 +21,9 @@ razorpay = "*"
 mysqlclient = "*"
 pillow = "*"
 django-import-export = "*"
+oauth2client = "*"
+google-auth = "*"
+google-api-python-client = "*"
 
 [requires]
 python_version = "3.8"

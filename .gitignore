@@ -8,3 +8,4 @@ coverage.xml
 .coverage
 buglist.yaml
 htmlcov
+client_secret_*.json
