@@ -24,8 +24,6 @@ class WithPayloadMixin:
         self.expected = {
             "about": None,
             "city": None,
-            "dob": "2020-12-12",
-            "email": "abcd@example.com",
             "engagement_score": 0.0,
             "follows": [],
             "gender": "M",
@@ -34,7 +32,6 @@ class WithPayloadMixin:
             "level": 1,
             "mcoins": 0.0,
             "is_celeb": False,
-            "mobile": "123456789012",
             "movies_directed": 0,
             "name": "Test User",
             "pop_score": 0.0,
@@ -54,6 +51,8 @@ class SignUpTestCase(APITestCaseMixin, WithPayloadMixin, TestCase):
         self.assertEquals(mail.outbox[1].template_id, TEMPLATES.VERIFY)
         self.assertEquals(res.status_code, 201)
         self.assertEquals(res.json(), self.expected)
+        user = User.objects.get(pk=1)
+        self.assertFalse(user.is_active)
 
     def test_signup_password_error(self):
         self.payload["user"]["password"] = "1223"
@@ -71,10 +70,8 @@ class SignInTestCase(APITestCaseMixin, WithPayloadMixin, TestCase):
 
     def test_signup_partial(self):
         profile_id = 1
-        email = "test@example.com"
         del self.payload["user"]["email"]
         self.payload["token"] = "token-abcd"
-        self.expected["email"] = email
 
         res = self.client.patch(
             reverse("api:profile-detail", args=["v1", profile_id]),

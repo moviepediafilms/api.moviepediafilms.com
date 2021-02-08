@@ -46,7 +46,6 @@ class MovieListTestCase(APITestCaseMixin, LoggedInMixin, TestCase):
                     "movies_count": 1,
                     "name": "January",
                     "owner": {
-                        "email": "sample2@example.com",
                         "id": 2,
                         "image": None,
                         "name": "",
@@ -73,7 +72,6 @@ class MovieListTestCase(APITestCaseMixin, LoggedInMixin, TestCase):
                     "movies_count": 0,
                     "name": "Recommendation",
                     "owner": {
-                        "email": "test@example.com",
                         "id": 1,
                         "image": None,
                         "name": "Test User",
