@@ -58,8 +58,7 @@ class UserSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         password = validated_data.pop("password")
         validated_data["username"] = validated_data.get("email")
-        # FIXME: automatically approve users as of now, will enable email verification after selecting sendgrid alternative
-        validated_data["is_active"] = True
+        validated_data["is_active"] = False
         user = super().create(validated_data)
         user.set_password(password)
         user.save()
