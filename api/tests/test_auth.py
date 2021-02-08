@@ -51,6 +51,8 @@ class SignUpTestCase(APITestCaseMixin, WithPayloadMixin, TestCase):
         self.assertEquals(mail.outbox[1].template_id, TEMPLATES.VERIFY)
         self.assertEquals(res.status_code, 201)
         self.assertEquals(res.json(), self.expected)
+        user = User.objects.get(pk=1)
+        self.assertFalse(user.is_active)
 
     def test_signup_password_error(self):
         self.payload["user"]["password"] = "1223"
