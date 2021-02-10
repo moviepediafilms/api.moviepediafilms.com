@@ -133,6 +133,7 @@ class GoogleSignInView(views.APIView):
                     username=email,
                     first_name=profile_data.pop("first_name"),
                     last_name=profile_data.pop("last_name"),
+                    is_active=True,
                 )
                 Profile.objects.create(user=user, **profile_data)
             token, _ = Token.objects.get_or_create(user=user)
