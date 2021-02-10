@@ -5,8 +5,6 @@
     name: January
     frozen: false
     contest: 1
-    movies:
-    - 1
     liked_by: []
 - model: api.movielist
   pk: 2

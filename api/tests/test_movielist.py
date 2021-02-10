@@ -1,5 +1,5 @@
 from api.constants import RECOMMENDATION
-from api.models import MovieList, User
+from api.models import MovieList, User, Movie
 from django.test import TestCase
 from .base import reverse, APITestCaseMixin, LoggedInMixin
 
@@ -30,6 +30,7 @@ class MovieListTestCase(APITestCaseMixin, LoggedInMixin, TestCase):
         ml.save()
 
     def test_get_all_contest_recommend_movielist(self):
+        MovieList.objects.get(pk=1).movies.add(Movie.objects.get(pk=1))
         url = reverse("api:movielist-list")
         res = self.client.get(url, {"contest__isnull": "false"})
         self.assertEqual(200, res.status_code)
@@ -82,6 +83,7 @@ class MovieListTestCase(APITestCaseMixin, LoggedInMixin, TestCase):
         )
 
     def test_get_movies_of_movielist(self):
+        MovieList.objects.get(pk=1).movies.add(Movie.objects.get(pk=1))
         url = reverse("api:movielist-movies", args=["v1", 1])
         res = self.client.get(url)
         self.assertEqual(200, res.status_code)
