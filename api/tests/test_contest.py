@@ -1,7 +1,9 @@
-from api.constants import CONTEST_STATE
-from api.models import MovieList, Contest, Movie, User, Profile
+from django.utils import timezone
 from django.test import TestCase
 from django.core.management import call_command
+
+from api.constants import CONTEST_STATE
+from api.models import MovieList, Contest, Movie, User, Profile
 from .base import reverse, APITestCaseMixin, LoggedInMixin
 
 
@@ -32,6 +34,12 @@ class ContestTestCase(APITestCaseMixin, LoggedInMixin, TestCase):
         "contest_type",
         "contest",
     ]
+
+    def setUp(self):
+        movie = Movie.objects.get(pk=1)
+        movie.publish_on = timezone.now() - timezone.timedelta(days=5)
+        movie.save()
+        return super().setUp()
 
     def test_recommend_non_participating_movie_in_live_contest(self):
         url = reverse("api:contest-recommend", args=["v1", 1])
@@ -76,6 +84,68 @@ class ContestTestCase(APITestCaseMixin, LoggedInMixin, TestCase):
         res = self.client.delete(url, {"movie": 1})
         self.assertEqual(200, res.status_code)
         self.assertEqual(0, res.json()["recommended"])
+
+    def test_recommend_more_than_allowed(self):
+        # reduce the maximum allowed recommendation for this contest
+        contest = Contest.objects.get(pk=1)
+        contest.max_recommends = 1
+        contest.save()
+        # we need at least 2 movies to perform the test
+        new_movie = Movie.objects.get(pk=1)
+        new_movie.pk = None
+        new_movie.link = "http://dummy_movie2.com"
+        new_movie.save()
+        # add movies to contest
+        _add_movie_in_contest(movie_id=1)
+        _add_movie_in_contest(movie_id=2)
+        # create a movielist of logged in user
+        movie_list = _create_movie_list_for_contest()
+
+        self.assertEqual(0, movie_list.movies.count())
+        self.assertEqual(1, contest.max_recommends)
+
+        # allow the first recommend
+        url = reverse("api:contest-recommend", args=["v1", 1])
+        res = self.client.post(url, {"movie": 1})
+        self.assertEqual(200, res.status_code)
+
+        self.assertEqual(1, res.json()["recommended"])
+        # block the next recommend
+        url = reverse("api:contest-recommend", args=["v1", 1])
+        res = self.client.post(url, {"movie": 1})
+        self.assertEqual(400, res.status_code)
+        self.assertEqual(
+            {
+                "non_field_errors": [
+                    "You can only recommended 1 films for January contest"
+                ]
+            },
+            res.json(),
+        )
+
+    def test_recommend_after_contest_live_days_per_movie_is_over(self):
+        # reduce the maximum allowed recommendation for this contest
+        contest = Contest.objects.get(pk=1)
+        contest.days_per_movie = 2
+        contest.save()
+
+        movie = Movie.objects.get(pk=1)
+        movie.publish_on = timezone.now() - timezone.timedelta(days=5)
+        movie.save()
+
+        _add_movie_in_contest()
+
+        url = reverse("api:contest-recommend", args=["v1", 1])
+        res = self.client.post(url, {"movie": 1})
+        self.assertEqual(400, res.status_code)
+        self.assertEqual(
+            {
+                "movie": [
+                    "Films in January contest can be recommended only within 2 days of their release date"
+                ]
+            },
+            res.json(),
+        )
 
     def test_get_recommend_movie_in_live_contest(self):
         url = reverse("api:contest-recommend", args=["v1", 1])

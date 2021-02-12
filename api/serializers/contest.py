@@ -1,7 +1,8 @@
+from django.utils import timezone
 from rest_framework.exceptions import ValidationError
+from rest_framework import serializers
 from api.constants import MOVIE_STATE
 from api.models.movie import MovieList
-from rest_framework import serializers
 from api.models import Contest, Movie
 
 
@@ -29,11 +30,28 @@ class ContestRecommendListSerializer(serializers.ModelSerializer):
         else:
             return movie_list.movies.count()
 
+    def validate_movie(self, movie):
+        days = self.instance.days_per_movie
+        recommend_till = movie.publish_on + timezone.timedelta(days=days)
+        if timezone.now() >= recommend_till:
+            raise ValidationError(
+                f"Films in {self.instance.name} contest can be recommended only within {days} days of their release date"
+            )
+        return movie
+
     def validate(self, attrs):
+        request = self.context["request"]
         if not self.instance.is_live():
             raise ValidationError("Contest is not live")
         if attrs["movie"] not in self.instance.movies.all():
             raise ValidationError("Film hasn't participated in this contest")
+        movie_list = MovieList.objects.filter(
+            owner=request.user, contest=self.instance
+        ).first()
+        if movie_list and self.instance.max_recommends <= movie_list.movies.count():
+            raise ValidationError(
+                f"You can only recommended {self.instance.max_recommends} films for {self.instance.name} contest"
+            )
         return super().validate(attrs)
 
     def update(self, contest, validated_data):
