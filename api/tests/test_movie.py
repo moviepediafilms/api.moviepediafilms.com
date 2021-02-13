@@ -100,6 +100,7 @@ class MovieViewTestCase(APITestCaseMixin, LoggedInMixin, TestCase):
         )
 
     def test_movies_by(self):
+        """test movies by a director"""
         res = self.client.get(reverse("api:moviesby-detail", args=["v1", 2]))
         self.assertEqual(404, res.status_code)
 
