@@ -75,10 +75,12 @@ class ContestView(viewsets.GenericViewSet, mixins.ListModelMixin):
         action = {"POST": "add", "DELETE": "remove"}.get(request.method)
         if action:
             serializer = self.get_serializer(
-                instance=contest, data=request.data, context={"request": request}
+                instance=contest,
+                data=request.data,
+                context={"request": request, "action": action},
             )
             serializer.is_valid(raise_exception=True)
-            serializer.save(user=request.user, action=action)
+            serializer.save()
         else:
             serializer = self.get_serializer(
                 instance=contest, context={"request": request}

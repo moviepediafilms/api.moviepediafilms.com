@@ -3,7 +3,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework import serializers
 from api.constants import MOVIE_STATE
 from api.models.movie import MovieList
-from api.models import Contest, Movie
+from api.models import Contest, Movie, contest
 
 
 class ContestRecommendListSerializer(serializers.ModelSerializer):
@@ -31,11 +31,12 @@ class ContestRecommendListSerializer(serializers.ModelSerializer):
             return movie_list.movies.count()
 
     def validate_movie(self, movie):
+        action = self.context["action"]
         days = self.instance.days_per_movie
         recommend_till = movie.publish_on + timezone.timedelta(days=days)
-        if timezone.now() >= recommend_till:
+        if action == "add" and timezone.now() >= recommend_till:
             raise ValidationError(
-                f"Films in {self.instance.name} contest can be recommended only within {days} days of their release date"
+                f"Recommendation Period for this film of {self.instance.name} is now closed. Try other films."
             )
         return movie
 
@@ -50,14 +51,15 @@ class ContestRecommendListSerializer(serializers.ModelSerializer):
         ).first()
         if movie_list and self.instance.max_recommends <= movie_list.movies.count():
             raise ValidationError(
-                f"You can only recommended {self.instance.max_recommends} films for {self.instance.name} contest"
+                f"You ran out of recommends ({self.instance.max_recommends}/{self.instance.max_recommends}) for {self.instance.name}. Undo the recommends from your profile to continue."
             )
         return super().validate(attrs)
 
     def update(self, contest, validated_data):
-        user = validated_data["user"]
+        user = self.context["request"].user
+        action = self.context["action"]
         movie = validated_data["movie"]
-        action = validated_data["action"]
+
         movie_list, _ = MovieList.objects.get_or_create(
             name=contest.name, owner=user, contest=contest
         )

@@ -117,7 +117,7 @@ class ContestTestCase(APITestCaseMixin, LoggedInMixin, TestCase):
         self.assertEqual(
             {
                 "non_field_errors": [
-                    "You can only recommended 1 films for January contest"
+                    "You ran out of recommends (1/1) for January. Undo the recommends from your profile to continue."
                 ]
             },
             res.json(),
@@ -141,9 +141,29 @@ class ContestTestCase(APITestCaseMixin, LoggedInMixin, TestCase):
         self.assertEqual(
             {
                 "movie": [
-                    "Films in January contest can be recommended only within 2 days of their release date"
+                    "Recommendation Period for this film of January is now closed. Try other films."
                 ]
             },
+            res.json(),
+        )
+
+    def test_undo_recommend_after_contest_live_days_per_movie_is_over(self):
+        # reduce the maximum allowed recommendation for this contest
+        contest = Contest.objects.get(pk=1)
+        contest.days_per_movie = 2
+        contest.save()
+
+        movie = Movie.objects.get(pk=1)
+        movie.publish_on = timezone.now() - timezone.timedelta(days=5)
+        movie.save()
+
+        _add_movie_in_contest()
+
+        url = reverse("api:contest-recommend", args=["v1", 1])
+        res = self.client.delete(url, {"movie": 1})
+        self.assertEqual(200, res.status_code)
+        self.assertEqual(
+            {"id": 1, "name": "January", "recommended": 0, "max_recommends": 20},
             res.json(),
         )
 
