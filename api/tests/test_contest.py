@@ -122,6 +122,13 @@ class ContestTestCase(APITestCaseMixin, LoggedInMixin, TestCase):
             },
             res.json(),
         )
+        # but allow undo recommendation
+        res = self.client.delete(url, {"movie": 1})
+        self.assertEqual(200, res.status_code)
+        self.assertEqual(
+            {"id": 1, "name": "January", "recommended": 0, "max_recommends": 1},
+            res.json(),
+        )
 
     def test_recommend_after_contest_live_days_per_movie_is_over(self):
         # reduce the maximum allowed recommendation for this contest
@@ -141,7 +148,7 @@ class ContestTestCase(APITestCaseMixin, LoggedInMixin, TestCase):
         self.assertEqual(
             {
                 "movie": [
-                    "Recommendation Period for this film of January is now closed. Try other films."
+                    "Recommendation Period of this film for January is now closed. Try other films."
                 ]
             },
             res.json(),

@@ -3,7 +3,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework import serializers
 from api.constants import MOVIE_STATE
 from api.models.movie import MovieList
-from api.models import Contest, Movie, contest
+from api.models import Contest, Movie
 
 
 class ContestRecommendListSerializer(serializers.ModelSerializer):
@@ -36,12 +36,13 @@ class ContestRecommendListSerializer(serializers.ModelSerializer):
         recommend_till = movie.publish_on + timezone.timedelta(days=days)
         if action == "add" and timezone.now() >= recommend_till:
             raise ValidationError(
-                f"Recommendation Period for this film of {self.instance.name} is now closed. Try other films."
+                f"Recommendation Period of this film for {self.instance.name} is now closed. Try other films."
             )
         return movie
 
     def validate(self, attrs):
         request = self.context["request"]
+        action = self.context["action"]
         if not self.instance.is_live():
             raise ValidationError("Contest is not live")
         if attrs["movie"] not in self.instance.movies.all():
@@ -49,7 +50,11 @@ class ContestRecommendListSerializer(serializers.ModelSerializer):
         movie_list = MovieList.objects.filter(
             owner=request.user, contest=self.instance
         ).first()
-        if movie_list and self.instance.max_recommends <= movie_list.movies.count():
+        if (
+            action == "add"
+            and movie_list
+            and self.instance.max_recommends <= movie_list.movies.count()
+        ):
             raise ValidationError(
                 f"You ran out of recommends ({self.instance.max_recommends}/{self.instance.max_recommends}) for {self.instance.name}. Undo the recommends from your profile to continue."
             )
