@@ -67,7 +67,7 @@ class Command(BaseCommand):
                 )
                 score = round(score, 6)
 
-                match_percent_for_ui = match_accuracy_with_celeb * 100
+                match_percent_for_ui = int(match_accuracy_with_celeb * 100)
                 curators.append(
                     {
                         "profile_id": recommend_list.owner.profile.id,
