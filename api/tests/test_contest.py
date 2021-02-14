@@ -409,7 +409,7 @@ class TestTopCurator(APITestCaseMixin, TestCase):
                 {
                     "match": 100.0,
                     "likes_on_recommend": 2,
-                    "score": 200.0,
+                    "score": 0.050002,
                     "profile_id": 10,
                     "image": None,
                     "creator_rank": -1,

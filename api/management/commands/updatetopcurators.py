@@ -36,24 +36,44 @@ class Command(BaseCommand):
             logger.info(f"{len(audience_recommend_lists)} people recommended movies")
             for recommend_list in audience_recommend_lists:
                 likes = recommend_list.liked_by.count()
+                recommended_movies = recommend_list.movies.all()
+
+                # Recommendation Weight: No. of recommendations made/Max. Reco
+                recommend_wt = 0
+                if contest.max_recommends:
+                    recommend_wt = len(recommended_movies) / contest.max_recommends
+
                 match_count = len(
-                    set(recommend_list.movies.all()).intersection(
+                    set(recommended_movies).intersection(celeb_recommend_movies)
+                )
+                # Match accuracy: No. of matched recommendations/No. of recommendations made
+                match_accuracy = 0
+                if recommended_movies:
+                    match_accuracy = match_count / len(recommended_movies)
+
+                # Celebrity Match accuracy: No. of matched reco./Total films on celebrity List
+                match_accuracy_with_celeb = 0
+                if celeb_recommend_movies:
+                    match_accuracy_with_celeb = match_count / len(
                         celeb_recommend_movies
                     )
-                )
-                match_percent = 0
-                if match_count > 0:
-                    match_percent = round(
-                        (match_count / len(celeb_recommend_movies)) * 100, 2
-                    )
 
-                score = round(likes * match_percent, 2) if match_percent > 0 else likes
+                likes_for_calc = likes / 10 ** 6
+
+                # Composite Score (A): Reco. Wt. * Match Accuracy * Match accuracy with celeb
+                score = (
+                    likes_for_calc
+                    + recommend_wt * match_accuracy * match_accuracy_with_celeb
+                )
+                score = round(score, 6)
+
+                match_percent_for_ui = match_accuracy_with_celeb * 100
                 curators.append(
                     {
                         "profile_id": recommend_list.owner.profile.id,
                         "contest_id": contest.id,
                         "likes_on_recommend": likes,
-                        "match": match_percent,
+                        "match": match_percent_for_ui,
                         "score": score,
                     }
                 )
