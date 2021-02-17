@@ -93,6 +93,8 @@ class MovieAdmin(ExportMixin, admin.ModelAdmin):
         "director",
         "director_name",
         "submited_by",
+        "jury_rating",
+        "audience_rating",
         "poster",
     ]
     ordering = ["-created_at", "title"]
