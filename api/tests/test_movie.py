@@ -50,7 +50,7 @@ class MovieViewTestCase(APITestCaseMixin, LoggedInMixin, TestCase):
                             "pop_score": 0.0,
                             "id": 1,
                             "is_celeb": False,
-                            "image": None,
+                            "image": "/default_avatar_m.png",
                             "level": 1,
                             "name": "Test User",
                             "profile_id": 1,
