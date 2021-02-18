@@ -74,7 +74,7 @@ class MovieListTestCase(APITestCaseMixin, LoggedInMixin, TestCase):
                     "name": "Recommendation",
                     "owner": {
                         "id": 1,
-                        "image": None,
+                        "image": "/default_avatar_m.png",
                         "name": "Test User",
                     },
                 }

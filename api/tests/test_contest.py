@@ -13,6 +13,14 @@ def _add_movie_in_contest(movie_id=1, pk=1):
     contest.movies.add(movie)
 
 
+def _make_contest_end_tomm(pk=1):
+    contest = Contest.objects.get(pk=pk)
+    contest.end = timezone.localtime(timezone.now() + timezone.timedelta(days=1))
+    contest.microsecond = 0
+    contest.save()
+    return contest.end.isoformat()
+
+
 def _create_movie_list_for_contest(pk=1, owner_id=1):
     contest = Contest.objects.get(pk=pk)
     return MovieList.objects.create(
@@ -39,6 +47,8 @@ class ContestTestCase(APITestCaseMixin, LoggedInMixin, TestCase):
         movie = Movie.objects.get(pk=1)
         movie.publish_on = timezone.now() - timezone.timedelta(days=5)
         movie.save()
+
+        self.end = _make_contest_end_tomm()
         return super().setUp()
 
     def test_recommend_non_participating_movie_in_live_contest(self):
@@ -202,7 +212,7 @@ class ContestTestCase(APITestCaseMixin, LoggedInMixin, TestCase):
                     "name": "January",
                     "is_live": True,
                     "start": "2021-01-01T00:14:10+05:30",
-                    "end": "2021-02-16T00:14:15+05:30",
+                    "end": self.end,
                     "recommended_movies": [],
                 }
             ],
@@ -228,7 +238,7 @@ class ContestTestCase(APITestCaseMixin, LoggedInMixin, TestCase):
                 "score": 0.0,
                 "recommend_count": 0,
                 "profile_id": 1,
-                "image": None,
+                "image": "/default_avatar_m.png",
                 "creator_rank": -1,
                 "curator_rank": -1,
                 "level": 1,
@@ -265,7 +275,7 @@ class ContestTestCase(APITestCaseMixin, LoggedInMixin, TestCase):
                 "likes_on_recommend": 0,
                 "score": 0.0,
                 "profile_id": 1,
-                "image": None,
+                "image": "/default_avatar_m.png",
                 "creator_rank": -1,
                 "curator_rank": -1,
                 "level": 1,
@@ -295,6 +305,10 @@ class AnonUserContestTestCase(APITestCaseMixin, TestCase):
         "contest",
     ]
 
+    def setUp(self):
+        super().setUp()
+        self.end = _make_contest_end_tomm()
+
     def test_get_live_contests(self):
         res = self.client.get(reverse("api:contest-list"), {"live": "true"})
         self.assertEqual(200, res.status_code)
@@ -307,7 +321,7 @@ class AnonUserContestTestCase(APITestCaseMixin, TestCase):
                     "name": "January",
                     "is_live": True,
                     "start": "2021-01-01T00:14:10+05:30",
-                    "end": "2021-02-16T00:14:15+05:30",
+                    "end": self.end,
                     "recommended_movies": [],
                 }
             ],
@@ -335,7 +349,7 @@ class AnonUserContestTestCase(APITestCaseMixin, TestCase):
                     "score": 39.0,
                     "recommend_count": 0,
                     "profile_id": 1,
-                    "image": None,
+                    "image": "/default_avatar_m.png",
                     "creator_rank": -1,
                     "curator_rank": -1,
                     "level": 1,
@@ -377,6 +391,10 @@ class TestTopCurator(APITestCaseMixin, TestCase):
         "contest",
     ]
 
+    def setUp(self):
+        super().setUp()
+        self.end = _make_contest_end_tomm()
+
     def test_get_top_curators(self):
         _add_movie_in_contest()
 
@@ -409,9 +427,9 @@ class TestTopCurator(APITestCaseMixin, TestCase):
                 {
                     "match": 100.0,
                     "likes_on_recommend": 2,
-                    "score": 200.0,
+                    "score": 0.050002,
                     "profile_id": 10,
-                    "image": None,
+                    "image": "/default_avatar_m.png",
                     "creator_rank": -1,
                     "curator_rank": -1,
                     "level": 1,

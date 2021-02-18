@@ -38,4 +38,5 @@ DEFAULT_AVATARS = {
     GENDER.MALE: "/default_avatar_m.png",
     GENDER.FEMALE: "/default_avatar_f.png",
     GENDER.OTHERS: "/default_avatar_o.png",
+    None: "/default_avatar_m.png",
 }
