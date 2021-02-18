@@ -156,7 +156,7 @@ class CrewMemberAdmin(ExportMixin, admin.ModelAdmin):
 
 
 class CrewMemberRequestAdmin(ExportMixin, admin.ModelAdmin):
-    search_fields = ["user__user__email", "movie__title"]
+    search_fields = ["user__email", "movie__title"]
     list_filter = ["role", "state"]
     list_display = ["requestor", "movie", "user", "role", "state", "reason"]
 
