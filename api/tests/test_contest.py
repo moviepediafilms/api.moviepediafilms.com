@@ -3,7 +3,7 @@ from django.test import TestCase
 from django.core.management import call_command
 
 from api.constants import CONTEST_STATE
-from api.models import MovieList, Contest, Movie, User, Profile
+from api.models import MovieList, Contest, Movie, User, Profile, CrewMember, Role
 from .base import reverse, APITestCaseMixin, LoggedInMixin
 
 
@@ -348,6 +348,58 @@ class AnonUserContestTestCase(APITestCaseMixin, TestCase):
                 {
                     "score": 39.25,
                     "recommend_count": 1,
+                    "profile_id": 1,
+                    "image": "/default_avatar_m.png",
+                    "creator_rank": -1,
+                    "curator_rank": -1,
+                    "level": 1,
+                    "is_celeb": False,
+                    "engagement_score": 0.0,
+                    "pop_score": 0.0,
+                    "city": None,
+                    "id": 1,
+                    "pos": 1,
+                    "name": "Test User",
+                }
+            ],
+            actual_top_creators,
+        )
+
+    def test_get_top_creators_multiple_movies(self):
+        # duplicate movie
+        movie_dupe = Movie.objects.get(pk=1)
+        movie_dupe.link += ".sample.com"
+        movie_dupe.id = None
+        movie_dupe.jury_rating = 9
+        movie_dupe.audience_rating = 9
+        movie_dupe.save()
+        CrewMember.objects.create(
+            profile=Profile.objects.get(pk=1),
+            movie=movie_dupe,
+            role=Role.objects.get(name="Director"),
+        )
+        _add_movie_in_contest(movie_id=1)
+        _add_movie_in_contest(movie_id=2)
+        self.assertTrue(Contest.objects.get(pk=1).movies.count(), 2)
+
+        movie_list = _create_movie_list_for_contest()
+        movie = Movie.objects.get(pk=1)
+        movie.jury_rating = 5
+        movie.audience_rating = 8
+        movie.save()
+
+        movie_list.movies.add(movie)
+        movie_list.movies.add(movie_dupe)
+
+        call_command("updatetopcreators")
+        res = self.client.get(reverse("api:contest-top-creators", args=["v1", 1]))
+        self.assertEqual(200, res.status_code)
+        actual_top_creators = res.json()["results"]
+        self.assertEquals(
+            [
+                {
+                    "score": 46.75,
+                    "recommend_count": 2,
                     "profile_id": 1,
                     "image": "/default_avatar_m.png",
                     "creator_rank": -1,
