@@ -346,8 +346,8 @@ class AnonUserContestTestCase(APITestCaseMixin, TestCase):
         self.assertEquals(
             [
                 {
-                    "score": 39.0,
-                    "recommend_count": 0,
+                    "score": 39.25,
+                    "recommend_count": 1,
                     "profile_id": 1,
                     "image": "/default_avatar_m.png",
                     "creator_rank": -1,
