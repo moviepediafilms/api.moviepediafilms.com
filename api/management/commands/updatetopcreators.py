@@ -26,7 +26,7 @@ class Command(BaseCommand):
                     "contest_id": contest.id,
                     "name": director.user.get_full_name(),
                 }
-                top_creator_data.update(self._get_score(movies))
+                top_creator_data.update(self._get_score(movies, contest))
                 top_creators.append(top_creator_data)
 
             top_creators = sorted(
@@ -48,7 +48,7 @@ class Command(BaseCommand):
                 logger.info(f"adding {len(top_creators)} new creators")
                 TopCreator.objects.bulk_create(top_creators, batch_size=100)
 
-    def _get_score(self, movies):
+    def _get_score(self, movies, contest):
         score = {
             "score": 0,
             "recommend_count": 0,
@@ -59,20 +59,34 @@ class Command(BaseCommand):
         avg_audience_rating = round(
             sum(movie.audience_rating or 0 for movie in movies) / len(movies), 2
         )
-        sum_of_all_recommendations = sum(
-            movie.in_lists.filter(name=RECOMMENDATION).count() for movie in movies
+        # each non celeb recommendation adds 0.025 points and is capped till 10
+        non_celeb_recomms = sum(
+            movie.in_lists.filter(
+                contest=contest, owner__profile__is_celeb=False
+            ).count()
+            for movie in movies
         )
+
+        # each celeb recommends add 10 points no cap
+        celeb_recomms = sum(
+            movie.in_lists.filter(
+                contest=contest, owner__profile__is_celeb=True
+            ).count()
+            for movie in movies
+        )
+        all_recomms = non_celeb_recomms + celeb_recomms
 
         composite_score = (
             avg_jury_rating * 0.3
             + avg_audience_rating * 0.3
-            + min((sum_of_all_recommendations * 0.025), 10)
+            + min((non_celeb_recomms * 0.025), 10)
+            + celeb_recomms * 10
         )
         score["score"] = round(
             composite_score * 10,
             2,
         )
-        score["recommend_count"] = sum_of_all_recommendations
+        score["recommend_count"] = all_recomms
         return score
 
     def _get_movies_by_director(self, contest):
