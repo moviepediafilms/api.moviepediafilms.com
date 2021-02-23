@@ -1,6 +1,8 @@
 from django.contrib import admin
 from django import forms
+from django.contrib.auth.models import User
 from import_export.admin import ExportMixin
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from api.models import (
     Profile,
     Role,
@@ -186,6 +188,12 @@ class NotificationAdmin(admin.ModelAdmin):
     list_display = ["title", "profile", "content"]
 
 
+class UserAdmin(ExportMixin, BaseUserAdmin):
+    pass
+
+
+admin.site.unregister(User)
+admin.site.register(User, UserAdmin)
 admin.site.register(Profile, ProfileAdmin)
 admin.site.register(Role, RoleAdmin)
 admin.site.register(Order, OrderAdmin)
