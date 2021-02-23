@@ -9,6 +9,8 @@ from logging import getLogger
 
 logger = getLogger(__name__)
 
+MAX_AUDIENCE_RATINGS = 40
+
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
@@ -26,6 +28,7 @@ class Command(BaseCommand):
                     "contest_id": contest.id,
                     "name": director.user.get_full_name(),
                 }
+                logger.debug(f"for {director}")
                 top_creator_data.update(self._get_score(movies, contest))
                 top_creators.append(top_creator_data)
 
@@ -60,6 +63,11 @@ class Command(BaseCommand):
             sum((movie.audience_rating or 0) for movie in movies) / len(movies), 2
         )
 
+        no_audience_rating = min(
+            sum(movie.reviews.count() for movie in movies) / len(movies),
+            MAX_AUDIENCE_RATINGS,
+        )
+
         non_celeb_recomms = sum(
             movie.in_lists.filter(
                 contest=contest, owner__profile__is_celeb=False
@@ -75,14 +83,22 @@ class Command(BaseCommand):
         avg_non_celeb_recomms = round(non_celeb_recomms / len(movies), 2)
         avg_celeb_recomms = round(celeb_recomms / len(movies), 2)
 
-        composite_score = (
-            avg_jury_rating * 0.3
-            + avg_audience_rating * 0.3
-            # each non celeb recommendation adds 0.025 points and is capped at 5
-            + min((avg_non_celeb_recomms * 0.025), 5)
-            # each celeb recommends add 0.5 points and is capped at 5
-            + min((avg_celeb_recomms * 0.5), 5)
+        jury_score = avg_jury_rating * 0.2
+        audience_score = avg_audience_rating * 0.1
+        no_audience_score = (no_audience_rating / MAX_AUDIENCE_RATINGS) * 0.1
+        # each non celeb recommendation adds 0.025 points and is capped at 5
+        non_celeb_recomms_score = min((avg_non_celeb_recomms * 0.025), 5)
+        # each celeb recommends add 0.5 points and is capped at 5
+        celeb_recomms_score = min((avg_celeb_recomms * 2), 5)
+        logger.debug(
+            f"celeb_recomms_score: {celeb_recomms_score} non_celeb_recomms_score:{non_celeb_recomms_score}"
         )
+        recomm_score = (non_celeb_recomms_score + celeb_recomms_score) * 0.6
+        logger.debug(jury_score)
+        logger.debug(audience_score)
+        logger.debug(recomm_score)
+        composite_score = jury_score + audience_score + no_audience_score + recomm_score
+        logger.debug(f"composite_score {composite_score}")
         score["score"] = round(
             composite_score * 10,
             2,
