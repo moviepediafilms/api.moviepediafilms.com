@@ -1,6 +1,6 @@
 # Updates Top creators for live contests
-
-from api.constants import MOVIE_STATE, RECOMMENDATION
+from collections import defaultdict
+from api.constants import MOVIE_STATE
 from api.models import Contest, CrewMember, TopCreator
 from django.db import transaction
 from django.core.management.base import BaseCommand
@@ -26,7 +26,7 @@ class Command(BaseCommand):
                     "contest_id": contest.id,
                     "name": director.user.get_full_name(),
                 }
-                top_creator_data.update(self._get_score(movies))
+                top_creator_data.update(self._get_score(movies, contest))
                 top_creators.append(top_creator_data)
 
             top_creators = sorted(
@@ -48,41 +48,54 @@ class Command(BaseCommand):
                 logger.info(f"adding {len(top_creators)} new creators")
                 TopCreator.objects.bulk_create(top_creators, batch_size=100)
 
-    def _get_score(self, movies):
+    def _get_score(self, movies, contest):
         score = {
             "score": 0,
             "recommend_count": 0,
         }
         avg_jury_rating = round(
-            sum(movie.jury_rating or 0 for movie in movies) / len(movies), 2
+            sum((movie.jury_rating or 0) for movie in movies) / len(movies), 2
         )
         avg_audience_rating = round(
-            sum(movie.audience_rating or 0 for movie in movies) / len(movies), 2
+            sum((movie.audience_rating or 0) for movie in movies) / len(movies), 2
         )
-        sum_of_all_recommendations = sum(
-            movie.in_lists.filter(name=RECOMMENDATION).count() for movie in movies
+
+        non_celeb_recomms = sum(
+            movie.in_lists.filter(
+                contest=contest, owner__profile__is_celeb=False
+            ).count()
+            for movie in movies
         )
+        celeb_recomms = sum(
+            movie.in_lists.filter(
+                contest=contest, owner__profile__is_celeb=True
+            ).count()
+            for movie in movies
+        )
+        avg_non_celeb_recomms = round(non_celeb_recomms / len(movies), 2)
+        avg_celeb_recomms = round(celeb_recomms / len(movies), 2)
 
         composite_score = (
             avg_jury_rating * 0.3
             + avg_audience_rating * 0.3
-            + min((sum_of_all_recommendations * 0.025), 10)
+            # each non celeb recommendation adds 0.025 points and is capped at 5
+            + min((avg_non_celeb_recomms * 0.025), 5)
+            # each celeb recommends add 0.5 points and is capped at 5
+            + min((avg_celeb_recomms * 0.5), 5)
         )
         score["score"] = round(
             composite_score * 10,
             2,
         )
-        score["recommend_count"] = sum_of_all_recommendations
+        score["recommend_count"] = non_celeb_recomms + celeb_recomms
         return score
 
     def _get_movies_by_director(self, contest):
-        movies_by_director = {}
+        movies_by_director = defaultdict(list)
         for movie in contest.movies.filter(state=MOVIE_STATE.PUBLISHED).all():
             directors = self._get_directors(movie)
 
             for director in directors:
-                if director.id not in movies_by_director:
-                    movies_by_director[director] = []
                 movies_by_director[director].append(movie)
         return movies_by_director
 

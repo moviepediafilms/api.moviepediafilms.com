@@ -174,7 +174,11 @@ class MovieList(models.Model):
         unique_together = [["owner", "name"]]
 
     def is_celeb_recommends(self):
-        return self.owner.is_celeb and self.contest and self.contest.name == self.name
+        return (
+            self.owner.profile.is_celeb
+            and self.contest
+            and self.contest.name == self.name
+        )
 
 
 class Visits(models.Model):
