@@ -196,7 +196,7 @@ class MovieRateReview(models.Model):
     rated_at = models.DateTimeField(null=True, blank=True)
     published_at = models.DateTimeField(auto_now_add=True)
     author = models.ForeignKey(User, on_delete=models.CASCADE)
-    movie = models.ForeignKey(Movie, on_delete=models.CASCADE)
+    movie = models.ForeignKey(Movie, on_delete=models.CASCADE, related_name="reviews")
     # is nullable since user might only rate and not write the review at all
     content = models.TextField(null=True, blank=True)
     # is nullable since user might review the movie first before rating or may choose to not rate at all
