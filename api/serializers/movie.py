@@ -625,7 +625,7 @@ class MovieReviewDetailSerializer(serializers.ModelSerializer):
     def _update_movie_audience_rating(self, movie):
         if movie is not None:
             # FIXME: this average audience rating update might get into concurrency issue
-            # a better way(IMO) will be to cache the average rating of movies via a job periodically
+            # a better way(IMO) will be to cache the average rating of movies via a job
             movie.audience_rating = (
                 MovieRateReview.objects.filter(movie=movie)
                 .exclude(rating__isnull=True)
