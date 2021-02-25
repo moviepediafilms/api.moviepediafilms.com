@@ -54,7 +54,7 @@ LOGGING = {
     "loggers": {
         "django": {
             "handlers": handlers,
-            "level": log_level,
+            "level": "INFO",
             "propagate": True,
         },
         "app": {
