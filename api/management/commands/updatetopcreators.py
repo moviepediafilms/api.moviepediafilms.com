@@ -85,7 +85,7 @@ class Command(BaseCommand):
 
         jury_score = avg_jury_rating * 0.2
         audience_score = avg_audience_rating * 0.1
-        no_audience_score = (no_audience_rating / MAX_AUDIENCE_RATINGS) * 0.1
+        no_audience_score = no_audience_rating / MAX_AUDIENCE_RATINGS
         # each non celeb recommendation adds 0.025 points and is capped at 5
         non_celeb_recomms_score = min((avg_non_celeb_recomms * 0.025), 5)
         # each celeb recommends add 0.5 points and is capped at 5
