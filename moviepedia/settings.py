@@ -21,7 +21,7 @@ PRODUCTION = os.getenv("PRODUCTION") == "true"
 LOG_PATH = os.getenv("LOG_PATH", "api.moviepediafilms.log")
 LOG_PATH_JOB = os.getenv("LOG_PATH_JOB", "jobs.moviepediafilms.log")
 handlers = ["console", "file"] if DEBUG else ["file"]
-
+log_level = "DEBUG" if DEBUG else "INFO"
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": True,
@@ -59,17 +59,17 @@ LOGGING = {
         },
         "app": {
             "handlers": handlers,
-            "level": "DEBUG",
+            "level": log_level,
             "propagate": False,
         },
         "api": {
             "handlers": handlers,
-            "level": "DEBUG",
+            "level": log_level,
             "propagate": False,
         },
         "api.management": {
             "handlers": ["job_file"],
-            "level": "DEBUG",
+            "level": log_level,
             "propagate": False,
         },
     },
