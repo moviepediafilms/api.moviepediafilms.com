@@ -15,8 +15,8 @@ class Command(BaseCommand):
         now = timezone.now()
         live_contests = Contest.objects.filter(start__lte=now, end__gte=now).all()
         logger.info(f"Live contests: {len(live_contests)}")
-        curators = []
         for contest in live_contests:
+            curators = []
             logger.info(f"Contest: {contest.name}")
             recommend_lists = (
                 contest.movie_lists.all()
