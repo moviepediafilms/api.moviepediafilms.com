@@ -104,7 +104,7 @@ class MovieAdmin(ExportMixin, admin.ModelAdmin):
     filter_horizontal = ["contests"]
 
     def submited_by(self, movie):
-        return movie.order.owner
+        return movie.order and movie.order.owner
 
     def director(self, movie):
         return movie.crewmember_set.get(role__name="Director").profile.user
@@ -115,7 +115,7 @@ class MovieAdmin(ExportMixin, admin.ModelAdmin):
         ).profile.user.get_full_name()
 
     def is_paid(self, movie):
-        return movie.order.payment_id is not None
+        return movie.order and movie.order.payment_id is not None
 
 
 class GenreAdmin(admin.ModelAdmin):
