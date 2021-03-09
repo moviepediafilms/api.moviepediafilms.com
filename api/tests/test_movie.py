@@ -68,6 +68,7 @@ class MovieViewTestCase(APITestCaseMixin, LoggedInMixin, TestCase):
                 "approved": True,
                 "recommend_count": 0,
                 "contests": [],
+                "type": "S",
             },
             res.json(),
         )

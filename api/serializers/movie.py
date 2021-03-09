@@ -272,8 +272,9 @@ class MovieSerializer(serializers.ModelSerializer):
             "approved",
             "recommend_count",
             "contests",
+            "type",
         ]
-        read_only_fields = ["about", "state"]
+        read_only_fields = ["about", "state", "type"]
 
     def get_contests(self, movie):
         return ContestSerializer(
