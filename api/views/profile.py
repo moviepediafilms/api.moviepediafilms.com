@@ -58,6 +58,12 @@ class ProfileView(viewsets.ModelViewSet):
     lookup_field = "user__id"
     search_fields = ["user__first_name", "user__last_name"]
 
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if self.request.query_params.get("is_celeb"):
+            return qs.order_by("-celeb_order")
+        return qs
+
     def get_serializer_class(self):
         if self.action in ("filmography", "movie_approvals"):
             return MovieSerializerSummary

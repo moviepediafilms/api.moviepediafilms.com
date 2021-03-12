@@ -36,7 +36,6 @@ class ProfileAdmin(ExportMixin, admin.ModelAdmin):
         "mcoins",
     ]
     list_filter = ["is_celeb", "gender"]
-    readonly_fields = ["image"]
 
 
 class RoleAdmin(admin.ModelAdmin):
