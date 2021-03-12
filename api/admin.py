@@ -139,6 +139,12 @@ class MovieListAdmin(ExportMixin, admin.ModelAdmin):
     list_display = ["name", "owner", "contest", "frozen"]
     list_filter = ["contest"]
 
+    def formfield_for_dbfield(self, db_field, **kwargs):
+        field = super().formfield_for_dbfield(db_field, **kwargs)
+        if db_field.name == "movies":
+            field.queryset = Movie.objects.all().order_by("title")
+        return field
+
 
 class PackageAdmin(admin.ModelAdmin):
     list_display = ["name", "amount"]
