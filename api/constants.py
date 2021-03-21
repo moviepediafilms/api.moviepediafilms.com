@@ -31,6 +31,11 @@ class CONTEST_STATE:
     FINISHED = "F"
 
 
+class MOVIE_TYPE:
+    SHORT = "S"
+    BLOG = "B"
+
+
 REGULAR_MONTHLY_CONTEST_NAME = "Regular Monthly Contest"
 RECOMMENDATION = "Recommendation"
 

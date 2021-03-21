@@ -36,7 +36,6 @@ class ProfileAdmin(ExportMixin, admin.ModelAdmin):
         "mcoins",
     ]
     list_filter = ["is_celeb", "gender"]
-    readonly_fields = ["image"]
 
 
 class RoleAdmin(admin.ModelAdmin):
@@ -104,7 +103,7 @@ class MovieAdmin(ExportMixin, admin.ModelAdmin):
     filter_horizontal = ["contests"]
 
     def submited_by(self, movie):
-        return movie.order.owner
+        return movie.order and movie.order.owner
 
     def director(self, movie):
         return movie.crewmember_set.get(role__name="Director").profile.user
@@ -115,7 +114,7 @@ class MovieAdmin(ExportMixin, admin.ModelAdmin):
         ).profile.user.get_full_name()
 
     def is_paid(self, movie):
-        return movie.order.payment_id is not None
+        return movie.order and movie.order.payment_id is not None
 
 
 class GenreAdmin(admin.ModelAdmin):
@@ -138,6 +137,12 @@ class MovieListAdmin(ExportMixin, admin.ModelAdmin):
     search_fields = ["owner__email", "owner__first_name", "owner__last_name", "name"]
     list_display = ["name", "owner", "contest", "frozen"]
     list_filter = ["contest"]
+
+    def formfield_for_dbfield(self, db_field, **kwargs):
+        field = super().formfield_for_dbfield(db_field, **kwargs)
+        if db_field.name == "movies":
+            field.queryset = Movie.objects.all().order_by("title")
+        return field
 
 
 class PackageAdmin(admin.ModelAdmin):

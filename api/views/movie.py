@@ -83,6 +83,7 @@ class MovieView(
     filterset_fields = {
         "genres__name": ["iexact", "in"],
         "lang__name": ["iexact", "in"],
+        "type": ["exact"],
     }
     search_fields = [
         "title",

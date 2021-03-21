@@ -1,5 +1,5 @@
 from api.constants import MOVIE_STATE, RECOMMENDATION
-from api.models import MovieList, Movie, User
+from api.models import MovieList, Movie, User, Profile
 from django.test import TestCase
 from .base import reverse, APITestCaseMixin, LoggedInMixin
 
@@ -64,3 +64,67 @@ class PersonalRecommendListTestCase(APITestCaseMixin, LoggedInMixin, TestCase):
         res = self.client.post(url, dict(movie=1))
         self.assertEqual(400, res.status_code)
         self.assertEqual({"movie": ["Movie does not exist"]}, res.json())
+
+
+class CelebTestCase(APITestCaseMixin, TestCase):
+    fixtures = ["user", "profile", "role"]
+
+    def setUp(self):
+        super().setUp()
+        profile = Profile.objects.get(pk=1)
+        profile.is_celeb = True
+        profile.celeb_order = 2
+        profile.save()
+        self._create_celeb()
+
+    def _create_celeb(self):
+        user = User.objects.create(username="celeb1", email="celeb1@example.com")
+        Profile.objects.create(user=user, is_celeb=True, celeb_order=1)
+
+    def test_get_celebs(self):
+        url = reverse("api:profile-list", args=["v1"])
+        res = self.client.get(url, dict(is_celeb=True))
+        self.assertEqual(200, res.status_code)
+        expected_profiles = [
+            {
+                "profile_id": 1,
+                "about": None,
+                "title": None,
+                "city": None,
+                "gender": None,
+                "roles": [],
+                "image": "/default_avatar_m.png",
+                "is_celeb": True,
+                "level": 1,
+                "creator_rank": -1,
+                "curator_rank": -1,
+                "engagement_score": 0.0,
+                "mcoins": 0.0,
+                "pop_score": 0.0,
+                "follows": [],
+                "movies_directed": 0,
+                "id": 1,
+                "name": "Test User",
+            },
+            {
+                "profile_id": 2,
+                "about": None,
+                "title": None,
+                "city": None,
+                "gender": None,
+                "roles": [],
+                "image": "/default_avatar_m.png",
+                "is_celeb": True,
+                "level": 1,
+                "creator_rank": -1,
+                "curator_rank": -1,
+                "engagement_score": 0.0,
+                "mcoins": 0.0,
+                "pop_score": 0.0,
+                "follows": [],
+                "movies_directed": 0,
+                "id": 2,
+                "name": "",
+            },
+        ]
+        self.assertEqual(expected_profiles, res.json()["results"])

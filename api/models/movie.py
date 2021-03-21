@@ -1,10 +1,10 @@
 from logging import getLogger
 from django.db import models
 from django.contrib.auth.models import User
-from django.db.models.constraints import UniqueConstraint
 
 from api.constants import (
     MOVIE_STATE,
+    MOVIE_TYPE,
     REVIEW_STATE,
     CREW_MEMBER_REQUEST_STATE,
 )
@@ -47,6 +47,11 @@ class Movie(models.Model):
         (MOVIE_STATE.REJECTED, "Rejected"),
         (MOVIE_STATE.PUBLISHED, "Published"),
     )
+    MOVIE_TYPE_CHOICES = (
+        (MOVIE_TYPE.SHORT, "Short Film"),
+        (MOVIE_TYPE.BLOG, "Blog"),
+    )
+
     created_at = models.DateTimeField(auto_now_add=True)
     order = models.ForeignKey(
         "Order", on_delete=models.CASCADE, null=True, blank=True, related_name="movies"
@@ -90,6 +95,9 @@ class Movie(models.Model):
     # approved by director
     approved = models.BooleanField(
         "Approved by Director", null=True, blank=True, default=None
+    )
+    type = models.CharField(
+        max_length=1, choices=MOVIE_TYPE_CHOICES, default=MOVIE_TYPE.SHORT
     )
 
     class Meta:

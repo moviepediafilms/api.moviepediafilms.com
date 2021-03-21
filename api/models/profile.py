@@ -35,6 +35,7 @@ class Profile(models.Model):
     image = models.URLField(null=True, blank=True)
     follows = models.ManyToManyField("Profile", blank=True, related_name="followed_by")
     is_celeb = models.BooleanField(default=False)
+    celeb_order = models.IntegerField(default=0)
 
     # content consumers attributes
     mcoins = models.FloatField(default=0)
