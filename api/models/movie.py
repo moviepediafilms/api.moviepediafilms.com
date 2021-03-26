@@ -53,6 +53,7 @@ class Movie(models.Model):
     )
 
     created_at = models.DateTimeField(auto_now_add=True)
+    # last order
     order = models.ForeignKey(
         "Order", on_delete=models.CASCADE, null=True, blank=True, related_name="movies"
     )
@@ -60,6 +61,7 @@ class Movie(models.Model):
     crew = models.ManyToManyField(
         "Profile", through="CrewMember", related_name="movies"
     )
+    # TODO: movie.package to be removed, after the data is migrated to order.package
     package = models.ForeignKey(
         "Package", on_delete=models.SET_NULL, null=True, blank=True
     )
@@ -87,6 +89,7 @@ class Movie(models.Model):
     jury_rating = models.FloatField(null=True, blank=True, default=0)
     # cached audience rating to be updated periodically
     audience_rating = models.FloatField(null=True, blank=True, default=0)
+    # after release model contests become a cached value
     contests = models.ManyToManyField("Contest", related_name="movies", blank=True)
 
     # cached attributes
@@ -114,9 +117,11 @@ class Movie(models.Model):
         score += self.jury_rating or 0
         return round(score / 2, 1)
 
-    # TODO: override save to check the change in approved attribute,
-    # and send email to owner of the order to inform them that the director
-    # has approved the movie submission.
+    def save(self, *args, **kwargs):
+        # TODO: check the change in approved attribute,
+        # and send email to owner of the order to inform them that the director
+        # has approved the movie submission.
+        super().save(*args, **kwargs)
 
 
 class CrewMember(models.Model):
@@ -241,3 +246,27 @@ class TopCurator(models.Model):
 
     class Meta:
         unique_together = [["contest", "profile"]]
+
+
+class Release(models.Model):
+    """Object of this class represents will represent a movie release action,
+    since a movie can be released multiple times under different contests.
+
+    NOTE: keeping track of specific order here seem to be useless at the moment,
+    since we not interested in knowing for which order a release is being created.
+    """
+
+    movie = models.ForeignKey("Movie", on_delete=models.CASCADE)
+    contest = models.ForeignKey(
+        "Contest", on_delete=models.CASCADE, null=True, blank=True
+    )
+    on = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        if self.movie:
+            # update the movie publish date to cache the date of latest release
+            self.movie.publish_on = self.on
+            self.movie.contests.add(self.contest)
+            self.movie.state = MOVIE_STATE.PUBLISHED
+            self.movie.save()

@@ -1,5 +1,4 @@
 from django.utils import timezone
-from django.db.models.functions import ExtractMonth, ExtractYear
 from rest_framework.exceptions import ValidationError
 from api.models.movie import MpGenre, TopCreator, TopCurator
 from logging import getLogger
@@ -8,7 +7,7 @@ import os
 import re
 
 from django.conf import settings
-from django.db.models import Avg, Count
+from django.db.models import Avg
 from django.db import transaction
 from django.core.files.storage import default_storage
 from rest_framework import serializers
@@ -353,7 +352,7 @@ class MovieSerializer(serializers.ModelSerializer):
         director_data = validated_data.pop("director", {})
 
         validated_data["lang"] = MovieLanguageSerializer().create(lang_data)
-        # creating dummy order here so that the movie entry can be tracked
+        # creating empty order here so that the movie entry can be tracked
         # back to the creator using movie.order.owner
         validated_data["order"] = Order.objects.create(owner=user)
         validated_data["state"] = MOVIE_STATE.CREATED

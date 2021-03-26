@@ -11,11 +11,35 @@ logger = getLogger(__name__)
 
 
 class Package(models.Model):
+    """Packages cannot be deleted, they can only be made inactive"""
+
+    active = models.BooleanField(default=True)
     name = models.CharField(max_length=50, unique=True)
     amount = models.FloatField()
+    attributes = models.ManyToManyField(
+        "PackageAttribute", through="PackageAttributeValue"
+    )
 
     def __str__(self):
         return self.name.title()
+
+
+class PackageAttribute(models.Model):
+    name = models.CharField(max_length=50, unique=True)
+
+    def __str__(self):
+        return self.name
+
+
+class PackageAttributeValue(models.Model):
+    package = models.ForeignKey("Package", on_delete=models.CASCADE)
+    attribute = models.ForeignKey(
+        "PackageAttribute", on_delete=models.CASCADE, related_name="value"
+    )
+    value = models.CharField(max_length=100)
+
+    def __str__(self):
+        return f"{self.package.name}: {self.value}"
 
 
 class Order(models.Model):
@@ -25,6 +49,9 @@ class Order(models.Model):
     amount = models.FloatField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now=True)
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="orders")
+    package = models.ForeignKey(
+        "Package", on_delete=models.SET_NULL, null=True, blank=True
+    )
 
     def __str__(self):
         return f"{self.order_id} - {'C' if self.payment_id else 'P'}"
