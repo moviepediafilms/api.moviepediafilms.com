@@ -1,4 +1,4 @@
-from .payment import Order, Package
+from .payment import Order, Package, PackageAttribute, PackageAttributeValue
 from .profile import Role, Profile, User
 from .others import Notification
 from .contest import (
@@ -17,6 +17,7 @@ from .movie import (
     CrewMemberRequest,
     TopCreator,
     TopCurator,
+    Release,
 )
 
 __all__ = [
@@ -27,6 +28,8 @@ __all__ = [
     "MovieRateReview",
     "Order",
     "Package",
+    "PackageAttribute",
+    "PackageAttributeValue",
     "Role",
     "User",
     "Profile",
@@ -39,4 +42,5 @@ __all__ = [
     "Contest",
     "TopCreator",
     "TopCurator",
+    "Release",
 ]

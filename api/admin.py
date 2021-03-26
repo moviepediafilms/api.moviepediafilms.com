@@ -1,5 +1,4 @@
 from django.contrib import admin
-from django import forms
 from django.contrib.auth.models import User
 from import_export.admin import ExportMixin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
@@ -14,6 +13,8 @@ from api.models import (
     MovieRateReview,
     MovieList,
     Package,
+    PackageAttribute,
+    Release,
     CrewMember,
     CrewMemberRequest,
     ContestType,
@@ -21,7 +22,11 @@ from api.models import (
     Notification,
 )
 
+# Deregister default admin classes
+admin.site.unregister(User)
 
+
+@admin.register(Profile)
 class ProfileAdmin(ExportMixin, admin.ModelAdmin):
     search_fields = ["user__first_name", "user__last_name", "user__username", "city"]
     exclude = ["follows"]
@@ -38,10 +43,12 @@ class ProfileAdmin(ExportMixin, admin.ModelAdmin):
     list_filter = ["is_celeb", "gender"]
 
 
+@admin.register(Role)
 class RoleAdmin(admin.ModelAdmin):
     list_display = ["name"]
 
 
+@admin.register(Order)
 class OrderAdmin(ExportMixin, admin.ModelAdmin):
     search_fields = [
         "owner__first_name",
@@ -53,29 +60,7 @@ class OrderAdmin(ExportMixin, admin.ModelAdmin):
     list_display = ["owner", "order_id", "payment_id"]
 
 
-class MovieModelForm(forms.ModelForm):
-
-    poster = forms.ImageField(required=False)
-
-    fields = "__all__"
-
-    def clean_poster(self):
-        print("clean poster called")
-        print(self.cleaned_data)
-        # save poster for the film and return the URL for the same
-        return self.cleaned_data["poster"]
-
-    def save(self, commit=True):
-        print("save called")
-        poster = self.cleaned_data.pop("poster", None)
-        print(poster)
-        return super().save(commit=commit)
-
-    class Meta:
-        model = Movie
-        exclude = []
-
-
+@admin.register(Movie)
 class MovieAdmin(ExportMixin, admin.ModelAdmin):
     search_fields = ["title", "link"]
     list_filter = [
@@ -99,7 +84,7 @@ class MovieAdmin(ExportMixin, admin.ModelAdmin):
         "poster",
     ]
     ordering = ["-created_at", "title"]
-    readonly_fields = ["poster"]
+    readonly_fields = ["poster", "contests", "publish_on"]
     filter_horizontal = ["contests"]
 
     def submited_by(self, movie):
@@ -117,22 +102,27 @@ class MovieAdmin(ExportMixin, admin.ModelAdmin):
         return movie.order and movie.order.payment_id is not None
 
 
+@admin.register(Genre)
 class GenreAdmin(admin.ModelAdmin):
     list_display = ["name"]
 
 
+@admin.register(MpGenre)
 class MpGenreAdmin(admin.ModelAdmin):
     list_display = ["name"]
 
 
+@admin.register(MovieLanguage)
 class MovieLanguageAdmin(admin.ModelAdmin):
     list_display = ["name"]
 
 
+@admin.register(MovieRateReview)
 class MovieRateReviewAdmin(ExportMixin, admin.ModelAdmin):
     list_display = ["id", "author", "content", "movie", "published_at", "rating"]
 
 
+@admin.register(MovieList)
 class MovieListAdmin(ExportMixin, admin.ModelAdmin):
     search_fields = ["owner__email", "owner__first_name", "owner__last_name", "name"]
     list_display = ["name", "owner", "contest", "frozen"]
@@ -145,10 +135,29 @@ class MovieListAdmin(ExportMixin, admin.ModelAdmin):
         return field
 
 
+class AttributesInPackage(ExportMixin, admin.TabularInline):
+    model = Package.attributes.through
+
+
+@admin.register(Release)
+class ReleaseHistoryAdmin(admin.ModelAdmin):
+    search_fields = ["movie__title", "contest__name"]
+    list_filter = ["contest", "on"]
+    list_display = ["movie", "contest", "on"]
+
+
+@admin.register(Package)
 class PackageAdmin(admin.ModelAdmin):
     list_display = ["name", "amount"]
+    inlines = [AttributesInPackage]
 
 
+@admin.register(PackageAttribute)
+class PackageAttributeAdmin(admin.ModelAdmin):
+    list_display = ["name"]
+
+
+@admin.register(CrewMember)
 class CrewMemberAdmin(ExportMixin, admin.ModelAdmin):
     search_fields = ["profile__user__email", "movie__title"]
     list_filter = ["role"]
@@ -162,12 +171,14 @@ class CrewMemberAdmin(ExportMixin, admin.ModelAdmin):
         return membership.profile.user.email
 
 
+@admin.register(CrewMemberRequest)
 class CrewMemberRequestAdmin(ExportMixin, admin.ModelAdmin):
     search_fields = ["user__email", "movie__title"]
     list_filter = ["role", "state"]
     list_display = ["requestor", "movie", "user", "role", "state", "reason"]
 
 
+@admin.register(ContestType)
 class ContestTypeAdmin(admin.ModelAdmin):
     list_display = ["name"]
 
@@ -176,6 +187,7 @@ class MoviesInContest(ExportMixin, admin.TabularInline):
     model = Contest.movies.through
 
 
+@admin.register(Contest)
 class ContestAdmin(ExportMixin, admin.ModelAdmin):
     list_display = [
         "name",
@@ -189,28 +201,11 @@ class ContestAdmin(ExportMixin, admin.ModelAdmin):
     ]
 
 
+@admin.register(Notification)
 class NotificationAdmin(admin.ModelAdmin):
     list_display = ["title", "profile", "content"]
 
 
+@admin.register(User)
 class UserAdmin(ExportMixin, BaseUserAdmin):
     pass
-
-
-admin.site.unregister(User)
-admin.site.register(User, UserAdmin)
-admin.site.register(Profile, ProfileAdmin)
-admin.site.register(Role, RoleAdmin)
-admin.site.register(Order, OrderAdmin)
-admin.site.register(Movie, MovieAdmin)
-admin.site.register(Genre, GenreAdmin)
-admin.site.register(MpGenre, MpGenreAdmin)
-admin.site.register(MovieLanguage, MovieLanguageAdmin)
-admin.site.register(MovieRateReview, MovieRateReviewAdmin)
-admin.site.register(Package, PackageAdmin)
-admin.site.register(MovieList, MovieListAdmin)
-admin.site.register(CrewMember, CrewMemberAdmin)
-admin.site.register(CrewMemberRequest, CrewMemberRequestAdmin)
-admin.site.register(ContestType, ContestTypeAdmin)
-admin.site.register(Contest, ContestAdmin)
-admin.site.register(Notification, NotificationAdmin)
