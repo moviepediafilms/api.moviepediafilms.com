@@ -218,5 +218,9 @@ class SubmissionPackageSelectionTestCase(
         self.assertEquals(200, res.status_code)
         movie.refresh_from_db()
         self.assertIsNone(movie.orders.filter(package=None).first())
-        
-        self.assertIsNotNone(movie.orders.filter(package=Package.objects.filter(**self.package).first()).first())
+
+        self.assertIsNotNone(
+            movie.orders.filter(
+                package=Package.objects.filter(**self.package).first()
+            ).first()
+        )
