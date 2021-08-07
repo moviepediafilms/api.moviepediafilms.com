@@ -25,6 +25,7 @@ oauth2client = "*"
 google-auth = "*"
 google-api-python-client = "*"
 pandas = "*"
+django-gsuite-email = "*"
 
 [requires]
 python_version = "3.8"

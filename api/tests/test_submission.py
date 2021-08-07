@@ -210,9 +210,13 @@ class SubmissionPackageSelectionTestCase(
             "receipt": "receipt_123",
         }
         movie = Movie.objects.get(id=self.movie["id"])
-        self.assertIsNone(movie.package)
+        # hoping no movie will have orders that have not selected package or paid
+        self.assertIsNotNone(movie.orders.filter(package=None).first())
+
         res = self._select_package()
+
         self.assertEquals(200, res.status_code)
         movie.refresh_from_db()
-        self.assertIsNotNone(movie.package)
-        self.assertEquals(movie.package, Package.objects.filter(**self.package).first())
+        self.assertIsNone(movie.orders.filter(package=None).first())
+        
+        self.assertIsNotNone(movie.orders.filter(package=Package.objects.filter(**self.package).first()).first())

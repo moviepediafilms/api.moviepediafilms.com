@@ -5,7 +5,7 @@ from .base import reverse, APITestCaseMixin, LoggedInMixin
 
 
 class PersonalRecommendListTestCase(APITestCaseMixin, LoggedInMixin, TestCase):
-    fixtures = ["user", "profile", "genre", "lang", "role", "order", "movie"]
+    fixtures = ["user", "profile", "genre", "lang", "role", "movie", "package", "order"]
 
     def _recommend_movie(self):
         owner = User.objects.get(pk=1)

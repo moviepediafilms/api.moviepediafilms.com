@@ -14,7 +14,12 @@ from rest_framework import serializers
 from collections import defaultdict
 import razorpay
 
-from api.constants import MOVIE_STATE, CREW_MEMBER_REQUEST_STATE, RECOMMENDATION
+from api.constants import (
+    MOVIE_STATE,
+    CREW_MEMBER_REQUEST_STATE,
+    ORDER_STATE,
+    RECOMMENDATION,
+)
 from api.models import (
     User,
     Movie,
@@ -230,7 +235,7 @@ class ContestSerializer(serializers.ModelSerializer):
 
 
 class MovieSerializer(serializers.ModelSerializer):
-    order = OrderSerializer(required=False)
+    # order = OrderSerializer(required=False)
     lang = MovieLanguageSerializer()
     genres = GenreSerializer(many=True)
     package = PackageSerializer(required=False)
@@ -244,6 +249,8 @@ class MovieSerializer(serializers.ModelSerializer):
     # is recommended by the requestor if he is authenticated
     is_recommended = serializers.SerializerMethodField(read_only=True)
     contests = serializers.SerializerMethodField()
+    order = serializers.SerializerMethodField()
+    package = serializers.SerializerMethodField()
 
     class Meta:
         model = Movie
@@ -274,6 +281,16 @@ class MovieSerializer(serializers.ModelSerializer):
             "type",
         ]
         read_only_fields = ["about", "state", "type"]
+
+    def get_package(self, movie):
+        return PackageSerializer(
+            instance=movie.orders.order_by("-created_at").first().package
+        ).data
+
+    def get_order(self, movie):
+        return OrderSerializer(
+            instance=movie.orders.order_by("-created_at").first()
+        ).data
 
     def get_contests(self, movie):
         return ContestSerializer(
@@ -323,15 +340,19 @@ class MovieSerializer(serializers.ModelSerializer):
     def validate_package(self, package):
         logger.debug(f"validate_package::{package}")
 
-        if package and self.instance.package:
-            logger.warn("Cannot update package")
-            raise serializers.ValidationError("Cannot update package")
-
         package_name = package.get("name")
         package_name = package_name.strip().lower()
-        if not Package.objects.filter(name=package_name).exists():
+        package_obj = Package.objects.filter(name=package_name).first()
+        if not package_obj:
             logger.warn("Invalid package selected")
             raise serializers.ValidationError("Invalid Package Selected")
+        order = self.instance.orders.filter(
+            package=package_obj, state=ORDER_STATE.CREATED
+        ).first()
+        if package and order:
+            raise serializers.ValidationError(
+                f"Already have an {order.id} with package {package.name}"
+            )
         return package
 
     def validate_title(self, title):
@@ -354,7 +375,7 @@ class MovieSerializer(serializers.ModelSerializer):
         validated_data["lang"] = MovieLanguageSerializer().create(lang_data)
         # creating empty order here so that the movie entry can be tracked
         # back to the creator using movie.order.owner
-        validated_data["order"] = Order.objects.create(owner=user)
+        # validated_data["order"] = Order.objects.create(owner=user)
         validated_data["state"] = MOVIE_STATE.CREATED
         creator_is_director = any(
             role.get("name") == "Director" for role in creator_roles
@@ -369,19 +390,24 @@ class MovieSerializer(serializers.ModelSerializer):
         self._attach_director_role(director_data, user, movie, creator_is_director)
         if not self._is_director_present(movie):
             raise ValidationError("Director must be provided")
+        order = Order.objects.create(owner=user)
+        order.movies.add(movie)
         return movie
 
     def update(self, movie, validated_data):
         logger.debug(f"update::{validated_data}")
         user = validated_data.pop("user", None)
-        package_data = None
         if "package" in validated_data:
-            package_data = validated_data.pop("package")
-            # If package was not earlier set
-            package_name = package_data.get("name").strip().lower()
-            movie.package = Package.objects.get(name=package_name)
-            rzp_order = create_rzp_order(movie.package, movie.order.owner)
-            self._update_order_details(movie, rzp_order)
+            # let the user who submitted the movie,
+            # create one order for each type of package available
+            package_name = validated_data.pop("package").get("name").strip().lower()
+            package = Package.objects.get(name=package_name)
+            order = movie.orders.filter(owner=user, package=None).first()
+            if not order:
+                order = Order.objects.create(owner=user)
+                order.movies.add(movie)
+            rzp_order = create_rzp_order(package, user)
+            self._update_order_details(order, package, rzp_order)
         if "lang" in validated_data:
             lang_data = validated_data.pop("lang")
             validated_data["lang"] = MovieLanguageSerializer().create(lang_data)
@@ -488,11 +514,11 @@ class MovieSerializer(serializers.ModelSerializer):
                 )
                 logger.debug(f"crew::{movie.crewmemberrequest_set.all()}")
 
-    def _update_order_details(self, movie, rzp_order):
+    def _update_order_details(self, order, package, rzp_order):
         logger.debug(f"_update_order::{rzp_order}")
-        if not movie or not rzp_order:
+        if not order or not rzp_order or not package:
             return
-        order = movie.order
+        order.package = package
         order.order_id = rzp_order.get("id")
         order.amount = rzp_order.get("amount")
         order.receipt_number = rzp_order.get("receipt")

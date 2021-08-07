@@ -2,13 +2,11 @@
   pk: 2
   fields:
     created_at: 2020-12-15 05:23:15.167332+00:00
-    order: 1
-    package: null
     state: P
     title: Movie2
     link: http://movie2.com
     runtime: 100.0
-    about: 'This is a good movie2'
+    about: "This is a good movie2"
     lang: 1
     poster: null
     month: null
@@ -19,20 +17,18 @@
     review_count: 0
     approved: true
     genres:
-    - 1
+      - 1
     contests:
-    - 1
+      - 1
 - model: api.movie
   pk: 3
   fields:
     created_at: 2020-12-15 05:23:15.167332+00:00
-    order: 1
-    package: null
     state: P
     title: Movie3
     link: http://movie3.com
     runtime: 100.0
-    about: 'This is a good movie3'
+    about: "This is a good movie3"
     lang: 1
     poster: null
     month: null
@@ -43,20 +39,18 @@
     review_count: 0
     approved: true
     genres:
-    - 1
+      - 1
     contests:
-    - 1
+      - 1
 - model: api.movie
   pk: 4
   fields:
     created_at: 2020-12-15 05:23:15.167332+00:00
-    order: 1
-    package: null
     state: P
     title: Movie4
     link: http://movie4.com
     runtime: 100.0
-    about: 'This is a good movie4'
+    about: "This is a good movie4"
     lang: 1
     poster: null
     month: null
@@ -67,9 +61,9 @@
     review_count: 0
     approved: true
     genres:
-    - 1
+      - 1
     contests:
-    - 1
+      - 1
 - model: api.contest
   pk: 2
   fields:

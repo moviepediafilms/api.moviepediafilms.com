@@ -45,7 +45,7 @@ logger = getLogger(__name__)
 
 class IsMovieOrderOwner(permissions.BasePermission):
     def has_object_permission(self, request, view, object: Movie):
-        return object.order.owner == request.user
+        return object.orders.filter(owner=request.user).exists()
 
 
 class SubmissionView(

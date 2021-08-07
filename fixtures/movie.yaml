@@ -2,13 +2,11 @@
   pk: 1
   fields:
     created_at: 2020-12-15 05:23:15.167332+00:00
-    order: 1
-    package: null
     state: P
     title: Submitted Movie
     link: http://facebook.com
     runtime: 100.0
-    about: 'This is a good movie'
+    about: "This is a good movie"
     lang: 1
     poster: null
     month: null
@@ -19,4 +17,4 @@
     review_count: 0
     approved: true
     genres:
-    - 1
+      - 1

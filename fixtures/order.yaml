@@ -7,3 +7,7 @@
     amount: null
     created_at: 2020-12-15 05:23:15.164405+00:00
     owner: 1
+    package: 1
+    state: C
+    movies:
+      - 1

@@ -36,6 +36,15 @@ class MOVIE_TYPE:
     BLOG = "B"
 
 
+class ORDER_STATE:
+    # Just created, selected a package
+    CREATED = "C"
+    # Order is paid and it has a valid payment_id
+    SUBMITTED = "S"
+    # Order is rejected manually by admins
+    REJECTED = "R"
+
+
 REGULAR_MONTHLY_CONTEST_NAME = "Regular Monthly Contest"
 RECOMMENDATION = "Recommendation"
 

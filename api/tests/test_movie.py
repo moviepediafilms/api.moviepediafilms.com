@@ -39,7 +39,7 @@ class MovieViewTestCase(APITestCaseMixin, LoggedInMixin, TestCase):
                 "genres": [{"id": 1, "name": "Drama"}],
                 "lang": {"id": 1, "name": "English"},
                 "poster": None,
-                "package": None,
+                "package": {"amount": 100.0, "name": "Pack1"},
                 "crew": [
                     {
                         "profile": {

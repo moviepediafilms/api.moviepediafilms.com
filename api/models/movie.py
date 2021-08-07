@@ -40,6 +40,16 @@ class MoviePoster(models.Model):
     movie = models.ForeignKey("Movie", on_delete=models.CASCADE)
 
 
+class MovieOrderTemp(models.Model):
+    """temporary table to hold data since I want to remove the Movie.order(1->M) and replace it with Order.movies (M->M)"""
+
+    movie = models.ForeignKey("Movie", on_delete=models.CASCADE, null=True, blank=True)
+    order = models.ForeignKey("Order", on_delete=models.CASCADE, null=True, blank=True)
+    package = models.ForeignKey(
+        "Package", on_delete=models.CASCADE, null=True, blank=True
+    )
+
+
 class Movie(models.Model):
     MOVIE_STATE_CHOICES = (
         (MOVIE_STATE.CREATED, "Created"),
@@ -53,18 +63,11 @@ class Movie(models.Model):
     )
 
     created_at = models.DateTimeField(auto_now_add=True)
-    # last order
-    order = models.ForeignKey(
-        "Order", on_delete=models.CASCADE, null=True, blank=True, related_name="movies"
-    )
     # crew members associated with a movie
     crew = models.ManyToManyField(
         "Profile", through="CrewMember", related_name="movies"
     )
-    # TODO: movie.package to be removed, after the data is migrated to order.package
-    package = models.ForeignKey(
-        "Package", on_delete=models.SET_NULL, null=True, blank=True
-    )
+
     state = models.CharField(max_length=1, choices=MOVIE_STATE_CHOICES)
     title = models.CharField(max_length=100)
     link = models.URLField(
@@ -263,6 +266,13 @@ class Release(models.Model):
     on = models.DateTimeField(auto_now_add=True)
 
     def save(self, *args, **kwargs):
+        # TODO: add a check so that no movie is released more than the sum of releases allwed by all the
+        # packages it has purchased
+        # if self.movie:
+        #     released_count = Release.objects.filter(movie=self.movie).count()
+        #     max_releases = 0
+        #     if released_count < max_releases:
+
         super().save(*args, **kwargs)
         if self.movie:
             # update the movie publish date to cache the date of latest release
