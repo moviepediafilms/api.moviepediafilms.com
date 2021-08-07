@@ -130,7 +130,85 @@ def create_rzp_order(package, owner):
 class OrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
-        fields = ["id", "owner", "order_id", "amount", "payment_id"]
+        fields = ["id", "owner", "order_id", "amount", "payment_id", "package"]
+
+
+class OrderPackageValidateMixin:
+    def validate_package(self, package):
+        if not package.active:
+            logger.warn("Invalid package selected")
+            raise serializers.ValidationError("Invalid Package Selected")
+        if self.instance and self.instance.package:
+            raise serializers.ValidationError("Cannot change Package on an Order")
+        return package
+
+
+class UpdateOrderSerializer(OrderPackageValidateMixin, serializers.ModelSerializer):
+    class Meta:
+        model = Order
+        fields = ["package"]
+
+    def update(self, order, validated_data):
+        logger.debug(f"update_order::{validated_data}")
+        user = validated_data.pop("user")
+        # let the user who submitted the movie,
+        # create one order for each type of package available
+        package = validated_data.get("package")
+        rzp_order = create_rzp_order(package, user)
+        validated_data["order_id"] = rzp_order.get("id")
+        validated_data["amount"] = rzp_order.get("amount")
+        validated_data["receipt_number"] = rzp_order.get("receipt")
+        return super().update(order, validated_data)
+
+
+class CreateOrderSerializer(OrderPackageValidateMixin, serializers.ModelSerializer):
+    movie = serializers.PrimaryKeyRelatedField(
+        queryset=Movie.objects.all(), write_only=True, required=True
+    )
+
+    class Meta:
+        model = Order
+        fields = ["package", "movie"]
+
+    def validate_movie(self, movie):
+        request = self.context.get("request")
+        if not movie.orders.filter(owner=request.user).exists():
+            logger.warn("User is not person who submitted the movie")
+            raise serializers.ValidationError(
+                "You cannot create and Order for this Movie"
+            )
+        return movie
+
+    def validate(self, data):
+        package = data["package"]
+        movie = data.get("movie")
+        if movie:
+            pending_order_same_package = movie.orders.filter(
+                package=package, state=ORDER_STATE.CREATED
+            )
+            if pending_order_same_package.exists():
+                raise serializers.ValidationError(
+                    "An order already exists for this movie with this package"
+                )
+        return data
+
+    def create(self, validated_data):
+        # Scenario: when used selected a package then moved to payment step, then came back and selected a different package
+        # then we need to create a new order with the already existing movie
+        # expecting, user, movie, package
+        logger.debug(f"create_order::{validated_data}")
+        user = validated_data.pop("user", None)
+        movie = validated_data.pop("movie", None)
+        package = validated_data.get("package")
+        rzp_order = create_rzp_order(package, user)
+
+        validated_data["owner"] = user
+        validated_data["order_id"] = rzp_order.get("id")
+        validated_data["amount"] = rzp_order.get("amount")
+        validated_data["receipt_number"] = rzp_order.get("receipt")
+        order = super().create(validated_data)
+        order.movies.add(movie)
+        return order
 
 
 class PackageSerializer(serializers.ModelSerializer):
@@ -337,24 +415,6 @@ class MovieSerializer(serializers.ModelSerializer):
         serializer = GroupedCrewMemberSerializer(many=True, instance=data)
         return serializer.data
 
-    def validate_package(self, package):
-        logger.debug(f"validate_package::{package}")
-
-        package_name = package.get("name")
-        package_name = package_name.strip().lower()
-        package_obj = Package.objects.filter(name=package_name).first()
-        if not package_obj:
-            logger.warn("Invalid package selected")
-            raise serializers.ValidationError("Invalid Package Selected")
-        order = self.instance.orders.filter(
-            package=package_obj, state=ORDER_STATE.CREATED
-        ).first()
-        if package and order:
-            raise serializers.ValidationError(
-                f"Already have an {order.id} with package {package.name}"
-            )
-        return package
-
     def validate_title(self, title):
         title = re.sub("[\n\t\s]+", " ", title)
         if not title.isascii():
@@ -397,17 +457,6 @@ class MovieSerializer(serializers.ModelSerializer):
     def update(self, movie, validated_data):
         logger.debug(f"update::{validated_data}")
         user = validated_data.pop("user", None)
-        if "package" in validated_data:
-            # let the user who submitted the movie,
-            # create one order for each type of package available
-            package_name = validated_data.pop("package").get("name").strip().lower()
-            package = Package.objects.get(name=package_name)
-            order = movie.orders.filter(owner=user, package=None).first()
-            if not order:
-                order = Order.objects.create(owner=user)
-                order.movies.add(movie)
-            rzp_order = create_rzp_order(package, user)
-            self._update_order_details(order, package, rzp_order)
         if "lang" in validated_data:
             lang_data = validated_data.pop("lang")
             validated_data["lang"] = MovieLanguageSerializer().create(lang_data)
@@ -513,16 +562,6 @@ class MovieSerializer(serializers.ModelSerializer):
                     requestor=creator, movie=movie, user=creator, role=creator_role
                 )
                 logger.debug(f"crew::{movie.crewmemberrequest_set.all()}")
-
-    def _update_order_details(self, order, package, rzp_order):
-        logger.debug(f"_update_order::{rzp_order}")
-        if not order or not rzp_order or not package:
-            return
-        order.package = package
-        order.order_id = rzp_order.get("id")
-        order.amount = rzp_order.get("amount")
-        order.receipt_number = rzp_order.get("receipt")
-        order.save()
 
     def _get_or_create_genres(self, genres_data):
         names = [name.get("name") for name in genres_data]

@@ -1,3 +1,4 @@
+from api.models.payment import Package
 from unittest import mock
 import os
 import json
@@ -6,7 +7,7 @@ from django.conf import settings
 from django.test import TestCase
 from django.core import mail
 
-from api.models import CrewMember, Movie, Genre, MovieLanguage, User, Package
+from api.models import CrewMember, Movie, Genre, MovieLanguage, User
 from .base import reverse, APITestCaseMixin, LoggedInMixin
 
 
@@ -187,40 +188,146 @@ class SubmissionPackageSelectionTestCase(
 ):
     fixtures = ["test_submission.yaml"]
     roles = [dict(name="Director")]
-    package = dict(name="pack1")
 
-    def _select_package(self):
-        data = dict(payload=json.dumps(dict(package=self.package)))
+    # - select a package for a submitted movie
+    # - select a package then select a different package for a submitted movie
+    def _select_package(self, pk):
+        data = dict(package=pk)
         return self.client.patch(
-            reverse("api:submit-detail", args=["v1", self.movie["id"]]),
-            data,
-            format="multipart",
+            reverse("api:order-detail", args=["v1", self.order["id"]]), data
         )
 
     def setUp(self):
         super().setUp()
         self.movie = self._submit_movie().json()
-
-    @mock.patch("api.serializers.movie.rzp_client")
-    def test_package_attached_to_movie(self, rzp_client):
-        rzp_client.order.create.return_value = {
+        self.order = self.movie["order"]
+        self.rzp_client_patcher = mock.patch("api.serializers.movie.rzp_client")
+        self.rzp_client = self.rzp_client_patcher.start()
+        self.rzp_client.order.create.return_value = {
             "status": "created",
             "id": "order_123",
             "amount": 100,
             "receipt": "receipt_123",
         }
+
+    def tearDown(self):
+        self.rzp_client_patcher.stop()
+        return super().tearDown()
+
+    def _assert_order_is_empty(self, order):
+        self.assertIsNotNone(order)
+        self.assertIsNotNone(order.owner)
+        self.assertIsNone(order.package)
+        self.assertIsNone(order.order_id)
+        self.assertIsNone(order.amount)
+        self.assertIsNone(order.receipt_number)
+        self.assertIsNone(order.payment_id)
+        self.assertEqual(order.state, "C")
+
+    def _assert_order_is_full(self, order):
+        self.assertIsNotNone(order)
+        self.assertEquals(order.order_id, "order_123")
+        self.assertEquals(order.amount, 100)
+        self.assertEquals(order.receipt_number, "receipt_123")
+        # still not paid so still "C"
+        self.assertEquals(order.state, "C")
+        self.assertIsNone(order.payment_id)
+
+    def test_package_selection_after_movie_submit(self):
         movie = Movie.objects.get(id=self.movie["id"])
-        # hoping no movie will have orders that have not selected package or paid
-        self.assertIsNotNone(movie.orders.filter(package=None).first())
 
-        res = self._select_package()
+        # check that a empty order is present (result of a movie submit)
+        self.assertEquals(movie.orders.count(), 1)
+        order = movie.orders.first()
+        self._assert_order_is_empty(order)
 
-        self.assertEquals(200, res.status_code)
+        # updating order with package succeeds
+        res = self._select_package(1)
+        self.assertEquals(res.status_code, 200)
+
+        # verify the order if populated with details
+        order.refresh_from_db()
+        self._assert_order_is_full(order)
+        self.assertEquals(order.package.id, 1)
+
+    def test_create_order_diff_package_success(self):
+        """Case where user goes back a step to change package,
+        in that case UI should trigger a new order creation with the selected(different) package"""
+
+        movie = Movie.objects.get(id=self.movie["id"])
+        # creates an order with package as pack1
+        self.test_package_selection_after_movie_submit()
+
+        # confirm that movie has one order with package selected as pack1
+        self.assertEquals(movie.orders.count(), 1)
+        self.assertIsNotNone(movie.orders.filter(package=1).first())
+        self.assertIsNone(movie.orders.filter(package=2).first())
+
+        # creating a new order with different package succeeds
+        data = dict(package=2, movie=self.movie["id"])
+        res = self.client.post(reverse("api:order-list", args=["v1"]), data)
+        self.assertEquals(res.status_code, 201)
+
+        # confirm that another order is created with package as pack2
         movie.refresh_from_db()
-        self.assertIsNone(movie.orders.filter(package=None).first())
+        self.assertEquals(movie.orders.count(), 2)
+        order = movie.orders.filter(package=2).first()
+        self._assert_order_is_full(order)
+        self.assertEquals(order.package.id, 2)
 
-        self.assertIsNotNone(
-            movie.orders.filter(
-                package=Package.objects.filter(**self.package).first()
-            ).first()
+    def test_create_order_same_package_fails(self):
+        """Case where user goes back a step to change package,
+        in that case UI should trigger a new order creation with the selected(different) package"""
+        movie = Movie.objects.get(id=self.movie["id"])
+
+        # creates an order with package as pack1
+        self.test_package_selection_after_movie_submit()
+
+        # confirm that movie has one order with package selected as pack1
+        self.assertEquals(movie.orders.count(), 1)
+        self.assertIsNotNone(movie.orders.filter(package=1).first())
+
+        # creating a new order with same package fails
+        data = dict(package=1, movie=movie.id)
+        res = self.client.post(reverse("api:order-list", args=["v1"]), data)
+        self.assertContains(
+            res,
+            "An order already exists for this movie with this package",
+            status_code=400,
         )
+
+    def test_create_order_with_invalid_movie(self):
+        data = dict(package=1, movie=10)
+        res = self.client.post(reverse("api:order-list", args=["v1"]), data)
+        self.assertContains(res, "object does not exist", status_code=400)
+
+    def test_update_order_with_invalid_package(self):
+        data = dict(package=10)
+        res = self.client.patch(
+            reverse("api:order-detail", args=["v1", self.order["id"]]), data
+        )
+        self.assertContains(res, "object does not exist", status_code=400)
+
+    def test_update_order_with_inactive_package(self):
+        pack1 = Package.objects.get(pk=1)
+        pack1.active = False
+        pack1.save()
+
+        data = dict(package=1)
+        res = self.client.patch(
+            reverse("api:order-detail", args=["v1", self.order["id"]]), data
+        )
+        self.assertContains(res, "Invalid Package Selected", status_code=400)
+
+    def test_update_order_with_package_fail(self):
+        data = dict(package=1)
+        res = self.client.patch(
+            reverse("api:order-detail", args=["v1", self.order["id"]]), data
+        )
+        self.assertEquals(res.status_code, 200)
+
+        data = dict(package=2)
+        res = self.client.patch(
+            reverse("api:order-detail", args=["v1", self.order["id"]]), data
+        )
+        self.assertContains(res, "Cannot change Package on an Order", status_code=400)

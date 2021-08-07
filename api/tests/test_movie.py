@@ -30,6 +30,7 @@ class MovieViewTestCase(APITestCaseMixin, LoggedInMixin, TestCase):
                     "owner": 1,
                     "order_id": None,
                     "amount": None,
+                    "package": 1,
                     "payment_id": None,
                 },
                 "title": "Submitted Movie",
