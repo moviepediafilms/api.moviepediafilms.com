@@ -8,7 +8,7 @@ def load_movie_order(apps, schema_editor):
     for obj in MovieOrderTemp.objects.all():
         order = obj.order
         order.movies.add(obj.movie)
-        order.package(obj.package)
+        order.package = obj.package
         order.save()
 
 
