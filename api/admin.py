@@ -58,18 +58,20 @@ class OrderAdmin(ExportMixin, admin.ModelAdmin):
         "payment_id",
     ]
     list_display = ["owner", "order_id", "payment_id"]
+    readonly_fields = ["movies"]
 
 
 @admin.register(Movie)
 class MovieAdmin(ExportMixin, admin.ModelAdmin):
     search_fields = ["title", "link"]
     list_filter = [
-        "approved",
+        "orders__package",
         "state",
+        "approved",
         "created_at",
-        ("order__payment_id", admin.EmptyFieldListFilter),
     ]
     list_display = [
+        "orders",
         "title",
         "state",
         "link",
@@ -78,17 +80,18 @@ class MovieAdmin(ExportMixin, admin.ModelAdmin):
         "created_at",
         "director",
         "director_name",
-        "submited_by",
+        "submitted_by",
         "jury_rating",
         "audience_rating",
         "poster",
     ]
     ordering = ["-created_at", "title"]
-    readonly_fields = ["poster", "contests", "publish_on"]
+    readonly_fields = ["poster", "publish_on"]
     filter_horizontal = ["contests"]
 
-    def submited_by(self, movie):
-        return movie.order and movie.order.owner
+    def submitted_by(self, movie):
+        order = movie.orders.first()
+        return order and order.owner
 
     def director(self, movie):
         return movie.crewmember_set.get(role__name="Director").profile.user
@@ -99,7 +102,7 @@ class MovieAdmin(ExportMixin, admin.ModelAdmin):
         ).profile.user.get_full_name()
 
     def is_paid(self, movie):
-        return movie.order and movie.order.payment_id is not None
+        return movie.orders.exclude(payment_id=None).exists()
 
 
 @admin.register(Genre)
