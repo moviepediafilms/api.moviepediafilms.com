@@ -30,6 +30,7 @@ class MovieViewTestCase(APITestCaseMixin, LoggedInMixin, TestCase):
                     "owner": 1,
                     "order_id": None,
                     "amount": None,
+                    "package": 1,
                     "payment_id": None,
                 },
                 "title": "Submitted Movie",
@@ -39,7 +40,7 @@ class MovieViewTestCase(APITestCaseMixin, LoggedInMixin, TestCase):
                 "genres": [{"id": 1, "name": "Drama"}],
                 "lang": {"id": 1, "name": "English"},
                 "poster": None,
-                "package": None,
+                "package": {"amount": 100.0, "name": "Pack1"},
                 "crew": [
                     {
                         "profile": {

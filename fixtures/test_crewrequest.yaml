@@ -1,7 +1,7 @@
 - model: auth.user
   pk: 1
   fields:
-    password: ''
+    password: ""
     last_login: null
     is_superuser: false
     username: test@example.com
@@ -39,7 +39,7 @@
 - model: auth.user
   pk: 2
   fields:
-    password: ''
+    password: ""
     last_login: null
     is_superuser: false
     username: test2@example.com
@@ -103,13 +103,11 @@
   pk: 1
   fields:
     created_at: 2020-12-15 05:23:15.167332+00:00
-    order: 1
-    package: null
     state: S
     title: Movie1
     link: http://facebook.com
     runtime: 100.0
-    about: ''
+    about: ""
     lang: 1
     poster: null
     month: null
@@ -120,7 +118,7 @@
     review_count: 0
     approved: true
     genres:
-    - 1
+      - 1
 - model: api.crewmember
   pk: 1
   fields:
