@@ -83,17 +83,23 @@ class SubmissionView(
 class OrderView(
     mixins.CreateModelMixin,
     mixins.UpdateModelMixin,
+    mixins.ListModelMixin,
     viewsets.GenericViewSet,
 ):
-    queryset = Order.objects.all()
-    serializer_class = OrderSerializer
+
     permission_classes = [IsOrderOwner]
+    filterset_fields = ["state", "package", "movies__id"]
+
+    def get_queryset(self):
+        return Order.objects.filter(owner=self.request.user)
 
     def get_serializer_class(self):
-        if self.action == "create":
-            return CreateOrderSerializer
-        else:
-            return UpdateOrderSerializer
+        return {
+            "create": CreateOrderSerializer,
+            "update": UpdateOrderSerializer,
+            "partial_update": UpdateOrderSerializer,
+            "list": OrderSerializer,
+        }[self.action]
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)

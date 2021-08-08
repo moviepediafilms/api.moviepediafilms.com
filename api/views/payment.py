@@ -2,12 +2,15 @@ from logging import getLogger
 import json
 
 import razorpay
+from django.conf import settings
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status, mixins, viewsets
 
-from django.conf import settings
 from api.models import Order
+from api.models.payment import Package
+from api.serializers.payment import PackageSerializer
 
 logger = getLogger(__name__)
 rzp_client = razorpay.Client(
@@ -49,3 +52,10 @@ class VerifyPayment(APIView):
             response["detail"] = error
         status_code = status.HTTP_400_BAD_REQUEST if error else status.HTTP_200_OK
         return Response(response, status=status_code)
+
+
+class PackageView(mixins.ListModelMixin, viewsets.GenericViewSet):
+
+    queryset = Package.objects.all()
+    filterset_fields = ["active"]
+    serializer_class = PackageSerializer

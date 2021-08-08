@@ -82,7 +82,7 @@ class TemplateVariables:
 #     return email.send(fail_silently=fail_silently)
 
 # SMTP GSUITE
-def email_trigger(user, template_id, fail_silently=False, **kwargs):
+def email_trigger(user, template_id, fail_silently=True, **kwargs):
     if "user" not in kwargs:
         kwargs["user"] = user
     args_needed = template_register[template_id]

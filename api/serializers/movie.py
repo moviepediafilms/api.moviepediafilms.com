@@ -1,4 +1,5 @@
 from django.utils import timezone
+from django_filters import filters
 from rest_framework.exceptions import ValidationError
 from api.models.movie import MpGenre, TopCreator, TopCurator
 from logging import getLogger
@@ -130,7 +131,7 @@ def create_rzp_order(package, owner):
 class OrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
-        fields = ["id", "owner", "order_id", "amount", "payment_id", "package"]
+        fields = ["id", "owner", "order_id", "amount", "payment_id", "package", "state"]
 
 
 class OrderPackageValidateMixin:
@@ -146,7 +147,8 @@ class OrderPackageValidateMixin:
 class UpdateOrderSerializer(OrderPackageValidateMixin, serializers.ModelSerializer):
     class Meta:
         model = Order
-        fields = ["package"]
+        fields = ["id", "owner", "order_id", "amount", "payment_id", "package", "state"]
+        read_only_fields = ["id", "owner", "order_id", "amount", "payment_id", "state"]
 
     def update(self, order, validated_data):
         logger.debug(f"update_order::{validated_data}")
@@ -168,7 +170,24 @@ class CreateOrderSerializer(OrderPackageValidateMixin, serializers.ModelSerializ
 
     class Meta:
         model = Order
-        fields = ["package", "movie"]
+        fields = [
+            "id",
+            "owner",
+            "order_id",
+            "amount",
+            "payment_id",
+            "package",
+            "state",
+            "movie",
+        ]
+        read_only_fields = [
+            "id",
+            "owner",
+            "order_id",
+            "amount",
+            "payment_id",
+            "state",
+        ]
 
     def validate_movie(self, movie):
         request = self.context.get("request")
@@ -248,12 +267,12 @@ class CrewMemberSerializer(serializers.ModelSerializer):
 
 
 class SubmissionEntrySerializer(serializers.ModelSerializer):
-    order = OrderSerializer()
+    orders = OrderSerializer(many=True)
     package = serializers.CharField(source="package.name", read_only=True)
 
     class Meta:
         model = Movie
-        fields = ["id", "title", "poster", "state", "order", "created_at", "package"]
+        fields = ["id", "title", "poster", "state", "orders", "created_at", "package"]
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
@@ -433,9 +452,6 @@ class MovieSerializer(serializers.ModelSerializer):
         director_data = validated_data.pop("director", {})
 
         validated_data["lang"] = MovieLanguageSerializer().create(lang_data)
-        # creating empty order here so that the movie entry can be tracked
-        # back to the creator using movie.order.owner
-        # validated_data["order"] = Order.objects.create(owner=user)
         validated_data["state"] = MOVIE_STATE.CREATED
         creator_is_director = any(
             role.get("name") == "Director" for role in creator_roles
@@ -450,6 +466,8 @@ class MovieSerializer(serializers.ModelSerializer):
         self._attach_director_role(director_data, user, movie, creator_is_director)
         if not self._is_director_present(movie):
             raise ValidationError("Director must be provided")
+        # creating empty order here so that the movie entry can be tracked
+        # back to the creator using movie.orders.owner
         order = Order.objects.create(owner=user)
         order.movies.add(movie)
         return movie
