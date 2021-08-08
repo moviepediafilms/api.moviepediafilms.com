@@ -32,6 +32,7 @@ class MovieViewTestCase(APITestCaseMixin, LoggedInMixin, TestCase):
                     "amount": None,
                     "package": 1,
                     "payment_id": None,
+                    "state": "C",
                 },
                 "title": "Submitted Movie",
                 "link": "http://facebook.com",

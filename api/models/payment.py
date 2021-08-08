@@ -71,7 +71,6 @@ class Order(models.Model):
         return f"{self.order_id} - {'C' if self.payment_id else 'P'}"
 
     def save(self, **kwargs):
-        logger.info("order updated")
         old_payment_id = None
         if self.id:
             old_order = Order.objects.get(id=self.id)
@@ -79,11 +78,12 @@ class Order(models.Model):
         super().save(**kwargs)
         new_payment_id = self.payment_id
         has_completed_payment = bool(not old_payment_id and new_payment_id)
-        logger.info(f"order updated has_completed_payment: {has_completed_payment}")
+        logger.info(f"payment complete: {has_completed_payment}")
         # TODO: detect the case where user is adding a new movie but not making a new payment (utilizing his credit) and
         # update the movie state and trigger emails
         if has_completed_payment:
             self.state = ORDER_STATE.SUBMITTED
+            super().save(**kwargs)
             movies = self._update_movies_state()
             self._trigger_submit_email(movies)
 
