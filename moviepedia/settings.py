@@ -98,6 +98,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "corsheaders",
+    "django_prometheus",
     "rest_framework",
     "rest_framework.authtoken",
     "django_filters",
@@ -106,6 +107,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    "django_prometheus.middleware.PrometheusBeforeMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "corsheaders.middleware.CorsMiddleware",
@@ -114,6 +116,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "django_prometheus.middleware.PrometheusAfterMiddleware",
 ]
 
 ROOT_URLCONF = "moviepedia.urls"
@@ -147,6 +150,7 @@ if "test" in sys.argv:
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": "test.sqlite3",
     }
+DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
 # Password validation
 # https://docs.djangoproject.com/en/3.0/ref/settings/#auth-password-validators
@@ -194,12 +198,15 @@ THUMB_DIMENS = [150, 80]
 
 ADMINS = [("Zeeshan", "zkhan1093@gmail.com")]
 
+
 # Email Settings
 
 EMAIL_DISABLED = os.getenv("EMAIL_DISABLED", "true") == "true"
-EMAIL_BACKEND = "backends.sendgrid.SendgridEmailBackend"
+EMAIL_TEMPLATE_FOLDER = os.path.join(BASE_DIR, "email_templates")
+EMAIL_BACKEND = "backends.gsuite.GSuiteEmailBackend"
+# EMAIL_BACKEND = "backends.sendgrid.SendgridEmailBackend"
 DEFAULT_FROM_EMAIL = "Moviepedia Films <info@moviepediafilms.com>"
-SERVER_EMAIL = "root@moviepediafilms.com"
+SERVER_EMAIL = "contactus@moviepediafilms.com"
 
 # DRF settings
 

@@ -127,7 +127,7 @@ class ForgotPasswordSerializer(Serializer):
             # fail silently for security reasons
             pass
         else:
-            email_trigger(user, TEMPLATES.PASSWORD_REST)
+            email_trigger(user, TEMPLATES.PASSWORD_RESET)
 
 
 class ResetPasswordSerializer(Serializer):

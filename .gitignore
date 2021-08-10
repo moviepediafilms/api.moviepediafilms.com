@@ -1,6 +1,5 @@
 *.py[co]
 .env*
-db.sqlite3
 static/**
 testdb
 *.log
@@ -9,3 +8,5 @@ coverage.xml
 buglist.yaml
 htmlcov
 client_secret_*.json
+email-sender*.json
+db.sqlite3*

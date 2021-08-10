@@ -103,10 +103,10 @@ class ProfileView(viewsets.ModelViewSet):
                 {"error": "You are not authorized to view this page"}, 403
             )
         orders = profile.user.orders.all().prefetch_related("movies")
-        movies = []
+        movies = {}
         for order in orders:
-            movies.extend(order.movies.all())
-        return self._build_paginated_response(movies)
+            movies.update({m.id: m for m in order.movies.all()})
+        return self._build_paginated_response(list(movies.values()))
 
     @action(methods=["get"], detail=True, permission_classes=[IsOwnProfile])
     def notifications(self, pk=None, **kwargs):

@@ -1,3 +1,4 @@
+from api.models.payment import Order
 from datetime import timedelta, datetime
 from logging import getLogger
 
@@ -7,7 +8,6 @@ from django.db import transaction
 
 
 import django_filters as filters
-from rest_framework.filters import SearchFilter
 from rest_framework import mixins, parsers, viewsets, response, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -15,6 +15,8 @@ from rest_framework.response import Response
 from api.models.movie import CrewMember, MpGenre
 from api.constants import MOVIE_STATE, RECOMMENDATION
 from api.serializers.movie import (
+    CreateOrderSerializer,
+    OrderSerializer,
     SubmissionSerializer,
     MoviePosterSerializer,
     MovieLanguageSerializer,
@@ -25,6 +27,7 @@ from api.serializers.movie import (
     CrewMemberRequestSerializer,
     MovieSerializerSummary,
     MpGenreSerializer,
+    UpdateOrderSerializer,
 )
 from api.models import (
     Movie,
@@ -45,7 +48,12 @@ logger = getLogger(__name__)
 
 class IsMovieOrderOwner(permissions.BasePermission):
     def has_object_permission(self, request, view, object: Movie):
-        return object.order.owner == request.user
+        return object.orders.filter(owner=request.user).exists()
+
+
+class IsOrderOwner(permissions.BasePermission):
+    def has_object_permission(self, request, view, object: Order):
+        return object.owner == request.user
 
 
 class SubmissionView(
@@ -70,6 +78,34 @@ class SubmissionView(
         logger.info(f"perform_update::{self.request.user.email}")
         serializer.save(user=self.request.user)
         logger.info("perform_update::end")
+
+
+class OrderView(
+    mixins.CreateModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet,
+):
+
+    permission_classes = [IsOrderOwner]
+    filterset_fields = ["state", "package", "movies__id"]
+
+    def get_queryset(self):
+        return Order.objects.filter(owner=self.request.user)
+
+    def get_serializer_class(self):
+        return {
+            "create": CreateOrderSerializer,
+            "update": UpdateOrderSerializer,
+            "partial_update": UpdateOrderSerializer,
+            "list": OrderSerializer,
+        }[self.action]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+    def perform_update(self, serializer):
+        serializer.save(user=self.request.user)
 
 
 class MovieView(

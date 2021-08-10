@@ -1,4 +1,5 @@
-[{
+[
+    {
         "model": "auth.user",
         "pk": 1,
         "fields": {
@@ -159,7 +160,6 @@
             "image": "/media/profile/a890094e-0d01-4c1e-ab87-fb4e033c4578.png",
             "is_celeb": true,
             "mcoins": 0.0,
-            "rank": 1,
             "level": 1,
             "pop_score": 0.0,
             "engagement_score": 0.0,
@@ -183,7 +183,6 @@
             "image": "https://lh3.googleusercontent.com/ogw/ADGmqu_ROyhxdiC8S8an63aKUds-000enGPpbCyMidUhkA=s32-c-mo",
             "is_celeb": false,
             "mcoins": 0.0,
-            "rank": -1,
             "level": 1,
             "pop_score": 0.0,
             "engagement_score": 0.0,
@@ -205,7 +204,6 @@
             "image": "/media/profile/a51c6f20-89d3-4342-aa6f-e9466e36ce34.png",
             "is_celeb": false,
             "mcoins": 0.0,
-            "rank": -1,
             "level": 1,
             "pop_score": 0.0,
             "engagement_score": 0.0,
@@ -233,7 +231,6 @@
             "image": "/media/profile/6258aedc-3686-4c56-aad3-d129d0c66acd.png",
             "is_celeb": false,
             "mcoins": 0.0,
-            "rank": -1,
             "level": 1,
             "pop_score": 0.0,
             "engagement_score": 0.0,
@@ -257,7 +254,6 @@
             "image": null,
             "is_celeb": false,
             "mcoins": 0.0,
-            "rank": -1,
             "level": 1,
             "pop_score": 0.0,
             "engagement_score": 0.0,
@@ -279,7 +275,6 @@
             "image": null,
             "is_celeb": false,
             "mcoins": 0.0,
-            "rank": -1,
             "level": 1,
             "pop_score": 0.0,
             "engagement_score": 0.0,
@@ -490,7 +485,6 @@
             "publish_on": "2020-12-06T08:35:40Z",
             "jury_rating": 7.5,
             "audience_rating": 7.0,
-            "contest": 2,
             "genres": [
                 1
             ]
@@ -514,7 +508,6 @@
             "publish_on": null,
             "jury_rating": 0.0,
             "audience_rating": 0.0,
-            "contest": null,
             "genres": [
                 1
             ]
@@ -538,7 +531,6 @@
             "publish_on": null,
             "jury_rating": 0.0,
             "audience_rating": 0.0,
-            "contest": null,
             "genres": [
                 2,
                 4
@@ -715,7 +707,6 @@
             "publish_on": null,
             "jury_rating": 0.0,
             "audience_rating": 0.0,
-            "contest": null,
             "genres": [
                 4
             ]
@@ -739,7 +730,6 @@
             "publish_on": "2020-12-06T08:42:32Z",
             "jury_rating": 60.0,
             "audience_rating": 4.0,
-            "contest": 2,
             "genres": [
                 3
             ]
@@ -763,7 +753,6 @@
             "publish_on": "2020-12-06T08:17:22Z",
             "jury_rating": 7.0,
             "audience_rating": 0.0,
-            "contest": 2,
             "genres": [
                 1
             ]
@@ -787,7 +776,6 @@
             "publish_on": "2020-12-06T08:40:05Z",
             "jury_rating": 10.0,
             "audience_rating": 0.0,
-            "contest": 2,
             "genres": [
                 4
             ]
