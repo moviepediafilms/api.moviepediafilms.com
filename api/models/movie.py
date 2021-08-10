@@ -40,16 +40,6 @@ class MoviePoster(models.Model):
     movie = models.ForeignKey("Movie", on_delete=models.CASCADE)
 
 
-class MovieOrderTemp(models.Model):
-    """temporary table to hold data since I want to remove the Movie.order(1->M) and replace it with Order.movies (M->M)"""
-
-    movie = models.ForeignKey("Movie", on_delete=models.CASCADE, null=True, blank=True)
-    order = models.ForeignKey("Order", on_delete=models.CASCADE, null=True, blank=True)
-    package = models.ForeignKey(
-        "Package", on_delete=models.CASCADE, null=True, blank=True
-    )
-
-
 class Movie(models.Model):
     MOVIE_STATE_CHOICES = (
         (MOVIE_STATE.CREATED, "Created"),
@@ -266,7 +256,7 @@ class Release(models.Model):
     on = models.DateTimeField(auto_now_add=True)
 
     def save(self, *args, **kwargs):
-        # TODO: add a check so that no movie is released more than the sum of releases allwed by all the
+        # TODO: add a check so that no movie is released more than the sum of releases allowed by all the
         # packages it has purchased
         # if self.movie:
         #     released_count = Release.objects.filter(movie=self.movie).count()
