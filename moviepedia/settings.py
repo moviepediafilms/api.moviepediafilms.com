@@ -202,10 +202,9 @@ ADMINS = [("Zeeshan", "zkhan1093@gmail.com")]
 # Email Settings
 
 EMAIL_DISABLED = os.getenv("EMAIL_DISABLED", "true") == "true"
-EMAIL_TEMPLATE_FOLDER = os.path.join(BASE_DIR, "email_templates")
+EMAIL_TEMPLATE_FOLDER = os.path.join(BASE_DIR, "api", "email", "template")
 EMAIL_BACKEND = "backends.gsuite.GSuiteEmailBackend"
-# EMAIL_BACKEND = "backends.sendgrid.SendgridEmailBackend"
-DEFAULT_FROM_EMAIL = "Moviepedia Films <info@moviepediafilms.com>"
+DEFAULT_FROM_EMAIL = "contactus@moviepediafilms.com"
 SERVER_EMAIL = "contactus@moviepediafilms.com"
 
 # DRF settings

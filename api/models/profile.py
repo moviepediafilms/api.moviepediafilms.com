@@ -2,7 +2,7 @@ from logging import getLogger
 from django.db import models
 from django.contrib.auth.models import User
 from api.constants import GENDER
-from api.emails import email_trigger, TEMPLATES
+from api.email import email_trigger, TEMPLATES
 
 logger = getLogger("api.model")
 
@@ -78,7 +78,8 @@ class Profile(models.Model):
         logger.info(f"new_onboarding/old_onboarding: {new_onboarding}/{old_onboarding}")
         if new_onboarding or old_onboarding:
             logger.info(f"user onboarded! {self.user.email}")
-            success = email_trigger(self.user, TEMPLATES.WELCOME)
-            logger.info(f"welcome email sent: {success}")
+            # disabling welcome emails
+            # success = email_trigger(self.user, TEMPLATES.WELCOME)
+            # logger.info(f"welcome email sent: {success}")
             success = email_trigger(self.user, TEMPLATES.VERIFY)
             logger.info(f"verification email sent: {success}")

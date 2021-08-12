@@ -1,0 +1,27 @@
+{%- extends "base.html" -%}
+{%-block subject-%}Welcome to MDFF Season2!{%-endblock-%}
+
+{% block title%}
+    <a class="f-fallback email-masthead_name"
+        style="color: #A8AAAF; font-size: 16px; font-weight: bold; text-decoration: none; text-shadow: 0 1px 0 white;"
+        href="https://moviepediafilms.com">
+        MDFF Season2
+    </a> 
+{%endblock%}
+{% block salutation%} Hello {{name}}! {%endblock%}
+
+
+{% block body%}
+    <p style="margin: 0.4em 0 1.1875em; font-size: 16px; line-height: 1.625; color: #51545E;">
+        Thank you for the submission of your short film(s)
+        <strong>‘{{movie_title}}'</strong> in <b>Moviepedia Digital Film
+            Festival, 2021</b>. We'll keep you posted with results on our socials. Our MDFF screening will begin shortly. Stay
+        tuned.
+    </p>
+{%endblock%}
+
+{%block signature%}
+Warm regards,<br> Team Moviepedia
+<br/>
+<img width="100%" src="https://ci6.googleusercontent.com/proxy/4MIjWQ1IB08DmfrOvpjO7I5L65Aj2YJID7GbVWSLcqT77IJufdr2kvMlOh0UoP4gnJls7_5mphKl9adILor8b6Yapkw_8mcbuqvzcIC3UCYO-EV6UH3RFzr5fQRALr02m9pfa0k9N1MI8QT0Vw=s0-d-e1-ft#https://res.cloudinary.com/moviepedia/image/upload/v1628135274/email/mdff_email_footer.jpg" alt="MDFF Season2" />
+{%endblock%}

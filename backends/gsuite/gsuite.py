@@ -10,11 +10,13 @@ from googleapiclient.discovery import build
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from .utils import get_credentials_file
+import logging
+
+logger = logging.getLogger("gsuite")
 
 
 class GSuiteEmailBackend(BaseEmailBackend):
     def __init__(self, fail_silently=False, **kwargs):
-
         self.fail_silently = fail_silently
         self.credentials = get_credentials_file()
         self.API_SCOPE = [
@@ -45,15 +47,11 @@ class GSuiteEmailBackend(BaseEmailBackend):
                 # maybe sanitize this message.from_email?
                 new_conn_created = self.open(from_email=message.from_email)
                 if not self.connection or new_conn_created is None:
-                    # skip this message
+                    logger.warning(f"No connection, skipping email {message}")
                     continue
-
                 sent = self._send(message)
                 if sent:
                     num_sent += 1
-            # not doing anything here
-            # if new_conn_created:
-            #     self.close()
         return num_sent
 
     def open(self, from_email):
@@ -63,14 +61,15 @@ class GSuiteEmailBackend(BaseEmailBackend):
         passed silently.
         """
         if not self.current_user:
-            # first connection
             self.current_user = from_email
+            logger.debug(f"setting current_user to {from_email}")
 
         if self.connection and from_email == self.current_user:
-            # Nothing to do if the connection is already open for same delegation
+            logger.debug(f"connection already exists with user {from_email}")
             return False
 
         try:
+            logger.debug(f"creating a new connection {from_email}")
             credentials = self._delegate_user(from_email)
             self.connection = build("gmail", "v1", credentials=credentials)
             self.current_user = from_email
@@ -102,9 +101,9 @@ class GSuiteEmailBackend(BaseEmailBackend):
             sanitize_address(addr, encoding) for addr in email_message.recipients()
         ]
         msg = MIMEMultipart("alternative")
-        msg["Subject"] = email_message.subject
-        msg["From"] = from_email
-        msg["To"] = recipients[0]
+        msg["subject"] = email_message.subject
+        msg["from"] = from_email
+        msg["to"] = recipients[0]
         # msg.attach(MIMEText(msgPlain, "plain"))
         msg.attach(MIMEText(email_message.body, "html"))
         raw = base64.urlsafe_b64encode(msg.as_bytes())
@@ -115,7 +114,6 @@ class GSuiteEmailBackend(BaseEmailBackend):
             self.connection.users().messages().send(
                 userId="me", body=binary_content
             ).execute()
-            # self.connection.sendmail(from_email, recipients, message.as_bytes(linesep='\r\n'))
         except (
             exceptions.DefaultCredentialsError,
             exceptions.GoogleAuthError,
