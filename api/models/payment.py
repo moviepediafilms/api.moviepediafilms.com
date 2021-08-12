@@ -4,7 +4,7 @@ from django.db import models
 from django.contrib.auth.models import User
 
 from api.constants import MOVIE_STATE, ORDER_STATE
-from api.emails import TEMPLATES, email_trigger
+from api.email import TEMPLATES, email_trigger
 
 
 logger = getLogger(__name__)
@@ -19,6 +19,7 @@ class Package(models.Model):
     attributes = models.ManyToManyField(
         "PackageAttribute", through="PackageAttributeValue"
     )
+    description = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return self.name.title()
@@ -110,5 +111,5 @@ class Order(models.Model):
                 email_trigger(director, TEMPLATES.SUBMIT_CONFIRM_DIRECTOR)
             else:
                 logger.debug("Submission by crew member")
-                email_trigger(director, TEMPLATES.DIRECTOR_APPROVAL)
+                email_trigger(director, TEMPLATES.DIRECTOR_APPROVAL, movie=movie)
                 email_trigger(self.owner, TEMPLATES.SUBMIT_CONFIRM_CREW)

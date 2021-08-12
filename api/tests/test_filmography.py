@@ -2,7 +2,7 @@ from django.test import TestCase
 
 # from django.core import mail
 
-# from api.emails import TEMPLATES
+# from api.email import TEMPLATES
 from .base import reverse, APITestCaseMixin, LoggedInMixin
 
 

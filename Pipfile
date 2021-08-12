@@ -10,7 +10,7 @@ coverage = "*"
 pyyaml = "*"
 
 [packages]
-django = "*"
+django = "==3.2.6"
 djangorestframework = "*"
 django-filter = "*"
 dj-database-url = "*"
@@ -26,6 +26,7 @@ google-auth = "*"
 google-api-python-client = "*"
 pandas = "*"
 django-prometheus = "*"
+jinja2 = "*"
 
 [requires]
 python_version = "3.8"

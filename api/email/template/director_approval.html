@@ -1,0 +1,36 @@
+{%- extends "base.html" -%}
+{%-block subject-%}You're team member has submitted your film on Moviepedia Films{%-endblock-%}
+{% block title%}
+    <a class="f-fallback email-masthead_name"
+        style="color: #A8AAAF; font-size: 16px; font-weight: bold; text-decoration: none; text-shadow: 0 1px 0 white;"
+        href="https://moviepediafilms.com">
+        MDFF Season2
+    </a> 
+{%endblock%}
+
+{% block salutation%} Hey {{name}}, {%endblock%}
+
+{% block body%}
+    <p style="margin: 0.4em 0 1.1875em; font-size: 16px; line-height: 1.625; color: #51545E;">
+        Your film <b>"{{movie_title}}"</b> has been submitted by a member of your crew and is all set to make a Digital Screening on Moviepedia Films, 
+        The First Social Content Discovery Platform, led by Curators, Celebrities, and Film buffs across the world.
+    </p>
+    <p style="margin: 0.4em 0 1.1875em; font-size: 16px; line-height: 1.625; color: #51545E;">
+        Your crew member is awaiting your approval and so are we. We can't wait to have your story create an impact in the film-first community.
+    </p>
+    <p style="margin: 0.4em 0 1.1875em; font-size: 16px; line-height: 1.625; color: #51545E;">
+        You're just one step away from approving your film on our platform. Go ahead and approve the pending request. 
+    </p>
+    <table width="100%" >
+        <tbody >
+            <tr >
+                <td align="center" style="word-break: break-word; font-family: 'Nunito Sans',Helvetica,Arial,sans-serif; font-size: 16px;">
+                    <a class="button button--" 
+                    style="color: #3d3c3c; background-color: #ffbd21; border-top: 10px solid #ffbd21; border-right: 18px solid #ffbd21; border-bottom: 10px solid #ffbd21; border-left: 18px solid #ffbd21; display: inline-block; text-decoration: none; border-radius: 3px; box-shadow: 0 2px 3px rgba(0,0,0,0.16); -webkit-text-size-adjust: none; box-sizing: border-box;"
+                    href="https://moviepediafilms.com/{{profile_aware_link}}"
+                    target="_blank">Approve Now</a>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+{%endblock%}

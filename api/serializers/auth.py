@@ -8,7 +8,7 @@ from rest_framework import serializers
 from rest_framework.authtoken.serializers import AuthTokenSerializer
 from rest_framework.exceptions import ValidationError
 from rest_framework.serializers import Serializer
-from api.emails import email_trigger, TEMPLATES
+from api.email import email_trigger, TEMPLATES
 
 logger = getLogger("api.serializer")
 
