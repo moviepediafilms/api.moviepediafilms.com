@@ -2,7 +2,7 @@ from api.models.payment import Order
 from datetime import timedelta, datetime
 from logging import getLogger
 
-from django.utils.timezone import make_aware
+from django.utils.timezone import make_aware, get_current_timezone
 from django.db.models import Count
 from django.db import transaction
 
@@ -135,6 +135,9 @@ class MovieView(
             )
             if latest_movie:
                 last_publish_date = latest_movie.publish_on.date()
+                last_publish_date = latest_movie.publish_on.astimezone(
+                    get_current_timezone()
+                )
                 return base_qs.filter(publish_on__date=last_publish_date)
             else:
                 return Movie.objects.none()
