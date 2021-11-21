@@ -465,7 +465,9 @@ class CrewMemberRequestView(viewsets.ModelViewSet):
         serializer.save(logged_in_user=self.request.user)
 
 
-class MpGenreView(mixins.ListModelMixin, viewsets.GenericViewSet):
+class MpGenreView(
+    mixins.RetrieveModelMixin, mixins.ListModelMixin, viewsets.GenericViewSet
+):
     queryset = MpGenre.objects.filter(live=True)
 
     def get_serializer_class(self):

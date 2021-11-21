@@ -94,7 +94,7 @@ class MovieAdmin(ExportMixin, admin.ModelAdmin):
         return order and order.owner
 
     def director(self, movie):
-        return movie.crewmember_set.get(role__name="Director").profile.user
+        return movie.crewmember_set.filter(role__name="Director").first().profile.user
 
     def director_name(self, movie):
         return movie.crewmember_set.get(
