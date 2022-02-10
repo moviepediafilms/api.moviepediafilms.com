@@ -10,7 +10,7 @@ coverage = "*"
 pyyaml = "*"
 
 [packages]
-django = "==3.2.6"
+django = "==3.2.12"
 djangorestframework = "*"
 django-filter = "*"
 dj-database-url = "*"
