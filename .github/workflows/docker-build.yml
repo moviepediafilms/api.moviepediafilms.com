@@ -1,0 +1,29 @@
+name: Build and Publish Docker Image
+on:
+  push:
+    branches: [ docker ]
+  workflow_dispatch:
+env:
+  GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+jobs:
+  create-tag:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Bump version and push tag
+      uses: anothrNick/github-tag-action@master
+      env:
+        RELEASE_BRANCHES: docker
+  deploy:
+    needs: create-tag
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Publish to Registry
+      uses: elgohr/Publish-Docker-Github-Action@master
+      with:
+        name: moviepediafilms/backend
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+        registry: ghcr.io
+        tag_semver: true
