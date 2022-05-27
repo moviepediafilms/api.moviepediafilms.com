@@ -1,27 +1,19 @@
 name: Deploy On Production
 on:
   push:
-    branches: [ master ]
+    branches: [master]
   workflow_dispatch:
 jobs:
   deploy:
     environment: prod
     runs-on: ubuntu-latest
     steps:
-    - name: Executing remote command
-      uses: appleboy/ssh-action@v0.1.4
-      with:
-        host: ${{ secrets.HOST }}
-        USERNAME: ${{ secrets.USERNAME }}
-        KEY: ${{ secrets.SSHKEY }}
-        debug: ${{ secrets.DEBUG }}
-        script: |
-          cd /home/zeeshan/api.moviepediafilms.com
-          /usr/bin/git pull
-          /home/zeeshan/.local/bin/pipenv clean
-          /home/zeeshan/.local/bin/pipenv sync
-          /home/zeeshan/.local/bin/pipenv run python manage.py check --deploy
-          /home/zeeshan/.local/bin/pipenv run python manage.py collectstatic --noinput
-          /home/zeeshan/.local/bin/pipenv run python manage.py migrate --noinput
-          sudo /usr/sbin/service api.moviepediafilms restart
-        
+      - name: Docker pull on server
+        uses: appleboy/ssh-action@v0.1.4
+        with:
+          host: ${{ secrets.HOST }}
+          USERNAME: ${{ secrets.USERNAME }}
+          KEY: ${{ secrets.SSHKEY }}
+          debug: ${{ secrets.DEBUG }}
+          script: |
+            docker pull ghcr.io/moviepediafilms/backend:latest
