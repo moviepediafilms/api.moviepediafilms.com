@@ -180,9 +180,6 @@ REST_FRAMEWORK = {
 # Security and CORS settings
 
 CSRF_COOKIE_SECURE = PRODUCTION
-SECURE_SSL_REDIRECT = PRODUCTION
-if PRODUCTION:
-    SECURE_SSL_HOST = "api.moviepediafilms.com"
 CORS_ALLOW_CREDENTIALS = True
 CORS_ORIGIN_WHITELIST = [
     "http://localhost:8080",
@@ -196,6 +193,7 @@ CORS_ORIGIN_WHITELIST = [
 if PRODUCTION:
     SESSION_COOKIE_SECURE = True
     SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
+    SECURE_HSTS_SECONDS = 518400
 
 FIXTURE_DIRS = (
     os.path.join(
