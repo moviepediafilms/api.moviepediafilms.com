@@ -11,3 +11,4 @@ client_secret_*.json
 email-sender*.json
 db.sqlite3*
 *.env
+venv/

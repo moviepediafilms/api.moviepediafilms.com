@@ -1,14 +1,12 @@
 FROM python:3.8
 
 RUN pip install --upgrade pip
-RUN pip install pipenv
 
 WORKDIR /app
 
-COPY Pipfile Pipfile
-COPY Pipfile.lock Pipfile.lock
+COPY requirements.txt requirements.txt
 
-RUN pipenv install --deploy --system
+RUN pip install -r requirements.txt
 
 COPY ./src .
 
