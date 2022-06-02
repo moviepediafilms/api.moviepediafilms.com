@@ -18,63 +18,6 @@ import dj_database_url
 DEBUG = os.getenv("DEBUG") == "true"
 PRODUCTION = os.getenv("PRODUCTION") == "true"
 
-LOG_PATH = os.getenv("LOG_PATH", "api.moviepediafilms.log")
-LOG_PATH_JOB = os.getenv("LOG_PATH_JOB", "jobs.moviepediafilms.log")
-handlers = ["console", "file"] if DEBUG else ["file"]
-log_level = "DEBUG" if DEBUG else "INFO"
-LOGGING = {
-    "version": 1,
-    "disable_existing_loggers": True,
-    "formatters": {
-        "simple_format": {
-            "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-        }
-    },
-    "handlers": {
-        "console": {
-            "class": "logging.StreamHandler",
-            "formatter": "simple_format",
-            "stream": sys.stdout,
-        },
-        "file": {
-            "class": "logging.handlers.RotatingFileHandler",
-            "maxBytes": 1024 * 1024 * 5,
-            "backupCount": 5,
-            "filename": LOG_PATH,
-            "formatter": "simple_format",
-        },
-        "job_file": {
-            "class": "logging.handlers.RotatingFileHandler",
-            "maxBytes": 1024 * 1024 * 5,
-            "backupCount": 5,
-            "filename": LOG_PATH_JOB,
-            "formatter": "simple_format",
-        },
-    },
-    "loggers": {
-        "django": {
-            "handlers": handlers,
-            "level": "INFO",
-            "propagate": True,
-        },
-        "app": {
-            "handlers": handlers,
-            "level": log_level,
-            "propagate": False,
-        },
-        "api": {
-            "handlers": handlers,
-            "level": log_level,
-            "propagate": False,
-        },
-        "api.management": {
-            "handlers": ["job_file"],
-            "level": log_level,
-            "propagate": False,
-        },
-    },
-}
-
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
