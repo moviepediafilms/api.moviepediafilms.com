@@ -10,7 +10,7 @@ jobs:
     strategy:
       max-parallel: 4
       matrix:
-        python-version: [3.8]
+        python-version: [3.10]
     steps:
       - uses: actions/checkout@v2
       - uses: psf/black@stable
@@ -25,10 +25,12 @@ jobs:
           pip install -r requirements-test.txt
       - name: Run Tests
         run: |
+          mkdir /tmp/media
           cd src
           coverage run --source='.' manage.py test api.tests
           coverage xml --omit=moviepedia/*,manage.py
         env:
+          MEDIA_ROOT: /tmp/media
           SECRET_KEY: testingsecretkey
           IN_TEST: true
           DEBUG: true
