@@ -18,63 +18,6 @@ import dj_database_url
 DEBUG = os.getenv("DEBUG") == "true"
 PRODUCTION = os.getenv("PRODUCTION") == "true"
 
-LOG_PATH = os.getenv("LOG_PATH", "api.moviepediafilms.log")
-LOG_PATH_JOB = os.getenv("LOG_PATH_JOB", "jobs.moviepediafilms.log")
-handlers = ["console", "file"] if DEBUG else ["file"]
-log_level = "DEBUG" if DEBUG else "INFO"
-LOGGING = {
-    "version": 1,
-    "disable_existing_loggers": True,
-    "formatters": {
-        "simple_format": {
-            "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-        }
-    },
-    "handlers": {
-        "console": {
-            "class": "logging.StreamHandler",
-            "formatter": "simple_format",
-            "stream": sys.stdout,
-        },
-        "file": {
-            "class": "logging.handlers.RotatingFileHandler",
-            "maxBytes": 1024 * 1024 * 5,
-            "backupCount": 5,
-            "filename": LOG_PATH,
-            "formatter": "simple_format",
-        },
-        "job_file": {
-            "class": "logging.handlers.RotatingFileHandler",
-            "maxBytes": 1024 * 1024 * 5,
-            "backupCount": 5,
-            "filename": LOG_PATH_JOB,
-            "formatter": "simple_format",
-        },
-    },
-    "loggers": {
-        "django": {
-            "handlers": handlers,
-            "level": "INFO",
-            "propagate": True,
-        },
-        "app": {
-            "handlers": handlers,
-            "level": log_level,
-            "propagate": False,
-        },
-        "api": {
-            "handlers": handlers,
-            "level": log_level,
-            "propagate": False,
-        },
-        "api.management": {
-            "handlers": ["job_file"],
-            "level": log_level,
-            "propagate": False,
-        },
-    },
-}
-
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -109,6 +52,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "django_prometheus.middleware.PrometheusBeforeMiddleware",
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -186,9 +130,9 @@ STATIC_URL = "/static/"
 
 MEDIA_URL = "/media/"
 
-STATIC_ROOT = "static"
+STATIC_ROOT = os.getenv("STATIC_DIR", "/staticfiles/static")
 
-MEDIA_ROOT = os.getenv("MEDIA_ROOT", os.path.join(BASE_DIR, "media"))
+MEDIA_ROOT = os.getenv("MEDIA_ROOT", "/media")
 
 MEDIA_POSTERS = "posters"
 
@@ -236,7 +180,6 @@ REST_FRAMEWORK = {
 # Security and CORS settings
 
 CSRF_COOKIE_SECURE = PRODUCTION
-SECURE_SSL_REDIRECT = PRODUCTION
 CORS_ALLOW_CREDENTIALS = True
 CORS_ORIGIN_WHITELIST = [
     "http://localhost:8080",
@@ -250,6 +193,7 @@ CORS_ORIGIN_WHITELIST = [
 if PRODUCTION:
     SESSION_COOKIE_SECURE = True
     SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
+    SECURE_HSTS_SECONDS = 518400
 
 FIXTURE_DIRS = (
     os.path.join(

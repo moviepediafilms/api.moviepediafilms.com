@@ -1,40 +1,44 @@
 name: Unittest
 on:
   push:
-    branches: [ master, uat ]
+    branches: [master, uat]
   pull_request:
-    branches: [ master, uat ]
+    branches: [master, uat]
 jobs:
   test:
     runs-on: ubuntu-latest
     strategy:
       max-parallel: 4
       matrix:
-        python-version: [3.8]
+        python-version: ["3.10"]
     steps:
-    - uses: actions/checkout@v2
-    - uses: psf/black@stable
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v1
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Install Dependencies
-      run: |
-        python -m pip install --upgrade pip pipenv
-        pipenv install --dev
-    - name: Run Tests
-      run: |
-        pipenv run coverage run --source='.' manage.py test api.tests
-        pipenv run coverage xml --omit=moviepedia/*,manage.py
-      env:
-        SECRET_KEY: testingsecretkey
-        IN_TEST: true
-        DEBUG: true
-        LOG_PATH: moviepedia.log
-        LOG_PATH_JOB: jobs.moviepedia.log
-        DATABASE_URL: sqlite:///db.sqlite3
-    - name: Upload Unittest Coverage Report
-      uses: codecov/codecov-action@v1
-      with:
-        file: ./coverage.xml
-        fail_ci_if_error: false
+      - uses: actions/checkout@v2
+      - uses: psf/black@stable
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v1
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-test.txt
+      - name: Run Tests
+        run: |
+          mkdir /tmp/media
+          cd src
+          coverage run --source='.' manage.py test api.tests
+          coverage xml --omit=moviepedia/*,manage.py
+        env:
+          MEDIA_ROOT: /tmp/media
+          SECRET_KEY: testingsecretkey
+          IN_TEST: true
+          DEBUG: true
+          LOG_PATH: moviepedia.log
+          LOG_PATH_JOB: jobs.moviepedia.log
+          DATABASE_URL: sqlite:///db.sqlite3
+      - name: Upload Unittest Coverage Report
+        uses: codecov/codecov-action@v1
+        with:
+          file: ./coverage.xml
+          fail_ci_if_error: false
