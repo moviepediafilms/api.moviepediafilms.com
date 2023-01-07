@@ -41,7 +41,7 @@ class AuthTokenView(ObtainAuthToken):
         return Response({"token": token.key, "user_id": user.pk, "email": user.email})
 
 
-class AccountVerifyView(viewsets.GenericViewSet, mixins.UpdateModelMixin):
+class AccountVerifyView(viewsets.GenericViewSet):
     permission_classes = []
     queryset = Token.objects
 
@@ -51,7 +51,7 @@ class AccountVerifyView(viewsets.GenericViewSet, mixins.UpdateModelMixin):
             "resend": ActivationResentSerializer,
             "forgot": ForgotPasswordSerializer,
             "reset": ResetPasswordSerializer,
-        }[self.action]
+        }.get(self.action)
 
     @action(methods=["get"], detail=True)
     def verify(self, request, *args, **kwargs):

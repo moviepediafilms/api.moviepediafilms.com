@@ -22,7 +22,6 @@ def get_credentials_file():
     settings has precedance over environment variable
     """
     if hasattr(settings, "GSUITE_CREDENTIALS_FILE"):
-        #
         file_path = settings.GSUITE_CREDENTIALS_FILE
         if check_file(file_path):
             return file_path
@@ -32,7 +31,7 @@ def get_credentials_file():
         if check_file(file_path):
             return file_path
     raise ImproperlyConfigured(
-        "GSUITE_CREDENTIALS_FILE is not set, set it in seetings or as environment variable"
+        "GSUITE_CREDENTIALS_FILE is not set, set it in settings or as environment variable"
     )
 
 
