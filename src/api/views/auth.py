@@ -41,17 +41,23 @@ class AuthTokenView(ObtainAuthToken):
         return Response({"token": token.key, "user_id": user.pk, "email": user.email})
 
 
-class AccountVerifyView(viewsets.GenericViewSet):
+class AccountVerifyView(viewsets.GenericViewSet, mixins.UpdateModelMixin):
     permission_classes = []
     queryset = Token.objects
 
     def get_serializer_class(self):
-        return {
+        serializer_class = {
             "verify": VerifyEmailSerializer,
             "resend": ActivationResentSerializer,
             "forgot": ForgotPasswordSerializer,
             "reset": ResetPasswordSerializer,
+            "partial_update": VerifyEmailSerializer,  # only only for openapi schema generation
+            "update": VerifyEmailSerializer,  # only only for openapi schema generation
         }.get(self.action)
+        if not serializer_class:
+            print(self.action)
+            return super().get_serializer_class()
+        return serializer_class
 
     @action(methods=["get"], detail=True)
     def verify(self, request, *args, **kwargs):
