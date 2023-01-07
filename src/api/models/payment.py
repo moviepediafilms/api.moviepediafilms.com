@@ -106,10 +106,11 @@ class Order(models.Model):
             director = (
                 movie.crewmember_set.filter(role__name="Director").first().profile.user
             )
+            email_trigger(self.owner, TEMPLATES.WELCOME_MDFF, movie=movie)
             if director == self.owner:
                 logger.debug("Submission by Director")
-                email_trigger(director, TEMPLATES.SUBMIT_CONFIRM_DIRECTOR)
+                # email_trigger(director, TEMPLATES.SUBMIT_CONFIRM_DIRECTOR)
             else:
                 logger.debug("Submission by crew member")
                 email_trigger(director, TEMPLATES.DIRECTOR_APPROVAL, movie=movie)
-                email_trigger(self.owner, TEMPLATES.SUBMIT_CONFIRM_CREW)
+                # email_trigger(self.owner, TEMPLATES.SUBMIT_CONFIRM_CREW)

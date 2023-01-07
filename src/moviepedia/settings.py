@@ -14,6 +14,8 @@ import os
 import sys
 import dj_database_url
 
+LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -24,7 +26,7 @@ LOGGING = {
     },
     "handlers": {
         "console": {
-            "level": "INFO",
+            "level": LOG_LEVEL,
             "class": "logging.StreamHandler",
             "stream": sys.stdout,
             "formatter": "verbose",
@@ -33,7 +35,7 @@ LOGGING = {
     "loggers": {
         "": {
             "handlers": ["console"],
-            "level": "INFO",
+            "level": LOG_LEVEL,
             "propagate": True,
         },
     },
@@ -243,3 +245,8 @@ SENDGRID_REPLY_TO = "moviepedia14@gmail.com"
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
 GOOGLE_SECRET_FILE = os.getenv("GOOGLE_SECRET_FILE")
+
+
+# Celery
+CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL")
+CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND")

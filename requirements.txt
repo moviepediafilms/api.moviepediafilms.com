@@ -16,3 +16,4 @@ pandas
 django-prometheus==2.1.0
 jinja2==3.0.1
 whitenoise
+celery[redis]==5.2.7
