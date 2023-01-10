@@ -58,7 +58,7 @@ class Command(BaseCommand):
                         celeb_recommend_movies
                     )
 
-                likes_for_calc = likes / 10**6
+                likes_for_calc = likes / 10 ** 6
 
                 # Composite Score (A): Reco. Wt. * Match Accuracy * Match accuracy with celeb
                 score = (
