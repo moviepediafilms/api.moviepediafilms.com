@@ -38,6 +38,7 @@ from api.models import (
     Contest,
 )
 from .profile import ProfileSerializer, UserSerializer
+from api.tasks import create_poster_thumb
 
 logger = getLogger(__name__)
 
@@ -617,6 +618,8 @@ class SubmissionSerializer(serializers.Serializer):
         movie = MovieSerializer().create(payload)
         movie.poster = self._save_poster(validated_data, movie.id)
         movie.save()
+        # register a task here
+        create_poster_thumb.delay(movie.id)
         logger.debug("create::end")
         return movie
 

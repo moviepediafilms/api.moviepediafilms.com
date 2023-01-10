@@ -76,6 +76,7 @@ class Movie(models.Model):
     )
     # to be uploaded by user (Poster)
     poster = models.URLField(null=True, blank=True)
+    poster_thumb = models.URLField(null=True, blank=True)
     month = models.DateField(null=True, blank=True)
     # the time at which the movie's state was changed to published
     publish_on = models.DateTimeField(null=True, blank=True)

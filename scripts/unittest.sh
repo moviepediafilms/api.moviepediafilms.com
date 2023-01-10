@@ -7,4 +7,4 @@ docker run -it --rm -e MEDIA_ROOT=/tmp/media \
           -e LOG_PATH=moviepedia.log \
           -e LOG_PATH_JOB=jobs.moviepedia.log \
           -e DATABASE_URL=sqlite:///db.sqlite3 \
- --entrypoint "/app/unittest.sh" backend
+ --entrypoint /app/dev-entrypoint.sh backend test api.tests.test_task
