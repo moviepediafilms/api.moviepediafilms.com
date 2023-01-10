@@ -292,6 +292,7 @@ class MovieSerializerSummary(serializers.ModelSerializer):
             "id",
             "title",
             "poster",
+            "poster_thumb",
             "about",
             "contests",
             "crew",
@@ -362,6 +363,7 @@ class MovieSerializer(serializers.ModelSerializer):
             "genres",
             "lang",
             "poster",
+            "poster_thumb",
             "package",
             "crew",
             "director",
@@ -378,7 +380,7 @@ class MovieSerializer(serializers.ModelSerializer):
             "contests",
             "type",
         ]
-        read_only_fields = ["about", "state", "type"]
+        read_only_fields = ["about", "state", "type", "poster_thumb"]
 
     def get_package(self, movie):
         return PackageSerializer(

@@ -32,7 +32,4 @@ def queue_movies_for_thumb_generation(self):
 
 @celery_app.task(bind=True)
 def create_poster_thumb(self, movie_id):
-    movie = Movie.objects.get(pk=movie_id)
-    print(movie.poster)
-    logger.info(f"{movie.title} is without thumbnails")
-    logger.info(f"{movie.poster} dummy processing image")
+    call_command("generate-poster-thumbs", movie_id=movie_id, overwrite=True)

@@ -57,7 +57,6 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 
 ALLOWED_HOSTS = ["*"] if DEBUG else os.getenv("ALLOWED_HOSTS", "").split(" ")
 
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -166,6 +165,8 @@ MEDIA_POSTERS = "posters"
 MEDIA_PROFILE = "profile"
 # square dimension 1:1 aspect ratio
 THUMB_DIMENS = [150, 80]
+# [195, 110]
+POSTER_THUMB_DIMENS = [195 * 3, 110 * 3]
 
 ADMINS = [("Zeeshan", "zkhan1093@gmail.com")]
 
@@ -210,6 +211,8 @@ CSRF_COOKIE_SECURE = PRODUCTION
 CORS_ALLOW_CREDENTIALS = True
 CORS_ORIGIN_WHITELIST = [
     "http://localhost:8080",
+    "http://localhost:8082",
+    "http://localhost:8083",
     "https://moviepediafilms.com",
     "https://www.moviepediafilms.com",
     "https://uat.moviepediafilms.com",
