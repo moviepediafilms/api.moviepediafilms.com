@@ -25,7 +25,7 @@ jobs:
           pip install -r requirements-test.txt
       - name: Run Tests
         run: |
-          ./scripts/unittest
+          ./scripts/unittest.sh
         env:
           MEDIA_ROOT: /tmp/media
           SECRET_KEY: testingsecretkey
