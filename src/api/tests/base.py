@@ -8,6 +8,7 @@ from rest_framework.reverse import reverse
 from rest_framework.test import APIClient
 
 from api.models import User
+import mock
 
 reverse = partial(reverse, args=["v1"])
 
@@ -40,10 +41,15 @@ class APITestCaseMixin:
 
     def setUp(self):
         super().setUp()
+        self.patcher_celery_task = mock.patch(
+            "celery.app.task.Task.delay", return_value=1
+        )
+        self.patcher_celery_task.start()
         logging.disable(logging.CRITICAL)
 
     def tearDown(self):
         super().tearDown()
+        self.patcher_celery_task.stop()
         logging.disable(logging.NOTSET)
 
 

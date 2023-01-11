@@ -38,6 +38,7 @@ from api.models import (
     Contest,
 )
 from .profile import ProfileSerializer, UserSerializer
+from api.tasks import create_poster_thumb
 
 logger = getLogger(__name__)
 
@@ -291,6 +292,7 @@ class MovieSerializerSummary(serializers.ModelSerializer):
             "id",
             "title",
             "poster",
+            "poster_thumb",
             "about",
             "contests",
             "crew",
@@ -361,6 +363,7 @@ class MovieSerializer(serializers.ModelSerializer):
             "genres",
             "lang",
             "poster",
+            "poster_thumb",
             "package",
             "crew",
             "director",
@@ -377,7 +380,7 @@ class MovieSerializer(serializers.ModelSerializer):
             "contests",
             "type",
         ]
-        read_only_fields = ["about", "state", "type"]
+        read_only_fields = ["about", "state", "type", "poster_thumb"]
 
     def get_package(self, movie):
         return PackageSerializer(
@@ -617,6 +620,8 @@ class SubmissionSerializer(serializers.Serializer):
         movie = MovieSerializer().create(payload)
         movie.poster = self._save_poster(validated_data, movie.id)
         movie.save()
+        # register a task here
+        create_poster_thumb.delay(movie.id)
         logger.debug("create::end")
         return movie
 
@@ -626,6 +631,7 @@ class SubmissionSerializer(serializers.Serializer):
         payload["user"] = validated_data["user"]
         movie = MovieSerializer().update(instance, payload)
         movie.poster = self._save_poster(validated_data, movie.id)
+        create_poster_thumb.delay(movie.id)
         logger.debug("update::end")
         return movie
 

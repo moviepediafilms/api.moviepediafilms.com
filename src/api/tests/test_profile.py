@@ -26,6 +26,7 @@ class PersonalRecommendListTestCase(APITestCaseMixin, LoggedInMixin, TestCase):
                     "id": 1,
                     "title": "Submitted Movie",
                     "poster": None,
+                    "poster_thumb": None,
                     "about": "This is a good movie",
                     "contests": [],
                     "crew": [],

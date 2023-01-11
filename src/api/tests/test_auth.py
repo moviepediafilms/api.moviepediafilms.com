@@ -162,8 +162,8 @@ class SignInTestCase(APITestCaseMixin, WithPayloadMixin, TestCase):
         self.assertFalse(user.check_password("xxyyzz"))
         res = self.client.post(
             reverse("api:account-reset", args=["v1", "token2-abcd"]),
-            {"password": "xxyyzz"},
+            {"password": "xxyyzzz"},
         )
         self.assertEqual(200, res.status_code)
         user.refresh_from_db()
-        self.assertTrue(user.check_password("xxyyzz"))
+        self.assertTrue(user.check_password("xxyyzzz"))

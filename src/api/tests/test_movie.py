@@ -41,6 +41,7 @@ class MovieViewTestCase(APITestCaseMixin, LoggedInMixin, TestCase):
                 "genres": [{"id": 1, "name": "Drama"}],
                 "lang": {"id": 1, "name": "English"},
                 "poster": None,
+                "poster_thumb": None,
                 "package": {"amount": 100.0, "name": "Pack1"},
                 "crew": [
                     {
@@ -91,6 +92,7 @@ class MovieViewTestCase(APITestCaseMixin, LoggedInMixin, TestCase):
                     ],
                     "id": 1,
                     "poster": None,
+                    "poster_thumb": None,
                     "publish_on": "2021-01-01T10:53:15.167332+05:30",
                     "recommend_count": 0,
                     "runtime": 100.0,
@@ -116,6 +118,7 @@ class MovieViewTestCase(APITestCaseMixin, LoggedInMixin, TestCase):
                     "id": 1,
                     "title": "Submitted Movie",
                     "poster": None,
+                    "poster_thumb": None,
                     "about": "This is a good movie",
                     "contests": [],
                     "crew": [

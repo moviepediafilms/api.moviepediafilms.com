@@ -25,17 +25,12 @@ jobs:
           pip install -r requirements-test.txt
       - name: Run Tests
         run: |
-          mkdir /tmp/media
-          cd src
-          coverage run --source='.' manage.py test api.tests
-          coverage xml --omit=moviepedia/*,manage.py
+          ./scripts/unittest.sh
         env:
           MEDIA_ROOT: /tmp/media
           SECRET_KEY: testingsecretkey
           IN_TEST: true
           DEBUG: true
-          LOG_PATH: moviepedia.log
-          LOG_PATH_JOB: jobs.moviepedia.log
           DATABASE_URL: sqlite:///db.sqlite3
       - name: Upload Unittest Coverage Report
         uses: codecov/codecov-action@v1
