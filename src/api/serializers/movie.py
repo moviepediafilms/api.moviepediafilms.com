@@ -631,6 +631,7 @@ class SubmissionSerializer(serializers.Serializer):
         payload["user"] = validated_data["user"]
         movie = MovieSerializer().update(instance, payload)
         movie.poster = self._save_poster(validated_data, movie.id)
+        create_poster_thumb.delay(movie.id)
         logger.debug("update::end")
         return movie
 

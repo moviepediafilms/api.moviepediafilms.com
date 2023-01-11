@@ -1,0 +1,19 @@
+name: Deploy on UAT
+on:
+  registry_package:
+    types: [published]
+  workflow_dispatch:
+jobs:
+  deploy:
+    environment: uat
+    runs-on: ubuntu-latest
+    steps:
+      - name: Docker pull on server
+        uses: appleboy/ssh-action@v0.1.4
+        with:
+          host: ${{ secrets.HOST }}
+          USERNAME: ${{ secrets.USERNAME }}
+          KEY: ${{ secrets.SSHKEY }}
+          debug: ${{ secrets.DEBUG }}
+          script: |
+            docker pull ghcr.io/moviepediafilms/backend:latest

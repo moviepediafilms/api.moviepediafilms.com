@@ -44,7 +44,7 @@ LOGGING = {
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG") == "true"
 PRODUCTION = os.getenv("PRODUCTION") == "true"
-
+IN_TEST = os.getenv("IN_TEST") == "true"
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -55,7 +55,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv("SECRET_KEY")
 
-ALLOWED_HOSTS = ["*"] if DEBUG else os.getenv("ALLOWED_HOSTS", "").split(" ")
+ALLOWED_HOSTS = ["*"] if DEBUG or IN_TEST else os.getenv("ALLOWED_HOSTS", "").split(" ")
 
 # Application definition
 
@@ -115,7 +115,8 @@ WSGI_APPLICATION = "moviepedia.wsgi.application"
 
 
 DATABASES = {"default": dj_database_url.config(conn_max_age=600)}
-if "test" in sys.argv:
+if IN_TEST or "test" in sys.argv:
+    print("in test")
     DATABASES["default"] = {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": "test.sqlite3",
