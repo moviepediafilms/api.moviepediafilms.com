@@ -14,6 +14,11 @@ import os
 import sys
 import dj_database_url
 
+# load the .env file
+from dotenv import load_dotenv
+
+load_dotenv()
+
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
 
 LOGGING = {

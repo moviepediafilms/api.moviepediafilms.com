@@ -350,6 +350,7 @@ class MovieSerializer(serializers.ModelSerializer):
     contests = serializers.SerializerMethodField()
     order = serializers.SerializerMethodField()
     package = serializers.SerializerMethodField()
+    extras = serializers.JSONField(required=False)
 
     class Meta:
         model = Movie
@@ -379,6 +380,7 @@ class MovieSerializer(serializers.ModelSerializer):
             "recommend_count",
             "contests",
             "type",
+            "extras",
         ]
         read_only_fields = ["about", "state", "type", "poster_thumb"]
 
@@ -453,6 +455,7 @@ class MovieSerializer(serializers.ModelSerializer):
         creator_roles = validated_data.pop("roles", [])
         lang_data = validated_data.pop("lang")
         director_data = validated_data.pop("director", {})
+        extras = validated_data.pop("extras", None)
 
         validated_data["lang"] = MovieLanguageSerializer().create(lang_data)
         validated_data["state"] = MOVIE_STATE.CREATED
@@ -471,7 +474,7 @@ class MovieSerializer(serializers.ModelSerializer):
             raise ValidationError("Director must be provided")
         # creating empty order here so that the movie entry can be tracked
         # back to the creator using movie.orders.owner
-        order = Order.objects.create(owner=user)
+        order = Order.objects.create(owner=user, extras=extras)
         order.movies.add(movie)
         return movie
 
