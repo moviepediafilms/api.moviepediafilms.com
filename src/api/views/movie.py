@@ -86,7 +86,6 @@ class OrderView(
     mixins.ListModelMixin,
     viewsets.GenericViewSet,
 ):
-
     permission_classes = [IsOrderOwner]
     filterset_fields = ["state", "package", "movies__id"]
 

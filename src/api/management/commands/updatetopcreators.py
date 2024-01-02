@@ -15,7 +15,6 @@ MAX_AUDIENCE_RATINGS = 40
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
-
         top_creator_comparator = lambda x: (  # noqa: E731
             x.get("score", 0),
             x.get("name"),

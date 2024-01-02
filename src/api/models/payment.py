@@ -67,6 +67,8 @@ class Order(models.Model):
     state = models.CharField(
         choices=ORDER_STATES, max_length=1, default=ORDER_STATE.CREATED
     )
+    # json store extra data
+    extras = models.JSONField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.order_id} - {'C' if self.payment_id else 'P'}"

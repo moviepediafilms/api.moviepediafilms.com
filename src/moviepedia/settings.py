@@ -14,6 +14,11 @@ import os
 import sys
 import dj_database_url
 
+# load the .env file
+from dotenv import load_dotenv
+
+load_dotenv()
+
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
 
 LOGGING = {
@@ -128,7 +133,9 @@ DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
+        "NAME": (
+            "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"
+        ),
     },
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},

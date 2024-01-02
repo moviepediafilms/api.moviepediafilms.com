@@ -55,7 +55,6 @@ class VerifyPayment(APIView):
 
 
 class PackageView(mixins.ListModelMixin, viewsets.GenericViewSet):
-
     queryset = Package.objects.all()
     filterset_fields = ["active"]
     serializer_class = PackageSerializer
