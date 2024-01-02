@@ -51,7 +51,9 @@ class AccountVerifyView(viewsets.GenericViewSet, mixins.UpdateModelMixin):
             "resend": ActivationResentSerializer,
             "forgot": ForgotPasswordSerializer,
             "reset": ResetPasswordSerializer,
-            "partial_update": VerifyEmailSerializer,  # only only for openapi schema generation
+            "partial_update": (
+                VerifyEmailSerializer
+            ),  # only only for openapi schema generation
             "update": VerifyEmailSerializer,  # only only for openapi schema generation
         }.get(self.action)
         if not serializer_class:

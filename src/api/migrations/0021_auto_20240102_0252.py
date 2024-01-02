@@ -6,17 +6,17 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0020_movie_extras'),
+        ("api", "0020_movie_extras"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='movie',
-            name='extras',
+            model_name="movie",
+            name="extras",
         ),
         migrations.AddField(
-            model_name='order',
-            name='extras',
+            model_name="order",
+            name="extras",
             field=models.JSONField(blank=True, null=True),
         ),
     ]

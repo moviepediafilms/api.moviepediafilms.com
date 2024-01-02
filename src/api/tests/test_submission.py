@@ -252,7 +252,8 @@ class SubmissionPackageSelectionTestCase(
 
     def test_create_order_diff_package_success(self):
         """Case where user goes back a step to change package,
-        in that case UI should trigger a new order creation with the selected(different) package"""
+        in that case UI should trigger a new order creation with the selected(different) package
+        """
 
         movie = Movie.objects.get(id=self.movie["id"])
         # creates an order with package as pack1
@@ -277,7 +278,8 @@ class SubmissionPackageSelectionTestCase(
 
     def test_create_order_same_package_fails(self):
         """Case where user goes back a step to change package,
-        in that case UI should trigger a new order creation with the selected(different) package"""
+        in that case UI should trigger a new order creation with the selected(different) package
+        """
         movie = Movie.objects.get(id=self.movie["id"])
 
         # creates an order with package as pack1
