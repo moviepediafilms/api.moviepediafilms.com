@@ -14,7 +14,6 @@ def load_movie_order(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("api", "0016_auto_20210807_1027"),
     ]

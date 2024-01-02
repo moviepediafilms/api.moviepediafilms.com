@@ -90,7 +90,6 @@ class AccountVerifyView(viewsets.GenericViewSet, mixins.UpdateModelMixin):
 
 
 class GoogleSignInView(views.APIView):
-
     permission_classes = []
 
     def post(self, request, **kwargs):

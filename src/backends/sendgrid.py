@@ -19,8 +19,10 @@ class SendgridEmailBackend(BaseEmailBackend):
         else:
             self.api_key = getattr(settings, "SENDGRID_API_KEY", None)
         if not self.api_key:
-            raise ImproperlyConfigured("""
-                SENDGRID_API_KEY must be declared in settings.py""")
+            raise ImproperlyConfigured(
+                """
+                SENDGRID_API_KEY must be declared in settings.py"""
+            )
         self.sg = sendgrid.SendGridAPIClient(api_key=self.api_key)
         self.dry_run = not getattr(settings, "EMAIL_DISABLED", False)
         logger.info(
