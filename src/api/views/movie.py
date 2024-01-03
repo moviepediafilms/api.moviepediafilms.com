@@ -129,17 +129,8 @@ class MovieView(
     def get_queryset(self):
         base_qs = Movie.objects.filter(state=MOVIE_STATE.PUBLISHED)
         if self.action == "new_releases":
-            latest_movie = (
-                base_qs.exclude(publish_on__isnull=True).order_by("-publish_on").first()
-            )
-            if latest_movie:
-                last_publish_date = latest_movie.publish_on.date()
-                last_publish_date = latest_movie.publish_on.astimezone(
-                    get_current_timezone()
-                )
-                return base_qs.filter(publish_on__date=last_publish_date)
-            else:
-                return Movie.objects.none()
+            return base_qs.order_by("-publish_on")[:8]
+
         if self.action == "partial_update":
             return Movie.objects.filter(
                 crewmember__role__name="Director",
