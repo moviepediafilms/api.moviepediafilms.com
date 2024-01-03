@@ -130,7 +130,7 @@ class MovieView(
         base_qs = Movie.objects.filter(state=MOVIE_STATE.PUBLISHED)
         if self.action == "new_releases":
             return base_qs.order_by("-publish_on")[:8]
-            
+
         if self.action == "partial_update":
             return Movie.objects.filter(
                 crewmember__role__name="Director",
