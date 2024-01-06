@@ -78,6 +78,7 @@ INSTALLED_APPS = [
     "django_filters",
     "import_export",
     "api",
+    "seo",
 ]
 
 MIDDLEWARE = [

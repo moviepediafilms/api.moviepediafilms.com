@@ -2,4 +2,5 @@
 
 # Start server
 echo "Starting celery worker"
-celery -A moviepedia worker -l INFO
+celery -A moviepedia worker -l INFO --beat
+
