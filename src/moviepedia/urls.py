@@ -22,14 +22,16 @@ from django.conf.urls.static import static
 from django.views.generic import TemplateView
 from rest_framework.schemas import get_schema_view
 
-urlpatterns = [
-    url("", include("django_prometheus.urls")),
-    path("admin/", admin.site.urls),
-    url(r"^api-auth/", include("rest_framework.urls")),
-    url(r"^(?P<version>(v1))/", include("api.urls")),
-    # pattern to capture path that doesn't start with v1/ or admin/ or api-auth/
-    re_path(r"^(?!(v1/|admin/|api-auth/)).*", include("seo.urls")),
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+urlpatterns = (
+    [
+        url("", include("django_prometheus.urls")),
+        path("admin/", admin.site.urls),
+        url(r"^api-auth/", include("rest_framework.urls")),
+        url(r"^(?P<version>(v1))/", include("api.urls")),
+    ]
+    + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    + [path("", include("seo.urls"))]
+)
 
 if settings.DEBUG:
     urlpatterns += [
