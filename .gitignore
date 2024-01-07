@@ -12,3 +12,4 @@ email-sender*.json
 db.sqlite3*
 *.env
 venv/
+*.sqlite3
