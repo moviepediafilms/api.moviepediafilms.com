@@ -8,7 +8,8 @@ from logging import getLogger
 logger = getLogger(__name__)
 
 
-def generate_seo_tags(request, path):
+def generate_seo_tags(request, path=None):
+    path = path or request.path
     path = "/" + path.strip("/")
     logger.info(f"generate_seo_tags: {path}")
     # Match the incoming URL path with saved Page models,
@@ -31,14 +32,7 @@ def generate_seo_tags(request, path):
             if match:
                 break
         if not match:
-            # return the page with url /
-            try:
-                page = Page.objects.get(url="/")
-                model_pk = None
-            except Page.DoesNotExist:
-                raise Http404(
-                    "Page is not configured for this URL, and no default page is configured."
-                )
+            raise Http404()
         else:
             # capture the model_pk from the matched url
             model_pk = match.group(page.model_pk)
@@ -48,19 +42,20 @@ def generate_seo_tags(request, path):
     # Fetch the associated model using the model key
     selected_model = None
     if model_pk:
-        model_calss = page.models_to_select.model_class()
+        model_class = page.models_to_select.model_class()
         try:
             key = {page.model_pk: int(model_pk)}
         except ValueError:
             key = {page.model_pk: model_pk}
         try:
-            selected_model = model_calss.objects.get(**key)
+            selected_model = model_class.objects.get(**key)
             logger.info(f"selected_model={selected_model}")
-        except model_calss.DoesNotExist:
+        except model_class.DoesNotExist:
             logger.error(
                 f"Model with app_label={page.models_to_select.app_label} and model={page.models_to_select.model} with {key} does not exist"
             )
             selected_model = None
+            raise Http404()
 
     def get_nested_attribute_value(obj, attribute_name):
         nested_attributes = attribute_name.split(".")
