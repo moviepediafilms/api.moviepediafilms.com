@@ -131,7 +131,11 @@ class GoogleSignInView(views.APIView):
             try:
                 user = User.objects.get(email=email)
             except User.DoesNotExist:
-                extra_details = fetch_profile_details(auth_code, account_id)
+                try:
+                    extra_details = fetch_profile_details(auth_code, account_id)
+                except Exception as ex:
+                    logger.exception(ex)
+                    extra_details = {}
                 profile_data.update(extra_details)
                 logger.info(f"profile data: {profile_data}")
 
