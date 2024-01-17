@@ -119,8 +119,11 @@ WSGI_APPLICATION = "moviepedia.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 
-
-DATABASES = {"default": dj_database_url.config(conn_max_age=600)}
+db_default = dj_database_url.config(conn_max_age=600)
+options = db_default.get("OPTIONS", {})
+options["charset"] = "utf8mb4"
+db_default["OPTIONS"] = options
+DATABASES = {"default": db_default}
 if IN_TEST or "test" in sys.argv:
     print("in test")
     DATABASES["default"] = {
