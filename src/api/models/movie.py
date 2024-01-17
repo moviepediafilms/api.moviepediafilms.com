@@ -166,7 +166,7 @@ class CrewMemberRequest(models.Model):
 class MovieList(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
     movies = models.ManyToManyField("Movie", related_name="in_lists", blank=True)
-    name = models.CharField(max_length=50)
+    name = models.CharField(max_length=100)
     liked_by = models.ManyToManyField(User, related_name="liked_lists", blank=True)
     frozen = models.BooleanField(default=False)
     contest = models.ForeignKey(
