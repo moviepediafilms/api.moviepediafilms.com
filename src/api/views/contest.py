@@ -23,7 +23,7 @@ logger = getLogger(__name__)
 
 class ContestView(viewsets.GenericViewSet, mixins.ListModelMixin):
     ordering_fields = ["start"]
-    filterset_fields = ["type__name"]
+    filterset_fields = ["type__name", "visible_in_top_creators", "visible_in_home_page"]
 
     def get_queryset(self):
         base_qs = Contest.objects.all()
