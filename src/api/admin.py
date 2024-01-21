@@ -196,14 +196,23 @@ class MoviesInContest(ExportMixin, admin.TabularInline):
 class ContestAdmin(ExportMixin, admin.ModelAdmin):
     list_display = [
         "name",
-        "start",
-        "end",
+        "dates",
         "days_per_movie",
         "state",
+        "visible_in_home_page",
+        "visible_in_top_creators",
     ]
     inlines = [
         MoviesInContest,
     ]
+
+    list_filter = ["visible_in_home_page", "visible_in_top_creators", "state"]
+
+    def dates(self, contest):
+        # format date in human readable format
+        return (
+            f"{contest.start.strftime('%d %b %Y')} - {contest.end.strftime('%d %b %Y')}"
+        )
 
 
 @admin.register(Notification)

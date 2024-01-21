@@ -42,6 +42,8 @@ class Contest(models.Model):
     )
     winners = models.ManyToManyField("Profile", through="ContestWinner", blank=True)
     max_recommends = models.IntegerField(default=20)
+    visible_in_top_creators = models.BooleanField(default=False)
+    visible_in_home_page = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name
