@@ -14,7 +14,7 @@ jobs:
         id: date
         run: echo "::set-output name=date::$(date +'%Y.%m.%d-%H%M')"
       - name: Publish to Registry
-        uses: elgohr/Publish-Docker-Github-Action@master
+        uses: elgohr/Publish-Docker-Github-Action@v5
         with:
           name: moviepediafilms/backend
           username: ${{ github.actor }}
