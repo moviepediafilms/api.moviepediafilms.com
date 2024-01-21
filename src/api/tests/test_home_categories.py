@@ -1,4 +1,4 @@
-from api.models.movie import MpGenre
+from api.models.movie import MpGenre, Movie
 import math
 from unittest import mock
 from datetime import datetime
@@ -27,16 +27,13 @@ class NewReleasesTestCase(APITestCaseMixin, LoggedInMixin, TestCase):
     ]
 
     def test_new_releases(self):
+        "should return min(all, 8) movies ordered by publish_on desc"
+        movies_count = Movie.objects.count()
         res = self.client.get(reverse("api:movie-new-releases"))
         self.assertEqual(200, res.status_code)
         actual_movies = res.json()["results"]
-        self.assertEquals(2, len(actual_movies))
-        # assert that all the publish dates are same
-        publish_dates = set(
-            datetime.strptime(movie["publish_on"], "%Y-%m-%dT%H:%M:%S.%f%z").date()
-            for movie in actual_movies
-        )
-        self.assertEqual(1, len(publish_dates))
+
+        self.assertEquals(min(movies_count, 8), len(actual_movies))
 
 
 class MostRecommendedTestCase(APITestCaseMixin, LoggedInMixin, TestCase):

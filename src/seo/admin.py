@@ -1,6 +1,5 @@
 from django.contrib import admin
-from .models import Page
-from django.db import models
+from .models import Page, MetaValue
 from import_export.admin import ExportMixin
 
 
@@ -12,3 +11,9 @@ class PageAdmin(ExportMixin, admin.ModelAdmin):
 
     def tags_count(self, obj):
         return len(obj.tags.split("\n")) if obj.tags else 0
+
+
+@admin.register(MetaValue)
+class MetaValueAdmin(ExportMixin, admin.ModelAdmin):
+    list_display = ("name", "value")
+    search_fields = ("name",)
